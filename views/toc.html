@@ -1,0 +1,13 @@
+<h4 class="ui header">{{toc.name}} - Topics</h4>
+<div class="ui vertical text menu">
+    {% for main_topic in toc.topics %}
+        <a class="{% if topic_slug == main_topic.slug %}active{% endif %} item" href="/topic/{{toc.slug}}/{{main_topic.slug}}">
+            <b>{{main_topic.toc_name}}</b></a>
+        <div class="content menu">
+            {% for child_topic in main_topic.topics %}
+                <a class="{% if topic.slug == child_topic.slug %}active{% endif %} item" href="/topic/{{toc.slug}}/{{child_topic.slug}}">
+                    <i class="icon {% if topic.slug == child_topic.slug %}arrow right{% elif child_topic.done %}checkmark{% else %}wait{% endif %}"></i>{{child_topic.toc_name}}</a>
+            {% endfor %}
+        </div>
+    {% endfor %}
+</div>

@@ -1,0 +1,15 @@
+/*******************************
+     User Global Variables
+*******************************/
+
+@emSize: 16px;
+@fontSize : 16px;
+@lineHeight: 1.5;
+
+/* Colors */
+@blue: #2F4D79;
+@green: #2C8848;
+@orange: #B7743C;
+@black: #333333;
+@primaryColor: #246E6E;
+@secondaryColor: @orange;

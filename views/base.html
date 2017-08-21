@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link rel="shortcut icon" type="image/png" href="/static/img/favicon.png"/>
+    <title>{% block title %}{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:400,700" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/static/semantic/dist/semantic.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/css/site.css">
+    <link rel="stylesheet" type="text/css" href="/static/highlight-themes/github.css">
+    <!--<script src="/static/js/highlight.pack.js"></script>-->
+    <script type="text/javascript">
+        window.initialStore = {{initialStore|safe}};
+    </script>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <div class="ui container full estate">
+        <div id="turtle-header">{{headerHtml|safe}}</div>
+
+        {% set messages = getFlashMessages(session) %}
+        {% if messages %}
+            {% for m in messages %}
+            <div class="ui {{m.category}} message">
+                <!-- <i class="close icon"></i> -->
+                <p>{{m.message}}</p>
+            </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block maincontent %}
+        <div class="ui container content estate">
+            {% block content %}{% endblock %}
+        </div>
+        {% endblock %}
+
+        <div class="ui hidden divider"></div>
+    </div>
+
+    <script src="/static/js/client_bundle.js"></script>
+</body>
+</html>

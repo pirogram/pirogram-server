@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}{{topic.title}}{% endblock %}
+
+{% block content %}
+
+<div class="ui left rail toc">
+    {% include "toc.html" %}
+</div>
+
+{% if user.superuser %}
+    <div class="ui text menu">
+        <h1>{{topic.title}}</h1>
+        <div class="right menu">
+            <a class="ui tiny item" href="/topic/{{toc.slug}}/{{topic.slug}}/edit">Edit</a>
+        </div>
+    </div>
+{% else %}
+    <h1>{{topic.title}}</h1>
+{% endif %}
+
+<div id="topic-content">{{topicHtml|safe}}</div>
+
+<div class="ui hidden divider"></div>
+<div>
+    {% if nextTopicSlug %}
+        <a href="/topic/{{toc.slug}}/{{nextTopicSlug}}" class="ui primary tiny right floated button">Next</a>
+    {% endif %}
+    {% if prevTopicSlug %}
+        <a href="/topic/{{toc.slug}}/{{prevTopicSlug}}" class="ui tiny left floated button">Previous</a>
+    {% endif %}
+</div>
+
+<div class="ui hidden clearing divider"></div>
+
+{% endblock %}
