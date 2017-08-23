@@ -1,15 +1,14 @@
 import React from 'react';
 import Parser from 'html-react-parser';
-import _ from 'lodash';
+import {cloneDeep} from 'lodash';
 import {Segment, Label, Form, Icon, Button, Divider} from 'semantic-ui-react';
-import {commonmarkToHtml} from '../../lib/turtle-markdown.js';
 import MonacoEditor from 'react-monaco-editor';
 
 export default class OfflineExercise extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {done: false, code: '', content: _.cloneDeep(props.content)};
+        this.state = {done: false, code: '', content: cloneDeep(props.content)};
         if( this.state.content.done) {
             this.state.done = true;
             this.state.code = this.state.content.solution.code;
@@ -75,7 +74,7 @@ export default class OfflineExercise extends React.Component {
                 <Label attached='top'>
                     <Icon name={this.state.done ? 'checkmark':'wait'} className="exercise status"/>Exercise (offline)
                 </Label>
-                {Parser(commonmarkToHtml(this.state.content.text))}
+                {Parser(this.state.content.html)}
 
                 <Form onSubmit={this.markQuizAsDone}>
                     <Divider/>

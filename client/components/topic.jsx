@@ -1,5 +1,6 @@
 import React from 'react';
-import _ from 'lodash';
+import indexOf from 'lodash/indexOf';
+import values from 'lodash/values';
 import axios from 'axios';
 import HtmlContent from './html-content.jsx';
 import McQuiz from './mcquiz.jsx';
@@ -23,7 +24,7 @@ export default class Topic extends React.Component {
         this.markQuizAsDone = this.markQuizAsDone.bind(this);
         this.markTopicAsDone = this.markTopicAsDone.bind(this);
 
-        if( this.props.user && _.values(this.state.done).length == 0) {
+        if( this.props.user && values(this.state.done).length == 0) {
             this.markTopicAsDone();
         }
     }
@@ -45,7 +46,7 @@ export default class Topic extends React.Component {
 
         const newState = Object.assign({}, this.state);
         newState.done[child.props.content.id] = true;
-        if( _.indexOf( _.values(newState.done), false) == -1) {
+        if( indexOf( values(newState.done), false) == -1) {
             this.markTopicAsDone();
         }
 

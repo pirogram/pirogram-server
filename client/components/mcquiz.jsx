@@ -1,19 +1,18 @@
 import React from 'react';
 import axios from 'axios';
-import _ from 'lodash';
+import {cloneDeep, indexOf, find, every} from 'lodash';
 import Parser from 'html-react-parser';
 import {Segment, Label, Icon, Form, Checkbox, Button} from 'semantic-ui-react';
-import {commonmarkToHtml} from '../../lib/turtle-markdown.js';
 
 export default class McQuiz extends React.Component {
     constructor( props) {
         super(props);
 
-        const state = {answerHintTimer: null, loading: false, content: _.cloneDeep(props.content)};
+        const state = {answerHintTimer: null, loading: false, content: cloneDeep(props.content)};
         if( state.content.done) {
             state.done = true;
             state.content.options.map((option, i) => {
-                if( _.indexOf(state.content.solution.correctOptions, option.key) >= 0) {
+                if( indexOf(state.content.solution.correctOptions, option.key) >= 0) {
                     option.selected = true;
                 }
             });
@@ -36,14 +35,14 @@ export default class McQuiz extends React.Component {
     }
 
     hasError(options) {
-        return !_.every(options, function(o) {
+        return !every(options, function(o) {
             return o.correct == o.selected;
         });
     }
 
     handleCheckboxChange(event, data) {
         const newState = Object.assign({}, this.state);
-        const option = _.find(newState.content.options, {key: parseInt(data.name)});
+        const option = find(newState.content.options, {key: parseInt(data.name)});
         option.selected = data.checked;
         this.setState(newState);
     }
@@ -67,7 +66,7 @@ export default class McQuiz extends React.Component {
             const correctOptions = response.data.data.correctOptions;
             const newState = Object.assign({}, component.state, {loading: false});
             newState.content.options.map((option, i) => {
-                if( _.indexOf(correctOptions, option.key) >= 0) {
+                if( indexOf(correctOptions, option.key) >= 0) {
                     option.correct = true;
                 }
             });
@@ -102,7 +101,7 @@ export default class McQuiz extends React.Component {
             <Segment>
                 <Label attached='top'><Icon name={this.state.done ? 'checkmark':'wait'} className="exercise status"/>Exercise</Label>
 
-                {Parser(commonmarkToHtml(this.state.content.text))}
+                {Parser(this.state.content.html)}
 
                 <Form className="quiz" onSubmit={this.handleSubmit}>
                     <Form.Group className="grouped fields">
@@ -111,7 +110,7 @@ export default class McQuiz extends React.Component {
 
                             return <Form.Field className={!this.state.answerHintTimer || option.correct == option.selected ? '' : 'error'}
                                         key={option.key}>
-                                        <Checkbox name={'' + option.key} label={Parser(commonmarkToHtml(option.text))} 
+                                        <Checkbox name={'' + option.key} label={Parser(option.html)} 
                                             {...checkedProps} onChange={this.handleCheckboxChange}/>
                                     </Form.Field>
                         })}

@@ -1,16 +1,15 @@
 import React from 'react';
 import Parser from 'html-react-parser';
 import axios from 'axios';
-import _ from 'lodash';
+import {cloneDeep, map, find} from 'lodash';
 import {Segment, Label, Icon, Form, Button, Divider, Grid, Input, Modal, Header} from 'semantic-ui-react';
-import {commonmarkToHtml} from '../../lib/turtle-markdown.js';
 
 export default class RegexQuiz extends React.Component {
     constructor( props) {
         super(props);
 
         const state = {done: false, loadingSolution: false, showSolutionWindow: false, 
-            regex: '', tried: false, loading: false, content: _.cloneDeep(props.content)};
+            regex: '', tried: false, loading: false, content: cloneDeep(props.content)};
         
         if( state.content.done) {
             state.done = true;
@@ -63,7 +62,7 @@ export default class RegexQuiz extends React.Component {
 
         const component = this;
 
-        axios.post('/regex-match', {regex: this.state.regex, texts: _.map(this.state.content.options, 'text')})
+        axios.post('/regex-match', {regex: this.state.regex, texts: map(this.state.content.options, 'text')})
         .then(function(response) {
             const newState = Object.assign({}, component.state, {tried: true, loading: false});
 
@@ -75,7 +74,7 @@ export default class RegexQuiz extends React.Component {
                 }
             });
 
-            if( !_.find(newState.content.options, {correct: false})) {
+            if( !find(newState.content.options, {correct: false})) {
                 newState.done = true;
                 component.setState(newState);
                 component.props.markQuizAsDone(component, {regex: component.state.regex});
@@ -122,7 +121,7 @@ export default class RegexQuiz extends React.Component {
                 </Label>
 
                 <Form className="regex" onSubmit={this.handleSubmit}>
-                    {Parser(commonmarkToHtml(this.state.content.text))}
+                    {Parser(this.state.content.html)}
                         
                     <Form.Field width={4}>
                         <Input name="solution" placeholder="regex" value={this.state.regex} onChange={this.handleRegexChange}/>
