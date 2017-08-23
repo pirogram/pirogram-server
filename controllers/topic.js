@@ -116,8 +116,8 @@ topicApp.use( router.get( '/topic/:tocSlug/:topicSlug', async function( ctx, toc
 
     const {prevTopicSlug, nextTopicSlug} = getNextPrevTopics(topicSlug, cachedToc);
 
-    let topicHtml = ReactDOMServer.renderToString(
-        React.createElement( TopicComponent, {topic: cachedTopic, tocSlug, topicSlug})
+    const topicHtml = ReactDOMServer.renderToString(
+        React.createElement( TopicComponent, {topic: cachedTopic, tocSlug, topicSlug, user: ctx.state.user})
     );
 
     await ctx.render( 'topic', {toc: cachedToc, topic: cachedTopic, topicHtml, prevTopicSlug, nextTopicSlug}, 
@@ -126,6 +126,8 @@ topicApp.use( router.get( '/topic/:tocSlug/:topicSlug', async function( ctx, toc
 
 
 topicApp.use( router.get( '/topic/:tocSlug/:topicSlug/edit', async function( ctx, tocSlug, topicSlug) {
+    if(!ctx.state.user) { ctx.redirect('/login'); return; }
+
     const cachedToc = await toc.lookupToc( tocSlug);
     const topic = await models.getTopicBySlug( topicSlug);
 
@@ -157,6 +159,8 @@ async function saveExercises(markdown) {
 
 
 topicApp.use( router.post( '/topic/:tocSlug/:topicSlug/edit', async function( ctx, tocSlug, topicSlug) {
+    if(!ctx.state.user) { ctx.redirect('/login'); return; }
+    
     const cachedToc = await toc.lookupToc( tocSlug);
     const topic = await models.getTopicBySlug( topicSlug);
 
@@ -174,6 +178,8 @@ topicApp.use( router.post( '/topic/:tocSlug/:topicSlug/edit', async function( ct
 
 
 topicApp.use( router.post( '/topic/:tocSlug/:topicSlug/done', async function( ctx, tocSlug, topicSlug) {
+    if(!ctx.state.user) { ctx.redirect('/login'); return; }
+    
     const cachedToc = await toc.lookupToc( tocSlug);
     const cachedTopic = await lookupTopic( topicSlug);
 
@@ -202,6 +208,8 @@ topicApp.use( router.get( '/exercise/:uuid/solution', async function( ctx, uuid)
 }));
 
 topicApp.use( router.post( '/exercise/:uuid/done', async function( ctx, uuid) {
+    if(!ctx.state.user) { ctx.redirect('/login'); return; }
+    
     const exercise = await models.getExerciseById(uuid);
     const solution = ctx.request.body.solution;
 

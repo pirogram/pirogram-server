@@ -51,6 +51,11 @@ export default class McQuiz extends React.Component {
     handleSubmit(event) {
         event.preventDefault();
 
+        if(!this.props.user) {
+            window.location.replace('/login');
+            return;
+        }
+
         if( this.state.answerHintTimer) {
             this.clearTimer();
         }
@@ -89,6 +94,10 @@ export default class McQuiz extends React.Component {
             icon: this.state.done ? 'checkmark' : 'wait',
             content: this.state.done ? 'Done' : 'Check'};
 
+        const submitButton = this.props.user ?
+                <Button size='small' primary type="submit" labelPosition='left' {...buttonProps}/> :
+                <Button size='small'  content='Login with Google to try'/>
+
         return (
             <Segment>
                 <Label attached='top'><Icon name={this.state.done ? 'checkmark':'wait'} className="exercise status"/>Exercise</Label>
@@ -107,7 +116,7 @@ export default class McQuiz extends React.Component {
                                     </Form.Field>
                         })}
                         <Form.Field className="field">
-                            <Button size='small' primary type="submit" labelPosition='left' {...buttonProps}/>
+                            {submitButton}
                         </Form.Field>
                     </Form.Group>
                 </Form>

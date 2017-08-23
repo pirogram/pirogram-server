@@ -7,6 +7,7 @@ const mount = require( 'koa-mount');
 const session = require( './lib/session');
 const oauth = require( './controllers/oauth');
 const flash = require( './lib/flash');
+const auth = require( './lib/auth');
 const topic = require( './controllers/topic');
 const misc = require( './controllers/misc');
 const bodyParser = require( 'koa-body');
@@ -17,7 +18,7 @@ const app = new Koa();
 app.use( bodyParser({multipart: true}));
 app.use( reqLogger());
 app.use( session( app));
-app.use( oauth.setSessionUser);
+app.use( auth.setSessionUser);
 app.use( view( __dirname + '/views', {
     globals: {
         'getFlashMessages': flash.getFlashMessages

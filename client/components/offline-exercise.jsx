@@ -29,7 +29,14 @@ export default class OfflineExercise extends React.Component {
         this.editor = editor;
     }
 
-    markQuizAsDone() {
+    markQuizAsDone(event) {
+        event.preventDefault();
+
+        if(!this.props.user) {
+            window.location.replace('/login');
+            return;
+        }
+
         const newState = Object.assign({}, this.state, {done: true, code: this.editorContent});
         this.setState(newState);
         this.props.markQuizAsDone(this, {code: newState.code});
@@ -59,6 +66,10 @@ export default class OfflineExercise extends React.Component {
         const buttonProps = { icon: this.state.done ? 'checkmark' : 'wait',
             content: this.state.done ? 'Done' : 'Mark As Done'};
 
+        const submitButton = this.props.user ?
+            <Button size='small' primary type="submit" labelPosition='left' {...buttonProps}/> :
+            <Button size='small'  content='Login with Google to save progress'/>
+
         return (
             <Segment>
                 <Label attached='top'>
@@ -84,7 +95,7 @@ export default class OfflineExercise extends React.Component {
                     </div>
                     <br/>
 
-                    <Button size='small' primary type="submit" labelPosition='left' {...buttonProps}/>
+                    {submitButton}
                 </Form>
             </Segment>
         )

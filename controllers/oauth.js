@@ -101,13 +101,5 @@ oauthApp.use( router.get( '/logout', async function( ctx) {
     ctx.redirect( '/');
 }));
 
-async function setSessionUser( ctx, next) {
-    if( ctx.session.userId) {
-        const user = await models.getUserById(ctx.session.userId);
-        ctx.state.user = user.attributes;
-    }
 
-    await next();
-}
-
-module.exports = { oauthApp, setSessionUser};
+module.exports = { oauthApp};

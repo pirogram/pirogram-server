@@ -23,7 +23,7 @@ export default class Topic extends React.Component {
         this.markQuizAsDone = this.markQuizAsDone.bind(this);
         this.markTopicAsDone = this.markTopicAsDone.bind(this);
 
-        if( _.values(this.state.done).length == 0) {
+        if( this.props.user && _.values(this.state.done).length == 0) {
             this.markTopicAsDone();
         }
     }
@@ -60,11 +60,14 @@ export default class Topic extends React.Component {
                     if( content.type == 'text') {
                         return <HtmlContent key={content.id} content={content}/>
                     } else if( content.type == 'mcquiz') {
-                        return <McQuiz key={content.id} content={content} markQuizAsDone={this.markQuizAsDone}/>
+                        return <McQuiz key={content.id} content={content} markQuizAsDone={this.markQuizAsDone}
+                            user={this.props.user}/>
                     } else if( content.type == 'regexquiz') {
-                        return <RegexQuiz key={content.id} content={content} markQuizAsDone={this.markQuizAsDone}/>
+                        return <RegexQuiz key={content.id} content={content} markQuizAsDone={this.markQuizAsDone}
+                            user={this.props.user}/>
                     } else if ( content.type == 'offline-exercise') {
-                        return <OfflineExercise key={content.id} content={content} markQuizAsDone={this.markQuizAsDone}/>
+                        return <OfflineExercise key={content.id} content={content} markQuizAsDone={this.markQuizAsDone} 
+                            user={this.props.user}/>
                     }
                 })}
             </div>

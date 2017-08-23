@@ -8,7 +8,8 @@ ReactDOM.render(<Header user={window.initialStore.user}/>, document.getElementBy
 
 if( window.initialStore.topicViewer) {
     ReactDOM.render(<Topic tocSlug={window.initialStore.tocSlug} topicSlug={window.initialStore.topicSlug}
-        topic={window.initialStore.topic}/>, document.getElementById('topic-content'));
+        topic={window.initialStore.topic} user={window.initialStore.user}/>, 
+        document.getElementById('topic-content'));
 }
 
 if( window.initialStore.topicEditor) {

@@ -55,6 +55,12 @@ export default class RegexQuiz extends React.Component {
     handleSubmit(event) {
         event.preventDefault();
 
+        if(!this.props.user) {
+            window.location.replace('/login');
+            return;
+        }
+
+
         const component = this;
 
         axios.post('/regex-match', {regex: this.state.regex, texts: _.map(this.state.content.options, 'text')})
@@ -90,6 +96,10 @@ export default class RegexQuiz extends React.Component {
             icon: this.state.done ? 'checkmark' : 'wait',
             content: this.state.done ? 'Done' : 'Check'};
 
+        const submitButton = this.props.user ?
+            <Button size='small' primary type="submit" labelPosition='left' {...buttonProps}/> :
+            <Button size='small'  content='Login with Google to try'/>
+
         return (
             <Segment>
                 <Modal dimmer='blurring' open={this.state.showSolution}>
@@ -119,7 +129,7 @@ export default class RegexQuiz extends React.Component {
                     </Form.Field>
                         
                     <Form.Field>
-                        <Button size='small' primary type="submit" labelPosition='left' {...buttonProps}/>
+                        {submitButton}
                     </Form.Field>
 
                     <Divider/>
