@@ -1,12 +1,14 @@
 'use strict';
 
+const config = require('config');
+
 const knex = require('knex')({
     client: 'postgres',
     connection: {
-        host     : '127.0.0.1',
-        user     : 'turtleprogrammer',
-        password : 'turtleprogrammer',
-        database : 'turtleprogrammer',
+        host     : config.get('db.host'),
+        user     : config.get('db.user'),
+        password : config.get('db.password'),
+        database : config.get('db.name'),
         charset  : 'utf8'
     }
 });

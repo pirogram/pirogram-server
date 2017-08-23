@@ -1,0 +1,2 @@
+google_oauth:
+  redirect_uri: "http://localhost:5000/google-oauth-callback"

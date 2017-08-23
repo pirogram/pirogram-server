@@ -5,6 +5,7 @@ const Koa = require('koa');
 const router = require( 'koa-route');
 const models = require( '../models');
 const flash = require( '../lib/flash');
+const config = require('config');
 
 const oauthApp = new Koa();
 const OAuth2 = google.auth.OAuth2;
@@ -17,7 +18,7 @@ oauthApp.use(router.get( '/login', (ctx) => {
     const oauth2Client = new OAuth2(
         "1043782400261-4vnh8d1lt76n42djlenkq9r1hj75edui.apps.googleusercontent.com",
         "owRPFCyM-OXG-JB2u8_ESpLq",
-        "http://localhost:5000/google-oauth-callback"
+        config.get('google_oauth.redirect_uri')
     );
 
     const url = oauth2Client.generateAuthUrl({
@@ -60,7 +61,7 @@ oauthApp.use( router.get( '/google-oauth-callback', async function(ctx) {
     const oauth2Client = new OAuth2(
         "1043782400261-4vnh8d1lt76n42djlenkq9r1hj75edui.apps.googleusercontent.com",
         "owRPFCyM-OXG-JB2u8_ESpLq",
-        "http://localhost:5000/google-oauth-callback"
+        config.get('google_oauth.redirect_uri')
     );
 
     const code = ctx.query.code;

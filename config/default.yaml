@@ -1,0 +1,11 @@
+db:
+  host: localhost
+  user: turtleprogrammer
+  password: turtleprogrammer
+  name: turtleprogrammer
+
+redis:
+  host: localhost
+
+google_oauth:
+  redirect_uri: "http://localhost:5000/google-oauth-callback"
