@@ -1,14 +1,17 @@
 import React from 'react';
 import Parser from 'html-react-parser';
 import {cloneDeep} from 'lodash';
-import {Segment, Label, Form, Icon, Button, Divider} from 'semantic-ui-react';
+import axios from 'axios';
+import {Segment, Label, Form, Icon, Button, Divider, Modal} from 'semantic-ui-react';
 import MonacoEditor from 'react-monaco-editor';
 
 export default class OfflineExercise extends React.Component {
     constructor(props) {
         super(props);
 
-        this.state = {done: false, code: '', content: cloneDeep(props.content)};
+        this.state = {done: false, loadingSolution: false, showSolution: false, solution: "", 
+            code: '', content: cloneDeep(props.content)};
+
         if( this.state.content.done) {
             this.state.done = true;
             this.state.code = this.state.content.solution.code;
@@ -17,6 +20,30 @@ export default class OfflineExercise extends React.Component {
         this.markQuizAsDone = this.markQuizAsDone.bind(this);
         this.editorDidMount = this.editorDidMount.bind(this);
         this.onChange = this.onChange.bind(this);
+
+        this.showSolutionWindow = this.showSolutionWindow.bind(this);
+        this.closeSolutionWindow = this.closeSolutionWindow.bind(this);
+    }
+
+    showSolutionWindow(e) {
+        e.preventDefault();
+        this.setState(Object.assign({}, this.state, {loadingSolution: true}));
+
+        const component = this;
+        axios.get('/exercise/' + component.state.content.id + '/solution')
+        .then(function(response){
+            component.setState(Object.assign({}, component.state, 
+                {loadingSolution: false, showSolution: true, solution: response.data.data.solution}));
+        })
+        .catch(function(e) {
+            console.log(e);
+            component.setState(Object.assign({}, this.state, {loadingSolution: false}));
+        });
+    }
+
+    closeSolutionWindow(e) {
+        e.preventDefault();
+        this.setState(Object.assign({}, this.state, {showSolution: false}));
     }
 
     onChange(editorContent) {
@@ -71,8 +98,23 @@ export default class OfflineExercise extends React.Component {
 
         return (
             <Segment>
+                <Modal dimmer='blurring' open={this.state.showSolution}>
+                    <Modal.Header>Solution</Modal.Header>
+                    <Modal.Content>
+                        <Modal.Description>
+                            {Parser(this.state.solution)}
+                        </Modal.Description>
+                    </Modal.Content>
+                    <Modal.Actions>
+                        <Button primary onClick={this.closeSolutionWindow}>
+                            Ok
+                        </Button>
+                    </Modal.Actions>
+                </Modal>
+
                 <Label attached='top'>
                     <Icon name={this.state.done ? 'checkmark':'wait'} className="exercise status"/>Exercise (offline)
+                    | <a href="#" onClick={this.showSolutionWindow}><Icon name={this.state.loadingSolution ? 'spinner' : 'idea'}/>Solution</a>
                 </Label>
                 {Parser(this.state.content.html)}
 

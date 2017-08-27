@@ -204,6 +204,8 @@ topicApp.use( router.get( '/exercise/:uuid/solution', async function( ctx, uuid)
         ctx.body = JSON.stringify({status: 'ok', data: {correctOptions}});
     } else if( exercise.attributes.type == 'regexquiz') {
         ctx.body = JSON.stringify({status: 'ok', data: {solution: exerciseObj.solution}});
+    } else if( exercise.attributes.type == 'offline-exercise') {
+        ctx.body = JSON.stringify({status: 'ok', data: {solution: exerciseObj.solutionHtml}});
     }
 }));
 
