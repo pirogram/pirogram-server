@@ -142,6 +142,8 @@ export default class RegexQuiz extends React.Component {
                                         const optionProps = {};
                                         if( (this.state.tried || this.state.done) && option.correct) {
                                             optionProps.color = 'green';
+                                        } else if( this.state.tried && !option.correct) {
+                                            optionProps.color = 'red';
                                         }
                                         return <Label key={i} basic {...optionProps}>{option.text}</Label>;
                                     }
