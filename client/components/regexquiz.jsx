@@ -123,7 +123,7 @@ export default class RegexQuiz extends React.Component {
                 <Form className="regex" onSubmit={this.handleSubmit}>
                     {Parser(this.state.content.html)}
                         
-                    <Form.Field width={4}>
+                    <Form.Field width={8}>
                         <Input name="solution" placeholder="regex" value={this.state.regex} onChange={this.handleRegexChange}/>
                     </Form.Field>
                         
