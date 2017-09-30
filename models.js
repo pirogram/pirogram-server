@@ -51,7 +51,13 @@ const Exercise = bookshelf.Model.extend({
     tableName: 'exercises',
     idAttribute: 'uuid',
     hasTimestamps: true
-})
+});
+
+const Module = bookshelf.Model.extend({
+    tableName: 'module',
+    idAttribute: 'slug',
+    hasTimestamps: true
+});
 
 async function getUserById ( id) {
     try {
@@ -164,6 +170,23 @@ async function saveTopicHistory( userId, topicId) {
     return await new TopicHistory({user_id: userId, topic_id: topicId}).save();
 }
 
+async function getAllModules() {
+    return await Module.collection().fetch();
+}
+
+async function getModuleBySlug( slug) {
+    try {
+        return await new Module( {slug: slug}).fetch();
+    } catch( e) {
+        return null;
+    }
+}
+
+async function createModule(name, slug, tocYaml) {
+    return await new Module({name, slug, toc_yaml: tocYaml}).save({}, {method:'insert'});
+}
+
 module.exports = { bookshelf, User, Topic,
     getUserByEmail, createUser, getUserById, getTopicBySlug, getExerciseHistory, saveExerciseHistory,
-    saveTopic, getTopicHistory, saveTopicHistory, saveExercise, getExerciseById};
+    saveTopic, getTopicHistory, saveTopicHistory, saveExercise, getExerciseById, Module, getAllModules,
+    getModuleBySlug, createModule};

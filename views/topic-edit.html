@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Edit - {{name}}{% endblock %}
+
+{% block content %}
+
+<div class="ui left rail toc">
+    {% include "toc.html" %}
+</div>
+
+<h1>Edit Topic</h1>
+
+<div id="topic-editor">{{topicEditorHtml|safe}}</div>
+
+{% endblock %}

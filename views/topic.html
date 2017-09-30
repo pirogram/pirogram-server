@@ -2,21 +2,32 @@
 
 {% block title %}{{topic.title}}{% endblock %}
 
-{% block content %}
+{% block maincontent_head %}
+{% if hasStage %}
+<div class="ui warning message">
+    <form method=POST action="/module/{{m.slug}}/publish">
+    You have unpublished changes in this module. &nbsp;
+        <button class='ui mini button primary' type=submit name=publish>Publish</button>
+        <button class='ui mini button' type=submit name=dicard>Discard</button>
+    </form>
+</div>
+{% endif %}
+{% endblock %}
 
+{% block content %}
 <div class="ui left rail toc">
     {% include "toc.html" %}
 </div>
 
 {% if user.superuser %}
     <div class="ui text menu">
-        <h1>{{topic.title}}</h1>
+        <h1>{{topic.name}}</h1>
         <div class="right menu">
-            <a class="ui tiny item" href="/topic/{{toc.slug}}/{{topic.slug}}/edit">Edit</a>
+            <a class="ui tiny item" href="/topic/{{m.slug}}/{{topic.slug}}/edit">Edit</a>
         </div>
     </div>
 {% else %}
-    <h1>{{topic.title}}</h1>
+    <h1>{{topic.name}}</h1>
 {% endif %}
 
 <div id="topic-content">{{topicHtml|safe}}</div>
@@ -24,10 +35,10 @@
 <div class="ui hidden divider"></div>
 <div>
     {% if nextTopicSlug %}
-        <a href="/topic/{{toc.slug}}/{{nextTopicSlug}}" class="ui primary tiny right floated button">Next</a>
+        <a href="/topic/{{m.slug}}/{{nextTopic.slug}}" class="ui primary tiny right floated button">{{nextTopic.tocName}} &rarr;</a>
     {% endif %}
     {% if prevTopicSlug %}
-        <a href="/topic/{{toc.slug}}/{{prevTopicSlug}}" class="ui tiny left floated button">Previous</a>
+        <a href="/topic/{{m.slug}}/{{prevTopic.slug}}" class="ui tiny left floated button">&larr; {{prevTopic.tocName}}</a>
     {% endif %}
 </div>
 

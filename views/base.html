@@ -30,9 +30,10 @@
         {% endif %}
 
         {% block maincontent %}
-        <div class="ui container content estate">
-            {% block content %}{% endblock %}
-        </div>
+            {% block maincontent_head %} {% endblock %}
+            <div class="ui container content estate">
+                {% block content %}{% endblock %}
+            </div>
         {% endblock %}
 
         <div class="ui hidden divider"></div>

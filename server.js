@@ -10,6 +10,7 @@ const flash = require( './lib/flash');
 const auth = require( './lib/auth');
 const topic = require( './controllers/topic');
 const misc = require( './controllers/misc');
+const modules = require( './controllers/modules');
 const bodyParser = require( 'koa-body');
 const reqLogger = require('koa-logger');
 
@@ -27,6 +28,7 @@ app.use( view( __dirname + '/views', {
 
 app.use( mount( oauth.oauthApp));
 app.use( mount( topic.topicApp));
+app.use( mount( modules.modulesApp));
 app.use( mount( misc.miscApp));
 app.use( mount( '/static', serve( __dirname + '/static')));
 

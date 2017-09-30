@@ -7,10 +7,9 @@ require('babel-polyfill');
 const Koa = require('koa');
 const router = require( 'koa-route');
 const models = require( '../models');
-const flash = require( '../lib/flash');
-const toc = require( '../lib/toc');
+const cms = require( '../cms');
 const redis = require( '../lib/redis');
-const turtleMarkdown = require( '../lib/turtle-markdown');
+const flash = require( '../lib/flash');
 const _ = require('lodash');
 const React = require('react');
 const ReactDOMServer = require('react-dom/server');
@@ -18,20 +17,6 @@ const TopicEditorComponent = require('../client/components/topic-editor.jsx').de
 const TopicComponent = require('../client/components/topic.jsx').default;
 
 const topicApp = new Koa();
-
-function makeCacheableTopic( topic) {
-    const attrs = topic.attributes;
-    const contentList = turtleMarkdown.parseMarkdown( attrs.markdown);
-
-    return {
-        id: attrs.id,
-        slug: attrs.slug,
-        title: attrs.title,
-        version_number: attrs.version_number,
-        markdown: attrs.markdown,
-        contentList: contentList
-    };
-}
 
 
 async function lookupTopic( slug) {
@@ -64,19 +49,19 @@ async function decorateToc( cachedToc, user) {
 }
 
 
-function getNextPrevTopics( topicSlug, cachedToc) {
-    let prevTopicSlug = null;
-    let nextTopicSlug = null;
+function getNextPrevTopics( m, topicSlug) {
+    let prevTopic = null;
+    let nextTopic = null;
 
-    const slugIndex = cachedToc.slugs.indexOf( topicSlug);
-    if( slugIndex > 0) {
-        prevTopicSlug = cachedToc.slugs[slugIndex-1];
+    const index = _.find( m.topics, {slug: topicSlug});
+    if( index > 0) {
+        prevTopic = m.topics[index-1];
     }
-    if( slugIndex < cachedToc.slugs.length - 1) {
-        nextTopicSlug = cachedToc.slugs[slugIndex+1];
+    if( index < m.topics.length-1) {
+        nextTopic = m.topics[index+1];
     }
 
-    return {prevTopicSlug, nextTopicSlug};
+    return {prevTopic, nextTopic};
 }
 
 
@@ -105,10 +90,64 @@ topicApp.use( router.get( '/topic/:tocSlug', async function( ctx, tocSlug, topic
 }));
 
 
-topicApp.use( router.get( '/topic/:tocSlug/:topicSlug', async function( ctx, tocSlug, topicSlug) {
-    const cachedToc = await toc.lookupToc( tocSlug);
-    const cachedTopic = await lookupTopic( topicSlug);
+async function generateTocTopics( m, userId) {
+    let th = {};
+    if( userId) {
+        const topicIds = [];
+        for( const t of m.topics) { topicIds.push( t.id); }
 
+        th = models.getTopicHistory( userId, topicIds);
+    }
+
+    const tocTopics = [];
+    let currTopic = null;
+    for( const t of m.topics) {
+        const tocTopic = { slug: t.slug, name: t.name, tocName: t.tocName ? t.tocName : t.name};
+        if( th[ t.id]) {
+            tocTopic.done = true;
+        }
+
+        if( t.level == 1 || !currTopic) {
+            tocTopic.topics = [];
+            currTopic = tocTopic;
+            tocTopics.push( tocTopic);
+        } else {
+            currTopic.topics.push( tocTopic);
+        }
+    }
+
+    return tocTopics;
+}
+
+
+topicApp.use( router.get( '/topic/:moduleSlug/:topicSlug', async function( ctx, moduleSlug, topicSlug) {
+    let stageName = null;
+    if( ctx.state.user && ctx.state.user.superuser && await cms.hasStage( moduleSlug, ctx.state.user.email)) {
+        stageName = ctx.state.user.email;
+    }
+
+    const m = await cms.getModuleBySlug( moduleSlug, stageName);
+    const topic = await cms.getTopicBySlug( m, topicSlug, stageName);
+
+    if( !topic) {
+        if( _.find( m.topics, {slug: topicSlug}) && ctx.state.user && ctx.state.user.superuser) {
+            ctx.redirect( '/topic/' + moduleSlug + '/' + topicSlug + '/edit');
+        } else {
+            ctx.status = 404;
+        }
+        return;
+    }
+
+    const tocTopics = await generateTocTopics( m, ctx.state.user ? ctx.state.user.id : null);
+    const {prevTopic, nextTopic} = getNextPrevTopics( m, topicSlug);
+
+    const topicHtml = topic.rawContent;
+    const hasStage = stageName ? true:false;
+
+    await ctx.render( 'topic', {m, tocTopics, topic, topicHtml, prevTopic, nextTopic, hasStage}, 
+        {topicViewer: true, topic: topic, moduleSlug, topicSlug, hasStage});
+
+    /*
     if( ctx.state.user) {
         await decorateToc( cachedToc, ctx.state.user);
         await decorateTopic( cachedTopic, ctx.state.user);
@@ -122,45 +161,64 @@ topicApp.use( router.get( '/topic/:tocSlug/:topicSlug', async function( ctx, toc
 
     await ctx.render( 'topic', {toc: cachedToc, topic: cachedTopic, topicHtml, prevTopicSlug, nextTopicSlug}, 
         {topicViewer: true, topic: cachedTopic, tocSlug, topicSlug});
+        */
 }));
 
 
-topicApp.use( router.get( '/topic/:tocSlug/:topicSlug/edit', async function( ctx, tocSlug, topicSlug) {
+topicApp.use( router.get( '/topic/:moduleSlug/:topicSlug/edit', async function( ctx, moduleSlug, topicSlug) {
     if(!ctx.state.user) { ctx.redirect('/login'); return; }
-
-    const cachedToc = await toc.lookupToc( tocSlug);
-    const topic = await models.getTopicBySlug( topicSlug);
-
-    let title = topicSlug;
-    let markdown = '';
-    if( topic) {
-        title = topic.attributes.title;
-        markdown = topic.attributes.markdown;
+    if(!ctx.state.user.superuser) { 
+        flash.addFlashMessage(ctx.session, 'error', 'You do not have permissions to edit a topic.');
+        ctx.redirect('/');
+        return; 
     }
 
-    const topicEditorHtml = ReactDOMServer.renderToString(
-        React.createElement( TopicEditorComponent, {title, markdown})
-    );
+    const stageName = await cms.hasStage( moduleSlug, ctx.state.user.email) ?  ctx.state.user.email : null;
 
-    await ctx.render( 'topic_edit', {toc: cachedToc, topicEditorHtml, topic, title}, {topicEditor: true, title, markdown});
+    const m = await cms.getModuleBySlug( moduleSlug, stageName);
+    const topic = await cms.getTopicBySlug( m, topicSlug, stageName);
+
+    const tocTopics = await generateTocTopics( m, ctx.state.user ? ctx.state.user.id : null);
+    const topicData = _.find( m.topics, {slug: topicSlug});
+
+    const rawContent = topic ? topic.rawContent : '';
+    const editorState = {name: topicData.name, slug: topicSlug, tocName: topicData.tocName, rawContent};
+    const topicEditorHtml = ReactDOMServer.renderToString( React.createElement( TopicEditorComponent, editorState));
+
+    await ctx.render( 'topic-edit', 
+        Object.assign({tocTopics, topicEditorHtml, m}, editorState), 
+        Object.assign({topicEditor: true}, editorState));
 }));
 
 
-async function saveExercises(markdown) {
-    const contentList = turtleMarkdown.parseMarkdown(markdown);
-    contentList.map(async function (content) {
-        if( content.type === 'mcquiz'
-                || content.type === 'regexquiz'
-                || content.type === 'offline-exercise') {
-            await models.saveExercise(content.id, content.type, content.markdown);
-        }
-    });
-}
-
-
-topicApp.use( router.post( '/topic/:tocSlug/:topicSlug/edit', async function( ctx, tocSlug, topicSlug) {
+topicApp.use( router.post( '/topic/:moduleSlug/:topicSlug/edit', async function( ctx, moduleSlug, topicSlug) {
     if(!ctx.state.user) { ctx.redirect('/login'); return; }
-    
+    if(!ctx.state.user.superuser) { 
+        flash.addFlashMessage(ctx.session, 'error', 'You do not have permissions to edit a topic.');
+        ctx.redirect('/');
+        return; 
+    }
+
+    const isSave = ctx.request.body.fields.hasOwnProperty('save');
+    if( !isSave) {
+        ctx.redirect(`/topic/${tocSlug}/${topicSlug}`);
+        return;
+    }
+
+    const stageName = ctx.state.user.email;
+
+    const m = await cms.getModuleBySlug( moduleSlug, stageName);
+
+    const newName = ctx.request.body.fields.name.trim();
+    const newTocName = ctx.request.body.fields.tocName.trim();
+    const newSlug = ctx.request.body.fields.slug.trim();
+    const newRawContent = ctx.request.body.fields.rawContent.trim();
+
+    await cms.updateTopic( m, topicSlug, stageName, newName, newTocName, newSlug, newRawContent);
+
+    ctx.redirect(`/topic/${moduleSlug}/${newSlug}`);
+
+    /*
     const cachedToc = await toc.lookupToc( tocSlug);
     const topic = await models.getTopicBySlug( topicSlug);
 
@@ -174,6 +232,7 @@ topicApp.use( router.post( '/topic/:tocSlug/:topicSlug/edit', async function( ct
     }
 
     ctx.redirect(`/topic/${tocSlug}/${topicSlug}`);
+    */
 }));
 
 

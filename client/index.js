@@ -13,5 +13,8 @@ if( window.initialStore.topicViewer) {
 }
 
 if( window.initialStore.topicEditor) {
-    ReactDOM.render(<TopicEditor title={window.initialStore.title} markdown={window.initialStore.markdown}/>, document.getElementById('topic-editor'));
+    ReactDOM.render(<TopicEditor name={window.initialStore.name} 
+        rawContent={window.initialStore.rawContent}
+        slug={window.initialStore.slug}
+        tocName={window.initialStore.tocName}/>, document.getElementById('topic-editor'));
 }

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}{{topic.title}}{% endblock %}
+
+{% block maincontent %}
+<h1>List of available modules &nbsp;&nbsp;<small><a class='small' href='/modules/create'>create new &rarr;</a></small></h1>
+
+<ul class='ui list'>
+    {% for m in modules %}
+    <li><a href='/module/{{m.slug}}'>{{m.name}}</a></li>
+    {% else %}
+    <li>No module exists. Create one first.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

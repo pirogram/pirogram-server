@@ -1,21 +1,23 @@
+import PropTypes from 'prop-types';
 import React from 'react';
 import MonacoEditor from 'react-monaco-editor';
 
 export default class TopicEditor extends React.Component {
     constructor( props) {
         super( props);
-        this.state = {markdown: ""};
+
+        this.state = {rawContent: ''};
         this.editorDidMount = this.editorDidMount.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     handleSubmit() {
-        this.setState({markdown: this.editor.getValue()});
+        this.setState({rawContent: this.editor.getValue()});
     }
 
     editorDidMount(editor, monaco) {
         editor.focus();
-        this.setState({markdown: editor.getValue()});
+        this.setState({rawContent: editor.getValue()});
         this.editor = editor;
     }
 
@@ -44,26 +46,36 @@ export default class TopicEditor extends React.Component {
             <form className="ui topic form"
                 onSubmit={this.handleSubmit}
                 method="POST" encType='multipart/form-data'>
+
                 <div className="field">
-                    <label>Title</label>
-                    <input name="title" placeholder="Title" type="text" defaultValue={this.props.title}/>
+                    <label>Name</label>
+                    <input name="name" placeholder="Name" type="text" defaultValue={this.props.name}/>
                 </div>
 
                 <div className="field">
-                    <label>Content in Markdown</label>
-                    <div className="ui divider hidden"></div>
+                    <label>ToC Name</label>
+                    <input name="tocName" placeholder="ToC Name" type="text" defaultValue={this.props.tocName}/>
+                </div>
+
+                <div className="field">
+                    <label>slug</label>
+                    <input name="slug" placeholder="slug" type="text" defaultValue={this.props.slug}/>
+                </div>
+
+                <div className="field">
+                    <label>Content in Structured Markdown</label>
                     <div className="monaco-editor-shell">
                         <MonacoEditor
                             language="markdown"
                             theme="vs-light"
-                            value={this.props.markdown}
+                            value={this.props.rawContent}
                             editorDidMount={this.editorDidMount}
                             requireConfig={requireConfig}
                             height="600"
                             options={editorOptions}
                         />
                     </div>
-                    <textarea style={{display: 'none'}} name="markdown" value={this.state.markdown} />
+                    <textarea style={{display: 'none'}} name="rawContent" value={this.state.rawContent} />
                 </div>
 
                 <div className="fields">
@@ -77,4 +89,18 @@ export default class TopicEditor extends React.Component {
             </form>
         )
     }
-}
+};
+
+TopicEditor.PropTypes = {
+    slug: PropTypes.string,
+    name: PropTypes.string,
+    tocName: PropTypes.string,
+    rawContent: PropTypes.string
+};
+
+TopicEditor.defaultProps = {
+    slug: '',
+    name: '',
+    tocName: '',
+    rawContent: ''
+};
