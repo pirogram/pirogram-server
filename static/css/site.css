@@ -90,3 +90,7 @@
 .monaco-editor-shell .monaco-editor .view-overlays.focused .current-line {
     background-color: #f1f5fb;
 }
+
+.runnable-code {
+    margin: 1rem 0;
+}

@@ -40,10 +40,11 @@ SET default_with_oids = false;
 
 CREATE TABLE exercise_history (
     user_id integer NOT NULL,
-    exercise_id character varying(42) NOT NULL,
+    exercise_id varchar(64) NOT NULL,
     solution jsonb,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    primary key (user_id, exercise_id)
 );
 
 
@@ -54,11 +55,14 @@ ALTER TABLE exercise_history OWNER TO turtleprogrammer;
 --
 
 CREATE TABLE exercises (
-    uuid character varying(36) NOT NULL,
+    module_id varchar(36) NOT NULL,
+    topic_id VARCHAR(36) NOT NULL,
+    exercise_id varchar(64) NOT NULL,
     type character varying(64) NOT NULL,
-    markdown text NOT NULL,
+    content jsonb,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    PRIMARY KEY (module_id, topic_id, exercise_id)
 );
 
 
@@ -157,7 +161,8 @@ CREATE TABLE topic_history (
     user_id integer NOT NULL,
     topic_id varchar(48) NOT NULL,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone
+    updated_at timestamp without time zone,
+    primary key (user_id, topic_id)
 );
 
 

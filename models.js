@@ -49,7 +49,7 @@ const ExerciseHistory = bookshelf.Model.extend({
 
 const Exercise = bookshelf.Model.extend({
     tableName: 'exercises',
-    idAttribute: 'uuid',
+    idAttribute: ['module_id', 'topic_id', 'exercise_id'],
     hasTimestamps: true
 });
 
@@ -97,7 +97,7 @@ async function getExerciseHistory( userId, exerciseIds) {
     const eh = {};
 
     objs.each( function( obj) {
-        eh[obj.attributes.exercise_id] = obj;
+        eh[obj.attributes.exercise_id] = obj.attributes;
     });
 
     return eh;
@@ -149,25 +149,29 @@ async function saveTopic( slug, title, markdown, authorId) {
     }).save();
 }
 
-async function getExerciseById( uuid) {
+async function getExercise( moduleId, topicId, exerciseId) {
     try {
-        return await new Exercise({uuid}).fetch();
+        return await new Exercise({module_id: moduleId, topic_id: topicId, exercise_id: exerciseId}).fetch();
     } catch( e) {
         return null;
     }
 }
 
-async function saveExercise(uuid, type, markdown) {
-    let exercise = await getExerciseById(uuid);
+async function saveExercise(moduleId, topicId, exerciseId, type, content) {
+    const exercise = await getExerciseById(moduleId, topicId, exerciseId);
     if( !exercise) {
-        return await new Exercise({uuid, type, markdown}).save({}, {method:'insert'});
+        return await new Exercise({module_id: moduleId, topic_id: topicId, exercise_id: exerciseId, type, content}).save({}, {method:'insert'});
     } else {
-        await exercise.save({type, markdown}, {method: 'update', patch: true});
+        await exercise.save({type, content}, {method: 'update', patch: true});
     }
 }
 
 async function saveTopicHistory( userId, topicId) {
-    return await new TopicHistory({user_id: userId, topic_id: topicId}).save();
+    try {
+        await new TopicHistory({user_id: userId, topic_id: topicId}).save();
+    } catch( e) {
+        // ignore duplicate save.
+    }
 }
 
 async function getAllModules() {
@@ -188,5 +192,5 @@ async function createModule(name, slug, tocYaml) {
 
 module.exports = { bookshelf, User, Topic,
     getUserByEmail, createUser, getUserById, getTopicBySlug, getExerciseHistory, saveExerciseHistory,
-    saveTopic, getTopicHistory, saveTopicHistory, saveExercise, getExerciseById, Module, getAllModules,
+    saveTopic, getTopicHistory, saveTopicHistory, saveExercise, getExercise, Module, getAllModules,
     getModuleBySlug, createModule};

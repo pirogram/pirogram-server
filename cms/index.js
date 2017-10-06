@@ -170,10 +170,15 @@ async function ensureModuleStage( moduleSlug, stageName) {
 
 export async function updateToC( m, updatedTopics, stageName) {
     await ensureModuleStage( m.slug, stageName);
+
     const stageModuleDir = getStageModuleDir( m.slug, stageName);
     const moduleJsonPath = path.resolve( stageModuleDir, 'module.json');
     const moduleData = await fs.readJSON( moduleJsonPath);
     moduleData.topics = updatedTopics;
+    for( const topic of moduleData.topics) {
+        if( !topic.id) { topic.id = uuid.v4(); }
+    }
+
     await fs.writeJSON( moduleJsonPath, moduleData, {spaces: 4});
 
     await subprocess.exec( './sh-scripts/commit-module-json.sh', 
@@ -204,7 +209,6 @@ export async function updateTopic( m, topicSlug, stageName, newName, newTocName,
         args.push( '--old-topic-file-name');
         args.push( topicSlug + '.smd');
     }
-    console.log( args);
     await subprocess.exec( './sh-scripts/commit-topic.sh', args);
 }
 

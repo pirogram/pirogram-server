@@ -10,6 +10,8 @@ const models = require( '../models');
 const cms = require( '../cms');
 const redis = require( '../lib/redis');
 const flash = require( '../lib/flash');
+const structmd = require( '../lib/structmd');
+const util = require( '../lib/util');
 const _ = require('lodash');
 const React = require('react');
 const ReactDOMServer = require('react-dom/server');
@@ -17,36 +19,6 @@ const TopicEditorComponent = require('../client/components/topic-editor.jsx').de
 const TopicComponent = require('../client/components/topic.jsx').default;
 
 const topicApp = new Koa();
-
-
-async function lookupTopic( slug) {
-    let cachedTopic = await redis.hget( 'topics', slug);
-    if( cachedTopic) { return JSON.parse( cachedTopic); }
-
-    const topic = await models.getTopicBySlug( slug);
-
-    if( topic) {
-        cachedTopic = makeCacheableTopic( topic);
-        //await redis.hset( 'topics', slug, JSON.stringify( cachedTopic));
-    }
-
-    return cachedTopic;
-}
-
-
-async function decorateToc( cachedToc, user) {
-    const topicIds = [];
-
-    const th = await models.getTopicHistory( user.id, topicIds);
-
-    for( let topicStub of cachedToc.topics) {
-        if( th[ topicStub.id]) { topicStub.done = true; }
-
-        for( let childTopicStub of topicStub.topics) {
-            if( th[ childTopicStub.id]) { childTopicStub.done = true;}
-        }
-    }
-}
 
 
 function getNextPrevTopics( m, topicSlug) {
@@ -96,7 +68,7 @@ async function generateTocTopics( m, userId) {
         const topicIds = [];
         for( const t of m.topics) { topicIds.push( t.id); }
 
-        th = models.getTopicHistory( userId, topicIds);
+        th = await models.getTopicHistory( userId, topicIds);
     }
 
     const tocTopics = [];
@@ -120,13 +92,96 @@ async function generateTocTopics( m, userId) {
 }
 
 
-topicApp.use( router.get( '/topic/:moduleSlug/:topicSlug', async function( ctx, moduleSlug, topicSlug) {
+async function getTopicContentList( userId, m, topic) {
+    const baseContentList = structmd.parse( topic.rawContent);
+    const pageContentList = [];
+    const exerciseIds = [];
+
+    for( const baseContent of baseContentList) {
+        let pageContent = null;
+        if( baseContent instanceof structmd.MarkdownContent) {
+            pageContent = {type: 'html', html: util.commonmarkToHtml( baseContent.markdown)};
+        } else if( baseContent instanceof structmd.MultipleChoiceContent) {
+            exerciseIds.push( baseContent.id);
+
+            pageContent = {type: 'multiple-choice', id: `${m.slug}::${topic.slug}::${baseContent.id}`, 
+                exerciseId: baseContent.id, question: util.commonmarkToHtml( baseContent.question), 
+                code: baseContent.code, choiceOptions: [], done: false, isExercise: true};
+            
+            for( const choiceOption of baseContent.choiceOptions) {
+                pageContent.choiceOptions.push({id: choiceOption.id, html: util.commonmarkToHtml(choiceOption.markdown)});
+            }
+        } else if( baseContent instanceof structmd.CodeContent) {
+            pageContent = {type: 'code', lang: baseContent.lang, code: baseContent.code}
+        }
+
+        if( pageContent) {
+            pageContentList.push( pageContent);
+        }
+    }
+
+    if( userId) {
+        const eh = await models.getExerciseHistory( userId, exerciseIds);
+        for( const pageContent of pageContentList) {
+            if( !pageContent.exerciseId || !eh[pageContent.exerciseId]) { continue; }
+
+            pageContent.done = true;
+            pageContent.selectedIds = eh[pageContent.exerciseId].solution.selectedIds;
+        }
+    }
+
+    return pageContentList;
+}
+
+
+async function getCurrentStageName( ctx, moduleSlug) {
     let stageName = null;
     if( ctx.state.user && ctx.state.user.superuser && await cms.hasStage( moduleSlug, ctx.state.user.email)) {
         stageName = ctx.state.user.email;
     }
 
+    return stageName;
+}
+
+
+async function markBlankTopicAsDone( userId, topicId, pageContentList) {
+    if( !userId) return;
+
+    for( const pageContent of pageContentList) {
+        if( pageContent.isExercise) { return; }
+    }
+
+    await models.saveTopicHistory( userId, topicId);
+}
+
+
+async function markDoneTopicAsDone( userId, topicId, contentList) {
+    const th = await models.getTopicHistory( userId, [topicId]);
+    if( th[topicId]) return;
+
+    const exerciseIds = [];
+    for( const content of contentList) {
+        if( content.isExercise) { 
+            exerciseIds.push( content.id); 
+        }
+    }
+
+    const eh = await models.getExerciseHistory( userId, exerciseIds);
+    for( const exerciseId of exerciseIds) {
+        if( !eh[exerciseId]) {
+            return;
+        }
+    }
+
+    await models.saveTopicHistory( userId, topicId);
+}
+
+
+topicApp.use( router.get( '/topic/:moduleSlug/:topicSlug', async function( ctx, moduleSlug, topicSlug) {
+    const stageName = await getCurrentStageName( ctx, moduleSlug);
     const m = await cms.getModuleBySlug( moduleSlug, stageName);
+    if( !m) { ctx.status = 404; return; }
+
     const topic = await cms.getTopicBySlug( m, topicSlug, stageName);
 
     if( !topic) {
@@ -141,27 +196,17 @@ topicApp.use( router.get( '/topic/:moduleSlug/:topicSlug', async function( ctx, 
     const tocTopics = await generateTocTopics( m, ctx.state.user ? ctx.state.user.id : null);
     const {prevTopic, nextTopic} = getNextPrevTopics( m, topicSlug);
 
-    const topicHtml = topic.rawContent;
+    const pageContentList = await getTopicContentList( ctx.state.user ? ctx.state.user.id : null, m, topic);
+    const userId = ctx.state.user ? ctx.state.user.id : 0;
+    const topicHtml = ReactDOMServer.renderToString(
+        React.createElement( TopicComponent, {pageContentList, moduleSlug, topicSlug, userId})
+    );
     const hasStage = stageName ? true:false;
 
+    await markBlankTopicAsDone( userId, topic.id, pageContentList);
+
     await ctx.render( 'topic', {m, tocTopics, topic, topicHtml, prevTopic, nextTopic, hasStage}, 
-        {topicViewer: true, topic: topic, moduleSlug, topicSlug, hasStage});
-
-    /*
-    if( ctx.state.user) {
-        await decorateToc( cachedToc, ctx.state.user);
-        await decorateTopic( cachedTopic, ctx.state.user);
-    }
-
-    const {prevTopicSlug, nextTopicSlug} = getNextPrevTopics(topicSlug, cachedToc);
-
-    const topicHtml = ReactDOMServer.renderToString(
-        React.createElement( TopicComponent, {topic: cachedTopic, tocSlug, topicSlug, user: ctx.state.user})
-    );
-
-    await ctx.render( 'topic', {toc: cachedToc, topic: cachedTopic, topicHtml, prevTopicSlug, nextTopicSlug}, 
-        {topicViewer: true, topic: cachedTopic, tocSlug, topicSlug});
-        */
+        {topicViewer: true, pageContentList, moduleSlug, topicSlug, hasStage, userId});
 }));
 
 
@@ -173,7 +218,7 @@ topicApp.use( router.get( '/topic/:moduleSlug/:topicSlug/edit', async function( 
         return; 
     }
 
-    const stageName = await cms.hasStage( moduleSlug, ctx.state.user.email) ?  ctx.state.user.email : null;
+    const stageName = await getCurrentStageName( ctx, moduleSlug);
 
     const m = await cms.getModuleBySlug( moduleSlug, stageName);
     const topic = await cms.getTopicBySlug( m, topicSlug, stageName);
@@ -183,11 +228,9 @@ topicApp.use( router.get( '/topic/:moduleSlug/:topicSlug/edit', async function( 
 
     const rawContent = topic ? topic.rawContent : '';
     const editorState = {name: topicData.name, slug: topicSlug, tocName: topicData.tocName, rawContent};
-    const topicEditorHtml = ReactDOMServer.renderToString( React.createElement( TopicEditorComponent, editorState));
+    //const topicEditorHtml = ReactDOMServer.renderToString( React.createElement( TopicEditorComponent, editorState));
 
-    await ctx.render( 'topic-edit', 
-        Object.assign({tocTopics, topicEditorHtml, m}, editorState), 
-        Object.assign({topicEditor: true}, editorState));
+    await ctx.render( 'topic-edit', Object.assign({tocTopics, m}, editorState));
 }));
 
 
@@ -201,7 +244,7 @@ topicApp.use( router.post( '/topic/:moduleSlug/:topicSlug/edit', async function(
 
     const isSave = ctx.request.body.fields.hasOwnProperty('save');
     if( !isSave) {
-        ctx.redirect(`/topic/${tocSlug}/${topicSlug}`);
+        ctx.redirect(`/topic/${moduleSlug}/${topicSlug}`);
         return;
     }
 
@@ -217,22 +260,6 @@ topicApp.use( router.post( '/topic/:moduleSlug/:topicSlug/edit', async function(
     await cms.updateTopic( m, topicSlug, stageName, newName, newTocName, newSlug, newRawContent);
 
     ctx.redirect(`/topic/${moduleSlug}/${newSlug}`);
-
-    /*
-    const cachedToc = await toc.lookupToc( tocSlug);
-    const topic = await models.getTopicBySlug( topicSlug);
-
-    const title = ctx.request.body.fields.title;
-    const markdown = ctx.request.body.fields.markdown;
-    const isSave = ctx.request.body.fields.hasOwnProperty('save');
-
-    if( isSave) {
-        await models.saveTopic(topicSlug, title, markdown, ctx.state.user.id);
-        await saveExercises(markdown);
-    }
-
-    ctx.redirect(`/topic/${tocSlug}/${topicSlug}`);
-    */
 }));
 
 
@@ -253,29 +280,45 @@ topicApp.use( router.post( '/topic/:tocSlug/:topicSlug/done', async function( ct
 }));
 
 
-topicApp.use( router.get( '/exercise/:uuid/solution', async function( ctx, uuid) {
-    const exercise = await models.getExerciseById(uuid);
-    const exerciseObj = turtleMarkdown.convertQuizContent(exercise.attributes.type, 
-        exercise.attributes.id, exercise.attributes.markdown);
+topicApp.use( router.post( '/exercise/:compositeId/solution', async function( ctx, compositeId) {
+    if(!ctx.state.user) { ctx.status = 400; ctx.body = JSON.stringify({error: 'login required'}); return; }
 
-    if( exercise.attributes.type == 'mcquiz') {
-        const correctOptions = _.map( _.filter(exerciseObj.options, {correct: true}), 'key');
-        ctx.body = JSON.stringify({status: 'ok', data: {correctOptions}});
-    } else if( exercise.attributes.type == 'regexquiz') {
-        ctx.body = JSON.stringify({status: 'ok', data: {solution: exerciseObj.solution}});
-    } else if( exercise.attributes.type == 'offline-exercise') {
-        ctx.body = JSON.stringify({status: 'ok', data: {solution: exerciseObj.solutionHtml}});
+    const [moduleSlug, topicSlug, ...rest] = compositeId.split('::');
+    const exerciseId = rest.join('::');
+
+    const stageName = await getCurrentStageName( ctx, moduleSlug);
+    const m = await cms.getModuleBySlug( moduleSlug, stageName);
+    if( !m) { ctx.status = 404; ctx.body = 'module not found.'; return; }
+
+    const topic = await cms.getTopicBySlug( m, topicSlug, stageName);
+    if( !topic) { ctx.status = 404; ctx.body = 'topic not found'; return; }
+
+    const contentList = structmd.parse( topic.rawContent);
+
+    let exerciseContent = null;
+    for( const content of contentList) {
+        if( content.id == exerciseId) {
+            exerciseContent = content;
+            break;
+        }
     }
-}));
 
-topicApp.use( router.post( '/exercise/:uuid/done', async function( ctx, uuid) {
-    if(!ctx.state.user) { ctx.redirect('/login'); return; }
-    
-    const exercise = await models.getExerciseById(uuid);
-    const solution = ctx.request.body.solution;
+    if( !exerciseContent) { ctx.status = 404; ctx.body = 'exercise not found'; return; }
 
-    await models.saveExerciseHistory(ctx.state.user.id, uuid, solution);
-    ctx.body = JSON.stringify({status:'ok'});
+    if( exerciseContent instanceof structmd.MultipleChoiceContent) {
+        const selectedIds = ctx.request.body.selectedIds;
+        const correctIds = exerciseContent.correctIds;
+        const solutionIsCorrect = _.isEqual( selectedIds.sort(), correctIds.sort());
+        if( solutionIsCorrect) {
+            await models.saveExerciseHistory(ctx.state.user.id, exerciseId, {selectedIds});
+        }
+
+        ctx.body = JSON.stringify({solutionIsCorrect, correctIds});
+    } else {
+        ctx.status = 404;
+    }
+
+    await markDoneTopicAsDone( ctx.state.user.id, topic.id, contentList);
 }));
 
 module.exports = { topicApp};

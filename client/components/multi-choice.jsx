@@ -3,20 +3,12 @@ import axios from 'axios';
 import {cloneDeep, indexOf, find, every} from 'lodash';
 import Parser from 'html-react-parser';
 import {Segment, Label, Icon, Form, Checkbox, Button} from 'semantic-ui-react';
+import PropTypes from 'prop-types';
 
-export default class McQuiz extends React.Component {
+export default class MultipleChoiceContent extends React.Component {
     constructor( props) {
         super(props);
-
-        const state = {answerHintTimer: null, loading: false, content: cloneDeep(props.content)};
-        if( state.content.done) {
-            state.done = true;
-            state.content.options.map((option, i) => {
-                if( indexOf(state.content.solution.correctOptions, option.key) >= 0) {
-                    option.selected = true;
-                }
-            });
-        }
+        const state = {loading: false, done: props.done, answerHintTimer: null, selectedIds: props.selectedIds};
         this.state = state;
 
         this.handleSubmit = this.handleSubmit.bind(this);
@@ -27,10 +19,6 @@ export default class McQuiz extends React.Component {
 
     clearTimer() {
         const newState = Object.assign({}, this.state, {answerHintTimer: null});
-        newState.content.options.map((o, i) => {
-            o.error = false;
-        });
-
         this.setState(newState);
     }
 
@@ -42,15 +30,22 @@ export default class McQuiz extends React.Component {
 
     handleCheckboxChange(event, data) {
         const newState = Object.assign({}, this.state);
-        const option = find(newState.content.options, {key: parseInt(data.name)});
-        option.selected = data.checked;
+        if( data.checked) {
+            newState.selectedIds.push( data.name);
+            newState.selectedIds = newState.selectedIds.sort();
+        } else {
+            const index = newState.selectedIds.indexOf( data.name);
+            if( index >= 0) {
+                newState.selectedIds = newState.selectedIds.splice( index, 1);
+            }
+        }
         this.setState(newState);
     }
 
     handleSubmit(event) {
         event.preventDefault();
 
-        if(!this.props.user) {
+        if(!this.props.userId) {
             window.location.replace('/login');
             return;
         }
@@ -61,25 +56,19 @@ export default class McQuiz extends React.Component {
 
         const component = this;
 
-        axios.get('/exercise/' + component.state.content.id + '/solution')
+        axios.post('/exercise/' + component.props.id + '/solution', {selectedIds: this.state.selectedIds})
         .then(function(response) {
-            const correctOptions = response.data.data.correctOptions;
-            const newState = Object.assign({}, component.state, {loading: false});
-            newState.content.options.map((option, i) => {
-                if( indexOf(correctOptions, option.key) >= 0) {
-                    option.correct = true;
-                }
-            });
+            const solutionIsCorrect = response.data.solutionIsCorrect;
+            const newState = Object.assign({}, component.state, {loading: false, done: solutionIsCorrect});
+            if( !solutionIsCorrect) {
+                newState.correctIds = response.data.correctIds.sort();
+            }
 
-            newState.hasError = component.hasError(newState.content.options);
-            if( newState.hasError) {
-                newState.done = false;
+            if( !newState.done) {
                 newState.answerHintTimer = setTimeout( component.clearTimer, 3000);
                 component.setState(newState);
             } else {
-                newState.done = true;
                 component.setState(newState);
-                component.props.markQuizAsDone(component, {correctOptions});
             }
         }).catch(function() {
             component.setState( Object.assign({}, component.state, {loading: false}));
@@ -93,7 +82,7 @@ export default class McQuiz extends React.Component {
             icon: this.state.done ? 'checkmark' : 'wait',
             content: this.state.done ? 'Done' : 'Check'};
 
-        const submitButton = this.props.user ?
+        const submitButton = this.props.userId ?
                 <Button size='small' primary type="submit" labelPosition='left' {...buttonProps}/> :
                 <Button size='small'  content='Login with Google to try'/>
 
@@ -101,16 +90,16 @@ export default class McQuiz extends React.Component {
             <Segment>
                 <Label attached='top'><Icon name={this.state.done ? 'checkmark':'wait'} className="exercise status"/>Exercise</Label>
 
-                {Parser(this.state.content.html)}
+                {Parser(this.props.question)}
 
                 <Form className="quiz" onSubmit={this.handleSubmit}>
                     <Form.Group className="grouped fields">
-                        {this.state.content.options.map( (option, i) => {
-                            const checkedProps = option.selected ? {checked: true} : {};
+                        {this.props.choiceOptions.map( (choiceOption, i) => {
+                            const checkedProps = this.state.selectedIds.indexOf( choiceOption.id) >= 0 ? {checked: true} : {};
 
-                            return <Form.Field className={!this.state.answerHintTimer || option.correct == option.selected ? '' : 'error'}
-                                        key={option.key}>
-                                        <Checkbox name={'' + option.key} label={Parser(option.html)} 
+                            return <Form.Field className={!this.state.answerHintTimer || this.state.selectedIds.indexOf(choiceOption.id) == this.state.correctIds.indexOf(choiceOption.id) ? '' : 'error'}
+                                        key={choiceOption.id}>
+                                        <Checkbox name={'' + choiceOption.id} label={Parser(choiceOption.html)} 
                                             {...checkedProps} onChange={this.handleCheckboxChange}/>
                                     </Form.Field>
                         })}
@@ -123,3 +112,17 @@ export default class McQuiz extends React.Component {
         )
     }
 }
+
+MultipleChoiceContent.PropTypes = {
+    id: PropTypes.string.isRequired,
+    question: PropTypes.string.isRequired,
+    code: PropTypes.string,
+    choiceOptions: PropTypes.arrayOf( PropTypes.shape({
+        id: PropTypes.string.isRequired,
+        html: PropTypes.string.isRequired,
+    })),
+    correctIds: PropTypes.arrayOf( PropTypes.string),
+    userId: PropTypes.number,
+    done: PropTypes.bool,
+    selectedIds: PropTypes.arrayOf( PropTypes.number)
+};
