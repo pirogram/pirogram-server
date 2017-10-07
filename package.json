@@ -37,8 +37,6 @@
     "react-codemirror": "^1.0.0",
     "react-dom": "^15.6.1",
     "react-monaco-editor": "^0.10.0",
-    "react-redux": "^5.0.6",
-    "redux": "^3.7.2",
     "semantic-ui-react": "^0.71.4",
     "slug": "^0.9.1",
     "socket.io-client": "^2.0.3",
@@ -54,8 +52,7 @@
     "babel-preset-react": "^6.24.1",
     "css-loader": "^0.28.5",
     "jest": "^21.2.1",
-    "nodemon": "^1.11.0",
-    "redux-devtools": "^3.4.0"
+    "nodemon": "^1.11.0"
   },
   "scripts": {
     "test": "NODE_ENV=test jest",

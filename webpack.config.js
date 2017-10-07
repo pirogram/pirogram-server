@@ -4,7 +4,7 @@ const webpack = require('webpack');
 
 module.exports = {
     entry: './client/index.js',
-    devtool: 'cheap-module-source-map',
+    devtool: 'cheap-module-eval-source-map',
     output: {
         path: path.resolve('static/js'),
         filename: 'client_bundle.js'

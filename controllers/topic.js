@@ -15,8 +15,8 @@ const util = require( '../lib/util');
 const _ = require('lodash');
 const React = require('react');
 const ReactDOMServer = require('react-dom/server');
-const TopicEditorComponent = require('../client/components/topic-editor.jsx').default;
-const TopicComponent = require('../client/components/topic.jsx').default;
+const pageStore = require('../client/store');
+import Topic from '../client/components/topic.jsx';
 
 const topicApp = new Koa();
 
@@ -55,13 +55,6 @@ async function decorateTopic(cachedTopic, user) {
 }
 
 
-topicApp.use( router.get( '/topic/:tocSlug', async function( ctx, tocSlug, topicSlug) {
-    const cachedToc = await toc.lookupToc( tocSlug);
-
-    ctx.redirect(`/topic/${tocSlug}/${cachedToc.slugs[0]}`);
-}));
-
-
 async function generateTocTopics( m, userId) {
     let th = {};
     if( userId) {
@@ -92,45 +85,56 @@ async function generateTocTopics( m, userId) {
 }
 
 
-async function getTopicContentList( userId, m, topic) {
+async function getPageStore( user, m, topic) {
+    const ps = new pageStore.PageStore();
+    ps.topic = new pageStore.TopicStore();
+    ps.m = Object.assign( new pageStore.ModuleStore(), {slug: m.slug, name: m.name});
+
     const baseContentList = structmd.parse( topic.rawContent);
-    const pageContentList = [];
     const exerciseIds = [];
 
     for( const baseContent of baseContentList) {
         let pageContent = null;
         if( baseContent instanceof structmd.MarkdownContent) {
-            pageContent = {type: 'html', html: util.commonmarkToHtml( baseContent.markdown)};
+            pageContent = new pageStore.HtmlContentStore();
+            pageContent.html = util.commonmarkToHtml( baseContent.markdown);
         } else if( baseContent instanceof structmd.MultipleChoiceContent) {
             exerciseIds.push( baseContent.id);
 
-            pageContent = {type: 'multiple-choice', id: `${m.slug}::${topic.slug}::${baseContent.id}`, 
-                exerciseId: baseContent.id, question: util.commonmarkToHtml( baseContent.question), 
-                code: baseContent.code, choiceOptions: [], done: false, isExercise: true};
+            pageContent = new pageStore.MultipleChoiceContentStore();
+            Object.assign( pageContent, { compositeId: `${m.slug}::${topic.slug}::${baseContent.id}`, 
+                id: baseContent.id, question: util.commonmarkToHtml( baseContent.question), 
+                code: baseContent.code, choiceOptions: [], done: false, isExercise: true});
             
             for( const choiceOption of baseContent.choiceOptions) {
-                pageContent.choiceOptions.push({id: choiceOption.id, html: util.commonmarkToHtml(choiceOption.markdown)});
+                pageContent.choiceOptions.push(
+                    Object.assign(new pageStore.ChoiceOptionStore(), 
+                        {id: choiceOption.id, html: util.commonmarkToHtml(choiceOption.markdown)})
+                );
             }
         } else if( baseContent instanceof structmd.CodeContent) {
-            pageContent = {type: 'code', lang: baseContent.lang, code: baseContent.code}
+            pageContent = Object.assign( new pageStore.CodePlaygroundContentStore(), 
+                {id: baseContent.id, lang: baseContent.lang, code: baseContent.code});
         }
 
         if( pageContent) {
-            pageContentList.push( pageContent);
+            ps.topic.contentList.push( pageContent);
         }
     }
 
-    if( userId) {
-        const eh = await models.getExerciseHistory( userId, exerciseIds);
-        for( const pageContent of pageContentList) {
-            if( !pageContent.exerciseId || !eh[pageContent.exerciseId]) { continue; }
+    if( user) {
+        const eh = await models.getExerciseHistory( user.id, exerciseIds);
+        for( const pageContent of ps.topic.contentList) {
+            if( !pageContent.id || !eh[pageContent.id]) { continue; }
 
             pageContent.done = true;
-            pageContent.selectedIds = eh[pageContent.exerciseId].solution.selectedIds;
+            pageContent.selectedIds = eh[pageContent.id].solution.selectedIds;
         }
+
+        ps.user = {id: user.id, name: user.name};
     }
 
-    return pageContentList;
+    return ps;
 }
 
 
@@ -196,17 +200,17 @@ topicApp.use( router.get( '/topic/:moduleSlug/:topicSlug', async function( ctx, 
     const tocTopics = await generateTocTopics( m, ctx.state.user ? ctx.state.user.id : null);
     const {prevTopic, nextTopic} = getNextPrevTopics( m, topicSlug);
 
-    const pageContentList = await getTopicContentList( ctx.state.user ? ctx.state.user.id : null, m, topic);
+    const ps = await getPageStore( ctx.state.user, m, topic);
     const userId = ctx.state.user ? ctx.state.user.id : 0;
+
     const topicHtml = ReactDOMServer.renderToString(
-        React.createElement( TopicComponent, {pageContentList, moduleSlug, topicSlug, userId})
+        <Topic m={ps.m} topic={ps.topic} userId={userId}/> 
     );
     const hasStage = stageName ? true:false;
 
-    await markBlankTopicAsDone( userId, topic.id, pageContentList);
+    await markBlankTopicAsDone( userId, topic.id, ps.topic.contentList);
 
-    await ctx.render( 'topic', {m, tocTopics, topic, topicHtml, prevTopic, nextTopic, hasStage}, 
-        {topicViewer: true, pageContentList, moduleSlug, topicSlug, hasStage, userId});
+    await ctx.render( 'topic', {m, tocTopics, topic, topicHtml, prevTopic, nextTopic, hasStage}, ps);
 }));
 
 
