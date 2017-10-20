@@ -92,6 +92,7 @@ async function getPageStore( user, m, topic) {
 
     const baseContentList = structmd.parse( topic.rawContent);
     const exerciseIds = [];
+    const playgroundIds = [];
 
     for( const baseContent of baseContentList) {
         let pageContent = null;
@@ -112,9 +113,17 @@ async function getPageStore( user, m, topic) {
                         {id: choiceOption.id, html: util.commonmarkToHtml(choiceOption.markdown)})
                 );
             }
-        } else if( baseContent instanceof structmd.CodeContent) {
+        } else if( baseContent instanceof structmd.CodePlaygroundContent) {
             pageContent = Object.assign( new pageStore.CodePlaygroundContentStore(), 
                 {id: baseContent.id, lang: baseContent.lang, code: baseContent.code});
+            
+            if( baseContent.id) { playgroundIds.push( baseContent.id); }
+        } else if( baseContent instanceof structmd.CodingProblemContent) {
+            pageContent = Object.assign( new pageStore.CodingProblemContentStore(), {
+                id: baseContent.id, problemStatement: util.commonmarkToHtml( baseContent.problemStatement), 
+                referenceSolution: baseContent.referenceSolution,
+                starterCode: baseContent.starterCode, tests: baseContent.tests
+            });
         }
 
         if( pageContent) {
@@ -123,12 +132,23 @@ async function getPageStore( user, m, topic) {
     }
 
     if( user) {
-        const eh = await models.getExerciseHistory( user.id, exerciseIds);
-        for( const pageContent of ps.topic.contentList) {
-            if( !pageContent.id || !eh[pageContent.id]) { continue; }
+        if( exerciseIds.length) {
+            const eh = await models.getExerciseHistory( user.id, exerciseIds);
+            for( const pageContent of ps.topic.contentList) {
+                if( !pageContent.id || !eh[pageContent.id]) { continue; }
 
-            pageContent.done = true;
-            pageContent.selectedIds = eh[pageContent.id].solution.selectedIds;
+                pageContent.done = true;
+                pageContent.selectedIds = eh[pageContent.id].solution.selectedIds;
+            }
+        }
+
+        if( playgroundIds.length) {
+            const playgroundDataset = await models.getPlaygroundDataset( user.id, playgroundIds);
+            for( const pageContent of ps.topic.contentList) {
+                if( !pageContent.id || !playgroundDataset[pageContent.id]) { continue; }
+
+                pageContent.userCode = playgroundDataset[pageContent.id].code;
+            }
         }
 
         ps.user = {id: user.id, name: user.name};
@@ -255,11 +275,17 @@ topicApp.use( router.post( '/topic/:moduleSlug/:topicSlug/edit', async function(
     const stageName = ctx.state.user.email;
 
     const m = await cms.getModuleBySlug( moduleSlug, stageName);
+    const topic = await cms.getTopicBySlug( m, topicSlug, stageName);
 
     const newName = ctx.request.body.fields.name.trim();
     const newTocName = ctx.request.body.fields.tocName.trim();
     const newSlug = ctx.request.body.fields.slug.trim();
     const newRawContent = ctx.request.body.fields.rawContent.trim();
+
+    if( topic.rawContent == newRawContent) {
+        ctx.redirect(`/topic/${moduleSlug}/${topicSlug}`);
+        return;
+    }
 
     await cms.updateTopic( m, topicSlug, stageName, newName, newTocName, newSlug, newRawContent);
 

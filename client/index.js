@@ -2,6 +2,9 @@ import React from 'react';
 import {render} from 'react-dom';
 import Header from './components/header.jsx';
 import Topic from './components/topic.jsx';
+import {initCodeExecutor} from './code-exec';
+
+initCodeExecutor();
 
 render(<Header user={window.initialStore.user}/>, document.getElementById('turtle-header'));
 

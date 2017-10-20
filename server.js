@@ -11,8 +11,10 @@ const auth = require( './lib/auth');
 const topic = require( './controllers/topic');
 const misc = require( './controllers/misc');
 const modules = require( './controllers/modules');
+const code = require( './controllers/code');
 const bodyParser = require( 'koa-body');
 const reqLogger = require('koa-logger');
+const config = require('config');
 
 const app = new Koa();
 
@@ -30,6 +32,7 @@ app.use( mount( oauth.oauthApp));
 app.use( mount( topic.topicApp));
 app.use( mount( modules.modulesApp));
 app.use( mount( misc.miscApp));
+app.use( mount( code.codeApp));
 app.use( mount( '/static', serve( __dirname + '/static')));
 
-app.listen( 5000);
+app.listen( config.get('server.port'));

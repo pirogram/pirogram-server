@@ -4,13 +4,14 @@ import Parser from 'html-react-parser';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import {Segment, Label, Icon, Form, Checkbox, Button} from 'semantic-ui-react';
-import {NuxState, dispatch} from '../nux';
+import {ComponentNuxState, dispatch} from '../nux';
 
 
 export default class MultipleChoice extends React.Component {
     constructor(props) {
         super( props);
         this.nuxState = new MultipleChoiceState( this);
+        this.state = this.nuxState.state;
     }
 
     render() {
@@ -72,7 +73,7 @@ MultipleChoice.propTypes = {
 };
 
 
-class MultipleChoiceState extends NuxState {
+class MultipleChoiceState extends ComponentNuxState {
     constructor( component) {
         super( component);
 

@@ -59,6 +59,12 @@ const Module = bookshelf.Model.extend({
     hasTimestamps: true
 });
 
+const CodePlaygroundData = bookshelf.Model.extend({
+    tableName: 'code_playground_data',
+    idAttribute: ['user_id', 'playground_id'],
+    hasTimestamps: true
+});
+
 async function getUserById ( id) {
     try {
         return await new User( { id: id}).fetch();
@@ -149,6 +155,40 @@ async function saveTopic( slug, title, markdown, authorId) {
     }).save();
 }
 
+async function getPlaygroundDataset( userId, playgroundIds) {
+    const objs = await CodePlaygroundData.query( function(qb) {
+        qb.whereIn('playground_id', playgroundIds).andWhere('user_id', userId);
+    }).fetchAll();
+
+    const playgroundDataset = {};
+
+    objs.each( function( obj) {
+        playgroundDataset[obj.attributes.playground_id] = obj.attributes;
+    });
+
+    return playgroundDataset;
+}
+
+
+async function getCodeForPlayground( userId, playgroundId) {
+    try {
+        return await new CodePlaygroundData( {user_id: userId, playground_id: playgroundId}).fetch();
+    } catch( e) {
+        return null;
+    }
+}
+
+async function savePlaygroundCode( userId, playgroundId, code) {
+    const codePlaygroundData = await getCodeForPlayground( userId, playgroundId);
+    const method = codePlaygroundData ? 'update' : 'insert';
+
+    if( !codePlaygroundData) {
+        await new CodePlaygroundData({user_id: userId, playground_id: playgroundId, code: code}).save();
+    } else {
+        await new CodePlaygroundData().where({user_id: userId, playground_id: playgroundId}).save({code}, {patch: true});
+    }
+}
+
 async function getExercise( moduleId, topicId, exerciseId) {
     try {
         return await new Exercise({module_id: moduleId, topic_id: topicId, exercise_id: exerciseId}).fetch();
@@ -193,4 +233,4 @@ async function createModule(name, slug, tocYaml) {
 module.exports = { bookshelf, User, Topic,
     getUserByEmail, createUser, getUserById, getTopicBySlug, getExerciseHistory, saveExerciseHistory,
     saveTopic, getTopicHistory, saveTopicHistory, saveExercise, getExercise, Module, getAllModules,
-    getModuleBySlug, createModule};
+    getModuleBySlug, createModule, savePlaygroundCode, getPlaygroundDataset};

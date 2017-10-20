@@ -26,10 +26,21 @@ export class MultipleChoiceContentStore {
 export class CodePlaygroundContentStore {
     type = 'code-playground';
     id;
-    compositeId;
     commentary;
     code;
-    hasError = false;
+    userCode;
+}
+
+export class CodingProblemContentStore {
+    type = 'coding-problem';
+    id;
+    problemStatement;
+    starterCode;
+    referenceSolution;
+    tests;
+    userCode;
+    done = false;
+    isExercise = true;
 }
 
 export class TopicStore {

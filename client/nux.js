@@ -1,21 +1,18 @@
 'use strict';
 
 const stateObjs = [];
+const listeners = {};
 
-export class NuxState {
+export class ComponentNuxState {
     constructor( component) {
         this.component = component;
         this.state = Object.assign({}, component.props);
-        component.state = this.state;
-
         stateObjs.push( this);
     }
-
 
     updateState() {
         this.component.setState( this.state);
     }
-
 
     setState( newState) {
         this.state = newState;
@@ -37,11 +34,24 @@ function getHandlerName( eventName) {
 
 export function dispatch( eventName, data) {
     const handlerName = getHandlerName( eventName);
-    console.log(handlerName, eventName, data);
     for( const stateObj of stateObjs) {
-        console.log( stateObj);
         if( stateObj[handlerName]) {
             stateObj[handlerName]( data);
         }
+    }
+
+    if( listeners[ eventName]) {
+        for( const listener of listeners[eventName]) {
+            listener( data);
+        }
+    }
+}
+
+
+export function addListener( eventName, cb) {
+    if( !listeners[ eventName]) {
+        listeners[ eventName] = [cb];
+    } else {
+        listeners[ eventName].push(cb);
     }
 }

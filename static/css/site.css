@@ -91,6 +91,25 @@
     background-color: #f1f5fb;
 }
 
-.runnable-code {
-    margin: 1rem 0;
+.ui.segment.code-playground {
+    padding: 0.5em 0 0;
+}
+
+.ui.segment.code-playground .runnable-code {
+    padding: 0 0.5em;
+}
+
+.code-playground .side-effects {
+    padding: 0.5em 1em;
+    border-top: 1px solid rgba(34,36,38,.15);
+    background-color: rgba(241, 245, 251, 0.4);
+}
+
+.code-playground .side-effects pre {
+    margin: 0;
+    font-size: 0.9em;
+}
+
+.coding-problem .html-content {
+    margin-bottom: 1em;
 }

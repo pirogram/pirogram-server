@@ -166,6 +166,16 @@ CREATE TABLE topic_history (
 );
 
 
+create table code_playground_data (
+    user_id integer NOT NULL,
+    playground_id varchar(48) NOT NULL,
+    code text NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    primary key (user_id, playground_id)
+);
+
+
 ALTER TABLE topic_history OWNER TO turtleprogrammer;
 
 --

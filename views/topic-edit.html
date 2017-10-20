@@ -47,8 +47,11 @@
 	require.config({ paths: { 'vs': '/static/js/vs' }});
 	require(['vs/editor/editor.main'], function() {
 		window.topicEditor = monaco.editor.create(document.getElementById('raw-content'), {
+            wrappingColumn: 80,
+            wordWrap: "wordWrapColumn",
+            wrappingIndent: "same",
 			value: '',
-            language: 'markdown',
+            language: 'text',
             theme: 'vs-light',
             lineNumbers: false,
             scrollBeyondLastLine: false,
@@ -63,11 +66,11 @@
     });
     
     document.getElementById('topic-update-form').addEventListener('submit', function(e) {
-        document.getElementById('raw-content-textarea').innerText = window.tocEditor.getValue();
+        document.getElementById('raw-content-textarea').innerHTML = window.topicEditor.getValue();
     });
 
     window.onbeforeunload = function() {
-        if( document.getElementById('raw-content-textarea').innerText != window.topicEditor.getValue()) {
+        if( document.getElementById('raw-content-textarea').innerHTML != window.topicEditor.getValue()) {
             return "You have unsaved changes.";
         } else {
             return null;

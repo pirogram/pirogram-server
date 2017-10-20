@@ -13,3 +13,6 @@ google_oauth:
 cms:
   rootdir: "./cms-modules"
   livedir: "live"
+
+server:
+  port: 5000

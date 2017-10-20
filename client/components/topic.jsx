@@ -1,7 +1,8 @@
 import React from 'react';
 import HtmlContent from './html-content.jsx';
 import MultipleChoice from './multi-choice.jsx';
-//import CodePlayground from './code-content.jsx';
+import CodePlayground from './code-playground.jsx';
+import CodingProblem from './coding-problem.jsx';
 
 const Topic = ({userId, m, topic}) => (
     <div className="topic">
@@ -12,8 +13,12 @@ const Topic = ({userId, m, topic}) => (
                 return <MultipleChoice key={i} userId={userId} id={content.id} compositeId={content.compositeId}
                     question={content.question} code={content.code} choiceOptions={content.choiceOptions}
                     correctIds={content.correctIds} selectedIds={content.selectedIds} done={content.done} />
-            } else if( content.type == 'code') {
-                return <CodePlayground key={i} lang={content.lang} code={content.code}/>
+            } else if( content.type == 'code-playground') {
+                return <CodePlayground key={i} id={content.id} lang={content.lang} code={content.code} userCode={content.userCode}/>
+            } else if( content.type == 'coding-problem') {
+                return <CodingProblem key={i} id={content.id} starterCode={content.starterCode}
+                    problemStatement={content.problemStatement} referenceSolution={content.referenceSolution}
+                    tests={content.tests} />
             }
         })}
     </div>

@@ -3,7 +3,7 @@ import Parser from 'html-react-parser';
 import PropTypes from 'prop-types';
 
 const HtmlContent = ({ html}) => (
-    <div>
+    <div className='html-content'>
         {Parser(html)}
     </div>
 );
