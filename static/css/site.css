@@ -91,25 +91,53 @@
     background-color: #f1f5fb;
 }
 
-.ui.segment.code-playground {
+.ui.segment.code-playground, .ui.segment.coding-problem {
     padding: 0.5em 0 0;
 }
 
-.ui.segment.code-playground .runnable-code {
-    padding: 0 0.5em;
+.ui.segment.coding-problem  .problem-statement {
+    padding: 0 1em;
+    margin-bottom: 1em;
 }
 
-.code-playground .side-effects {
+.runnable-code {
+    padding: 0;
+    border: 1px solid #eee;
+    box-shadow: 1px 1px 1px 1px rgba(241, 245, 251, 0.8);
+}
+
+.code-playground .side-effects, .coding-problem .side-effects {
+    margin-top: 0.5em;
     padding: 0.5em 1em;
     border-top: 1px solid rgba(34,36,38,.15);
     background-color: rgba(241, 245, 251, 0.4);
 }
 
-.code-playground .side-effects pre {
+.code-playground .side-effects pre, .coding-problem .side-effects pre {
     margin: 0;
     font-size: 0.9em;
 }
 
-.coding-problem .html-content {
-    margin-bottom: 1em;
+.monaco-editor .monaco-editor-background {
+    background-color: rgba(241, 245, 251, 0.4);
+}
+
+.runnable-code .monaco-editor .margin {
+    background-color: rgba(241, 245, 251, 0.4);
+}
+
+.coding-problem .tests, .coding-problem .submit {
+    padding: 1em;
+    border-top: 1px solid rgba(34,36,38,.15);
+}
+
+.coding-problem .tests pre {
+    font-size: 13px;
+    line-height: 20px;
+    margin: 0;
+    display: inline;
+}
+
+.coding-problem .tests pre div {
+    display: inline;
 }

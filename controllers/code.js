@@ -29,20 +29,22 @@ async function createSession() {
 }
 
 
-function executeCodeRequest( sessionId, executionId, code) {
+async function executeCodeRequest( sessionId, executionId, code, tests=[], allowInput=true) {
+    if( !sessionId) {
+        sessionId = await createSession();
+    }
+
     return new Promise( (resolve, reject) => {
         const port = sessionPorts[ sessionId];
         const serverPort = config.get('server.port');
+        const inputWebhook = allowInput ?  `http://localhost:${serverPort}/code-requests/${executionId}/input-request` : null;
         axios( { method: 'post',
             url: `http://localhost:${port}/code-requests/${executionId}`,
-            data: {
-                code: code,
-                input_webhook: `http://localhost:${serverPort}/code-requests/${executionId}/input-request`
-            },
+            data: { code, tests, input_webhook: inputWebhook },
             timeout: 300000
         })
         .then( (response) => {
-            resolve( {sideEffects: response.data.side_effects, inputRequired: false});
+            resolve( {sessionId, sideEffects: response.data.side_effects, inputRequired: false});
         })
         .catch((err) => {
             reject( err);
@@ -51,22 +53,19 @@ function executeCodeRequest( sessionId, executionId, code) {
 }
 
 
-codeApp.use( router.post( '/code-requests/:executionId', async function( ctx, executionId) {
+codeApp.use( router.post( '/code-requests', async function( ctx, executionId) {
     if(!ctx.state.user) { ctx.redirect('/login'); return; }
 
     let sessionId = ctx.request.body.sessionId;
     const code = ctx.request.body.code;
+    const executionId = ctx.request.body.executionId;
     const playgroundId = ctx.request.body.playgroundId;
 
     if( playgroundId) {
         await models.savePlaygroundCode( ctx.state.user.id, playgroundId, code);
     }
 
-    if( !sessionId) {
-        sessionId = await createSession();
-    }
-
-    const {sideEffects, inputRequired} = await executeCodeRequest( sessionId, executionId, code);
+    const {sessionId, sideEffects, inputRequired} = await executeCodeRequest( sessionId, executionId, code);
 
     ctx.body = JSON.stringify({sideEffects, inputRequired, sessionId});
 }));

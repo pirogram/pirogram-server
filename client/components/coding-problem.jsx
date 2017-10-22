@@ -12,20 +12,37 @@ export default class CodingProblem extends React.Component {
 
         this.nuxState = new CodingProblemState( this);
         this.state = this.nuxState.state;
+        this.onSubmit = this.onSubmit.bind(this);
+    }
+
+    onSubmit(e) {
     }
 
     render() {
+        const buttonProps = {loading: this.state.loading ? true : false, 
+            icon: this.state.done ? 'checkmark' : 'wait',
+            content: this.state.done ? 'Done' : 'Check'};
+
+        const submitButton = this.state.userId ?
+            <Button size='small' primary labelPosition='left' {...buttonProps}/> :
+            <a className="ui small button" href='/login'>Login with Google to try</a>
+
         return(
             <Segment className='coding-problem'>
                 <Label attached='top'>
-                    <Icon name='code'/> Coding Problem (Shift+Enter to Execute)
+                    <Icon name={this.state.done ? 'checkmark':'wait'} className="exercise status"/>
+                     Coding Problem (Shift+Enter to Execute)
                 </Label>
 
-                {this.state.problemStatement ? <HtmlContent html={this.state.problemStatement}/> : ''}
+                {this.state.problemStatement ? 
+                    <div className='problem-statement'>
+                        <HtmlContent html={this.state.problemStatement}/>
+                    </div> : '' }
 
                 <div className='runnable-code'>
                     <CodeEditor id={this.state.id} code={this.state.code} />
                 </div>
+
                 <div className='side-effects'>
                     {this.state.status == 'inprogress' ? <div className='ui active small inline loader'></div> : ''}
                     {this.state.status == 'failure' ? <div>There was an error in executing the code.</div> : ''}
@@ -38,6 +55,18 @@ export default class CodingProblem extends React.Component {
                             return <img className='ui image' src={'data:image/png;base64,' + sideEffect.content}/>
                         }
                     })}
+                </div>
+
+                <div className='tests'>
+                    {this.state.tests.map( (test, i) => {
+                        return <div className='test'>
+                                <code><pre><HtmlContent html={test}/></pre></code>
+                            </div>;
+                    })}
+                </div>
+
+                <div className='submit'>
+                    {submitButton}
                 </div>
             </Segment>
         );
@@ -57,8 +86,9 @@ CodingProblem.PropTypes = {
 class CodingProblemState extends ComponentNuxState {
     constructor(component) {
         super( component);
+        const code = this.state.userCode ? this.state.userCode : this.state.starterCode;
         this.state = Object.assign({}, this.state, {sideEffects: [], status: 'null', 
-            code: this.state.userCode ? this.state.userCode : this.state.starterCode})
+            code, currentCode: code});
     }
 
     onCodeExecutionSuccess( data) {
@@ -81,5 +111,11 @@ class CodingProblemState extends ComponentNuxState {
 
     onCodeSessionDead( data) {
         this.setState(Object.assign({}, this.state, {status: 'session-dead', sideEffects: []}));
+    }
+
+    onEditorContentChange( data) {
+        if( data.editorId != this.state.id) { return; }
+
+        this.setState( Object.assign({}, this.state, {currentCode: data.content}));
     }
 }

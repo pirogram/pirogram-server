@@ -77,6 +77,12 @@ class CodePlaygroundState extends ComponentNuxState {
         this.setState(Object.assign({}, this.state, {status: 'inprogress', sideEffects: []}));
     }
 
+    onEditorCodeExecutionRequest( data) {
+        if( data.editorId != this.state.id) { return; }
+
+        dispatch('CODE_EXECUTION_REQUEST', {playgroundId: this.state.id, code: data.code});
+    }
+
     onCodeSessionDead( data) {
         this.setState(Object.assign({}, this.state, {status: 'session-dead', sideEffects: []}));
     }

@@ -18,6 +18,8 @@ export default class CodeEditor extends React.Component {
         const newState = Object.assign({}, this.state, {code: newValue});
         this.setState( newState);
 
+        dispatch( 'EDITOR_CONTENT_CHANGE', {editorId: this.state.id, content: newValue});
+
         this.adjustEditorHeight();
     }
 
@@ -37,7 +39,7 @@ export default class CodeEditor extends React.Component {
 
         this.editor = editor;
         this.editor.addCommand(monaco.KeyMod.Shift | monaco.KeyCode.Enter, function() {
-            dispatch( 'CODE_EXECUTION_REQUEST', {playgroundId: self.props.id, code: self.editor.getValue()});
+            dispatch( 'EDITOR_CODE_EXECUTION_REQUEST', {editorId: self.props.id, code: self.editor.getValue()});
         }, '');
 
         this.adjustEditorHeight();
@@ -79,7 +81,7 @@ export default class CodeEditor extends React.Component {
             <div id={this.state.id} class='code-editor-shell' style={{height: '200px'}}>
                 <MonacoEditor
                     language='python'
-                    theme="vs-dark"
+                    theme="vs-light"
                     value={this.state.code}
                     editorDidMount={this.editorDidMount}
                     onChange={this.onChange}

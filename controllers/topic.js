@@ -16,6 +16,7 @@ const _ = require('lodash');
 const React = require('react');
 const ReactDOMServer = require('react-dom/server');
 const pageStore = require('../client/store');
+const hljs = require('highlight.js');
 import Topic from '../client/components/topic.jsx';
 
 const topicApp = new Koa();
@@ -122,8 +123,14 @@ async function getPageStore( user, m, topic) {
             pageContent = Object.assign( new pageStore.CodingProblemContentStore(), {
                 id: baseContent.id, problemStatement: util.commonmarkToHtml( baseContent.problemStatement), 
                 referenceSolution: baseContent.referenceSolution,
-                starterCode: baseContent.starterCode, tests: baseContent.tests
+                starterCode: baseContent.starterCode, tests: []
             });
+
+            if( baseContent.tests) {
+                pageContent.tests = baseContent.tests.split('\n').map((test, i) => {
+                    return hljs.highlight( 'python', test, true).value;
+                });
+            }
         }
 
         if( pageContent) {

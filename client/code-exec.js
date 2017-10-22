@@ -37,7 +37,7 @@ function onCodeExecutionRequest( data) {
     }
 
     const executionId = uuid();
-    const reqdata = {code: data.code};
+    const reqdata = {code: data.code, executionId};
 
     if( data.playgroundId.indexOf('fake-') == -1) {
         reqdata.playgroundId = data.playgroundId;
@@ -47,7 +47,7 @@ function onCodeExecutionRequest( data) {
         reqdata.sessionId = sessionId;
     }
 
-    axios.post(`/code-requests/${executionId}`, reqdata)
+    axios.post(`/code-requests`, reqdata)
     .then((response) => {
         if( !sessionId) { 
             sessionId = response.data.sessionId;

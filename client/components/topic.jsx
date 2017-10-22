@@ -18,7 +18,7 @@ const Topic = ({userId, m, topic}) => (
             } else if( content.type == 'coding-problem') {
                 return <CodingProblem key={i} id={content.id} starterCode={content.starterCode}
                     problemStatement={content.problemStatement} referenceSolution={content.referenceSolution}
-                    tests={content.tests} />
+                    tests={content.tests} userId={userId}/>
             }
         })}
     </div>

@@ -500,8 +500,8 @@ code,
 kbd,
 pre,
 samp {
-  font-family: Source Code Pro, monospace;
-  font-size: 1em;
+  font-family: Monaco, Source Code Pro, monospace;
+  font-size: 0.9em;
 }
 
 div.ui.segment.exercise {
