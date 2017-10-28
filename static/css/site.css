@@ -91,6 +91,7 @@
     background-color: #f1f5fb;
 }
 
+/*
 .ui.segment.code-playground, .ui.segment.coding-problem {
     padding: 0.5em 0 0;
 }
@@ -118,26 +119,113 @@
     font-size: 0.9em;
 }
 
-.monaco-editor .monaco-editor-background {
-    background-color: rgba(241, 245, 251, 0.4);
-}
-
-.runnable-code .monaco-editor .margin {
-    background-color: rgba(241, 245, 251, 0.4);
-}
-
 .coding-problem .tests, .coding-problem .submit {
     padding: 1em;
     border-top: 1px solid rgba(34,36,38,.15);
 }
+*/
 
-.coding-problem .tests pre {
+.code-playground {
+    margin: 1em 0;
+    position: relative;
+}
+
+.code-playground .output {
+    padding: 0.5em 1em;
+    border-top: 1px solid rgba(34,36,38,.15);
+    position: relative;
+}
+
+.code-playground .tests {
+    padding: 0.5em 1em;
+    border-top: 1px solid rgba(34,36,38,.15);
+    position: relative;
+    background-color: rgba(241, 245, 251, 0.4);
+}
+
+.code-playground .output pre {
+    margin: 0;
+    font-size: 0.8em;
+    color: #555;
+}
+
+.code-playground .code-editor {
+    padding: 0.5em;
+    background-color: rgba(241, 245, 251, 0.4);
+    position: relative;
+}
+
+.code-playground .code-status {
+    padding: 0.5em 1em;
+    border-bottom: 1px solid rgba(34,36,38,.15);
+    position: relative;
+}
+
+.code-playground .code-status.error {
+    background-color: #fff6f6;
+    color: #9f3a38;
+}
+
+.practise-area {
+    margin-bottom: 2em;
+}
+
+.practise-area .code-playground {
+    border: 1px solid rgba(34,36,38,.15);
+    border-radius: 4px;
+}
+
+.code-playground .tests pre {
     font-size: 13px;
     line-height: 20px;
     margin: 0;
     display: inline;
 }
 
-.coding-problem .tests pre div {
+.code-playground .tests pre div {
     display: inline;
+}
+
+.code-playground .monaco-editor .monaco-editor-background, .code-playground .monaco-editor .margin {
+    background-color: rgba(241, 245, 251, 0.4);
+}
+
+.ui.segment.coding-problem {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.ui.segment.coding-problem .problem-statement, .ui.segment.coding-problem .submit {
+    padding-left: 1em;
+    padding-right: 1em;
+}
+
+.ui.segment.coding-problem .code-playground {
+    border-top: 1px solid rgba(34,36,38,.15);
+    border-bottom: 1px solid rgba(34,36,38,.15);
+}
+
+.code-playground .block-name {
+    position: absolute;
+    right: 0;
+    top: 0;
+    border-left: 1px solid rgba(34,36,38,.15);
+    border-bottom: 1px solid rgba(34,36,38,.15);
+    font-size: 0.85em;
+    padding: 0 1em;
+    border-bottom-left-radius: 4px;
+    color: #999;
+    z-index: 10;
+}
+
+.code-editor .block-name {
+    background-color: rgba(241, 245, 251, 0.4);
+}
+
+.ui.segment div.submit button {
+    margin-right: 1em;
+}
+
+.ui.segment div.submit span.failed-attempts {
+    color: #999;
 }

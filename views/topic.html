@@ -21,7 +21,7 @@
 
 {% if user.superuser %}
     <div class="ui text menu">
-        <h1>{{topic.name}}</h1>
+        <h1>{{m.name}} - {{topic.name}}</h1>
         <div class="right menu">
             <a class="ui tiny item" href="/topic/{{m.slug}}/{{topic.slug}}/edit">Edit</a>
         </div>
@@ -34,10 +34,10 @@
 
 <div class="ui hidden divider"></div>
 <div>
-    {% if nextTopicSlug %}
+    {% if nextTopic %}
         <a href="/topic/{{m.slug}}/{{nextTopic.slug}}" class="ui primary tiny right floated button">{{nextTopic.tocName}} &rarr;</a>
     {% endif %}
-    {% if prevTopicSlug %}
+    {% if prevTopic %}
         <a href="/topic/{{m.slug}}/{{prevTopic.slug}}" class="ui tiny left floated button">&larr; {{prevTopic.tocName}}</a>
     {% endif %}
 </div>

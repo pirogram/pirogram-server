@@ -197,7 +197,7 @@ export async function updateTopic( m, topicSlug, stageName, newName, newTocName,
     const moduleData = await fs.readJSON( path.resolve( stageModuleDir, 'module.json'));
     let topicData = _.find( moduleData.topics, {slug: topicSlug});
     if( topicData) {
-        topicData = Object.assign( topicData, {slug: newSlug, name: newName, tocName: newTocName, filename: topicFileName});
+        Object.assign( topicData, {slug: newSlug, name: newName, tocName: newTocName, filename: topicFileName});
     } else {
         topicData = {id: uuid.v4(), filename: topicFileName, slug: newSlug, name: newName, tocName: newTocName};
         moduleTopics.push( topicData);

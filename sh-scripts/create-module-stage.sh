@@ -32,4 +32,4 @@ if [ "$live_module_dir" == "" ]; then
     usage
 fi
 
-cd "$stage_dir" && git clone "$live_module_dir" && cd `basename "$live_module_dir"` && git remote add origin "$live_module_dir"
+cd "$stage_dir" && git clone "$live_module_dir" && cd `basename "$live_module_dir"`

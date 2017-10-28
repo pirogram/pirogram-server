@@ -13,17 +13,17 @@
 <form class="ui topic form" id='topic-update-form' method="POST" encType='multipart/form-data'>
     <div class="field">
         <label>Name</label>
-        <input name="name" placeholder="Name" type="text" value={{name}}>
+        <input name="name" placeholder="Name" type="text" value="{{name}}">
     </div>
 
     <div class="field">
         <label>ToC Name</label>
-        <input name="tocName" placeholder="ToC Name" type="text" value={{tocName}}>
+        <input name="tocName" placeholder="ToC Name" type="text" value="{{tocName}}">
     </div>
 
     <div class="field">
         <label>Slug</label>
-        <input name="slug" placeholder="slug" type="text" value={{slug}}>
+        <input name="slug" placeholder="slug" type="text" value="{{slug}}">
     </div>
 
     <div class="field">
@@ -69,7 +69,7 @@
         document.getElementById('raw-content-textarea').innerHTML = window.topicEditor.getValue();
     });
 
-    window.onbeforeunload = function() {
+    function preventUnload() {
         if( document.getElementById('raw-content-textarea').innerHTML != window.topicEditor.getValue()) {
             return "You have unsaved changes.";
         } else {

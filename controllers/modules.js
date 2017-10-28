@@ -78,9 +78,9 @@ function getTocAsText( m) {
     const lines = [];
     for( const topic of m.topics) {
         if( topic.level == 1) {
-            lines.push( topic.name);
+            lines.push( topic.tocName);
         } else {
-            lines.push( '    ' + topic.name);
+            lines.push( '    ' + topic.tocName);
         }
     }
 
@@ -112,7 +112,7 @@ function getUpdatedToC( m, tocAsText) {
         if( !line.trim()) continue;
         
         const topicName = line.trim();
-        const existingTopic = _.find( m.topics, {name: topicName});
+        const existingTopic = _.find( m.topics, {tocName: topicName});
         if( existingTopic) {
             existingTopic.level = level;
             updatedTopics.push( existingTopic);

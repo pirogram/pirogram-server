@@ -1,10 +1,55 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import CodeEditor from './code-editor.jsx';
+import CodePlayground from './code-playground/index.jsx';
 import HtmlContent from './html-content.jsx';
-import {Segment, Label, Icon, Form, Checkbox, Button} from 'semantic-ui-react';
+import {Modal, Segment, Label, Icon, Form, Checkbox, Button} from 'semantic-ui-react';
 import {ComponentNuxState, dispatch} from '../nux';
-import uuid from 'uuid/v4';
+
+class CodingSolution extends React.Component {
+    constructor( props) {
+        super( props);
+
+        this.state = {showSolution: false};
+        this.showSolutionWindow = this.showSolutionWindow.bind(this);
+        this.hideSolutionWindow = this.hideSolutionWindow.bind(this);
+    }
+
+    showSolutionWindow(e) {
+        e.preventDefault();
+        this.setState(Object.assign({}, this.state, {showSolution: true}));
+    }
+
+    hideSolutionWindow(e) {
+        e.preventDefault();
+        this.setState(Object.assign({}, this.state, {showSolution: false}));
+    }
+
+    render() {
+        let message = null;
+        if( this.state.showSolution) {
+            message = <Modal dimmer='blurring' open={true}>
+                <Modal.Header>Solution</Modal.Header>
+                <Modal.Content>
+                    <Modal.Description>
+                        <code><pre><HtmlContent html={this.props.solution}/></pre></code>
+                    </Modal.Description>
+                </Modal.Content>
+                <Modal.Actions>
+                    <Button primary onClick={this.hideSolutionWindow}>
+                        Ok
+                    </Button>
+                </Modal.Actions>
+            </Modal>;
+        } else if( this.props.failedAttempts > 0 && this.props.failedAttempts < 3) {
+            const tries = (3-this.props.failedAttempts) == 1 ? 'try' : 'tries';
+            message = <span className='failed-attempts'>Solution Available after {3-this.props.failedAttempts} more {tries}.</span>;
+        } else if( this.props.failedAttempts >= 3) {
+            message = <a className="ui small button solution" href='#' onClick={this.showSolutionWindow}>Solution</a>;
+        }
+
+        return message;
+    }
+}
 
 export default class CodingProblem extends React.Component {
     constructor( props) {
@@ -12,16 +57,26 @@ export default class CodingProblem extends React.Component {
 
         this.nuxState = new CodingProblemState( this);
         this.state = this.nuxState.state;
-        this.onSubmit = this.onSubmit.bind(this);
+        this.onExecute = this.onExecute.bind(this);
     }
 
-    onSubmit(e) {
+    onExecute( code) {
+        dispatch( 'CODE_EXECUTION_REQUEST', {code, playgroundId: this.state.id, 
+            route: 'exercise', compositeId: this.state.compositeId});
     }
 
     render() {
         const buttonProps = {loading: this.state.loading ? true : false, 
-            icon: this.state.done ? 'checkmark' : 'wait',
             content: this.state.done ? 'Done' : 'Check'};
+
+        if( this.state.loading) { buttonProps.icon = 'spinner'; }
+        else if( this.state.done) { buttonProps.icon = 'checkmark'; }
+        else { buttonProps.icon = 'wait'; }
+
+        buttonProps.onClick = (e) => {
+            e.preventDefault();
+            this.onExecute( this.state.currentCode);
+        }
 
         const submitButton = this.state.userId ?
             <Button size='small' primary labelPosition='left' {...buttonProps}/> :
@@ -39,34 +94,13 @@ export default class CodingProblem extends React.Component {
                         <HtmlContent html={this.state.problemStatement}/>
                     </div> : '' }
 
-                <div className='runnable-code'>
-                    <CodeEditor id={this.state.id} code={this.state.code} />
-                </div>
-
-                <div className='side-effects'>
-                    {this.state.status == 'inprogress' ? <div className='ui active small inline loader'></div> : ''}
-                    {this.state.status == 'failure' ? <div>There was an error in executing the code.</div> : ''}
-                    {this.state.status == 'session-dead' ? <div>Cannot execute code. Please reload page and try.</div> : ''}
-
-                    {this.state.sideEffects.map( (sideEffect, i) => {
-                        if( sideEffect.stream == 'stdout' || sideEffect.stream == 'stderr') {
-                            return <pre>{sideEffect.content}</pre>
-                        } else if( sideEffect.stream == 'matplotlib') {
-                            return <img className='ui image' src={'data:image/png;base64,' + sideEffect.content}/>
-                        }
-                    })}
-                </div>
-
-                <div className='tests'>
-                    {this.state.tests.map( (test, i) => {
-                        return <div className='test'>
-                                <code><pre><HtmlContent html={test}/></pre></code>
-                            </div>;
-                    })}
-                </div>
+                <CodePlayground id={this.state.id} starterCode={this.state.starterCode} userCode={this.state.userCode}
+                    tests={this.state.tests} executeCmd={this.onExecute}/>
 
                 <div className='submit'>
                     {submitButton}
+                    {this.props.referenceSolution && !this.state.done ? 
+                        <CodingSolution failedAttempts={this.state.failedAttempts} solution={this.state.referenceSolution} /> : null}
                 </div>
             </Segment>
         );
@@ -79,7 +113,8 @@ CodingProblem.PropTypes = {
     starterCode: PropTypes.string.isRequired,
     referenceSolution: PropTypes.string.isRequired,
     tests: PropTypes.string.isRequired,
-    userCode: PropTypes.string
+    userCode: PropTypes.string,
+    done: PropTypes.bool
 };
 
 
@@ -87,35 +122,35 @@ class CodingProblemState extends ComponentNuxState {
     constructor(component) {
         super( component);
         const code = this.state.userCode ? this.state.userCode : this.state.starterCode;
-        this.state = Object.assign({}, this.state, {sideEffects: [], status: 'null', 
-            code, currentCode: code});
+        this.state = Object.assign({}, this.state, {loading: false, failedAttempts: 0});
     }
-
+    
     onCodeExecutionSuccess( data) {
         if( data.playgroundId != this.state.id) { return; }
 
-        this.setState(Object.assign({}, this.state, {status: 'success', sideEffects: data.sideEffects}));
+        const newState = Object.assign({}, this.state, {loading: false, done: data.solutionIsCorrect});
+        if( !data.solutionIsCorrect) {
+            newState.failedAttempts += 1;
+        }
+
+        this.setState( newState);
     }
 
     onCodeExecutionFailure( data) {
         if( data.playgroundId != this.state.id) { return; }
 
-        this.setState(Object.assign({}, this.state, {status: 'failure'}));
+        this.setState(Object.assign({}, this.state, {loading: false}));
     }
 
     onCodeExecutionInProgress( data) {
         if( data.playgroundId != this.state.id) { return; }
 
-        this.setState(Object.assign({}, this.state, {status: 'inprogress', sideEffects: []}));
-    }
-
-    onCodeSessionDead( data) {
-        this.setState(Object.assign({}, this.state, {status: 'session-dead', sideEffects: []}));
+        this.setState(Object.assign({}, this.state, {loading: true}));
     }
 
     onEditorContentChange( data) {
-        if( data.editorId != this.state.id) { return; }
+        if( data.editorId != this.state.id) { return ; }
 
-        this.setState( Object.assign({}, this.state, {currentCode: data.content}));
+        this.setState(Object.assign({}, this.state, {currentCode: data.content}));
     }
 }

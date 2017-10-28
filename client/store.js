@@ -23,11 +23,10 @@ export class MultipleChoiceContentStore {
     isExercise = true;
 }
 
-export class CodePlaygroundContentStore {
-    type = 'code-playground';
+export class CodeExplorerContentStore {
+    type = 'code-explorer';
     id;
-    commentary;
-    code;
+    starterCode;
     userCode;
 }
 

@@ -31,23 +31,26 @@ function keepAlive() {
 }
 
 function onCodeExecutionRequest( data) {
+    if( !window.initialStore.user) {
+        dispatch( 'CODE_EXECUTION_REQUIRES_LOGIN', {playgroundId: data.playgroundId});
+        return;
+    }
+
     if( sessionId && !sessionIsAlive) {
         dispatch( 'CODE_SESSION_DEAD', {});
         return;
     }
 
     const executionId = uuid();
-    const reqdata = {code: data.code, executionId};
-
-    if( data.playgroundId.indexOf('fake-') == -1) {
-        reqdata.playgroundId = data.playgroundId;
-    }
+    const reqdata = {code: data.code, executionId, playgroundId: data.playgroundId};
 
     if( sessionId) {
         reqdata.sessionId = sessionId;
     }
+    
+    const url = data.route == 'exercise' ? `/exercise/${data.compositeId}/solution` : '/code-requests';
 
-    axios.post(`/code-requests`, reqdata)
+    axios.post(url, reqdata)
     .then((response) => {
         if( !sessionId) { 
             sessionId = response.data.sessionId;
@@ -55,7 +58,9 @@ function onCodeExecutionRequest( data) {
             keepAlive();
         }
 
-        dispatch('CODE_EXECUTION_SUCCESS', {playgroundId: data.playgroundId, sideEffects: response.data.sideEffects});
+        dispatch('CODE_EXECUTION_SUCCESS', {playgroundId: data.playgroundId, 
+            output: response.data.output, testResults: response.data.testResults, 
+            solutionIsCorrect: response.data.solutionIsCorrect, hasError: response.data.hasError});
     })
     .catch( (err) => {
         dispatch('CODE_EXECUTION_FAILURE', {playgroundId: data.playgroundId});

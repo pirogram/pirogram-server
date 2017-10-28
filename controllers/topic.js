@@ -17,6 +17,7 @@ const React = require('react');
 const ReactDOMServer = require('react-dom/server');
 const pageStore = require('../client/store');
 const hljs = require('highlight.js');
+const plutoid = require('../lib/plutoid.js');
 import Topic from '../client/components/topic.jsx';
 
 const topicApp = new Koa();
@@ -25,8 +26,12 @@ const topicApp = new Koa();
 function getNextPrevTopics( m, topicSlug) {
     let prevTopic = null;
     let nextTopic = null;
+    let index = -1;
 
-    const index = _.find( m.topics, {slug: topicSlug});
+    m.topics.map( (topic, i) => {
+        if( topic.slug == topicSlug) { index = i; }
+    });
+
     if( index > 0) {
         prevTopic = m.topics[index-1];
     }
@@ -114,21 +119,29 @@ async function getPageStore( user, m, topic) {
                         {id: choiceOption.id, html: util.commonmarkToHtml(choiceOption.markdown)})
                 );
             }
-        } else if( baseContent instanceof structmd.CodePlaygroundContent) {
-            pageContent = Object.assign( new pageStore.CodePlaygroundContentStore(), 
-                {id: baseContent.id, lang: baseContent.lang, code: baseContent.code});
-            
-            if( baseContent.id) { playgroundIds.push( baseContent.id); }
+        } else if( baseContent instanceof structmd.CodeExplorerContent) {
+            playgroundIds.push( baseContent.id);
+
+            pageContent = Object.assign( new pageStore.CodeExplorerContentStore(), 
+                {id: baseContent.id, lang: baseContent.lang, starterCode: baseContent.starterCode});
         } else if( baseContent instanceof structmd.CodingProblemContent) {
+            exerciseIds.push( baseContent.id);
+            playgroundIds.push( baseContent.id);
+
             pageContent = Object.assign( new pageStore.CodingProblemContentStore(), {
+                compositeId: `${m.slug}::${topic.slug}::${baseContent.id}`,
                 id: baseContent.id, problemStatement: util.commonmarkToHtml( baseContent.problemStatement), 
                 referenceSolution: baseContent.referenceSolution,
                 starterCode: baseContent.starterCode, tests: []
             });
 
+            if( baseContent.referenceSolution) {
+                pageContent.referenceSolution = hljs.highlight( 'python', baseContent.referenceSolution, true).value;
+            }
+
             if( baseContent.tests) {
                 pageContent.tests = baseContent.tests.split('\n').map((test, i) => {
-                    return hljs.highlight( 'python', test, true).value;
+                    return {content: hljs.highlight( 'python', test, true).value};
                 });
             }
         }
@@ -145,14 +158,18 @@ async function getPageStore( user, m, topic) {
                 if( !pageContent.id || !eh[pageContent.id]) { continue; }
 
                 pageContent.done = true;
-                pageContent.selectedIds = eh[pageContent.id].solution.selectedIds;
+                if( pageContent instanceof pageStore.MultipleChoiceContentStore) {
+                    pageContent.selectedIds = eh[pageContent.id].solution.selectedIds;
+                } else if( pageContent instanceof pageStore.CodingProblemContentStore) {
+                    pageContent.userCode = eh[pageContent.id].solution.code;
+                }
             }
         }
 
         if( playgroundIds.length) {
             const playgroundDataset = await models.getPlaygroundDataset( user.id, playgroundIds);
             for( const pageContent of ps.topic.contentList) {
-                if( !pageContent.id || !playgroundDataset[pageContent.id]) { continue; }
+                if( !pageContent.id || !playgroundDataset[pageContent.id] || pageContent.userCode) { continue; }
 
                 pageContent.userCode = playgroundDataset[pageContent.id].code;
             }
@@ -289,7 +306,7 @@ topicApp.use( router.post( '/topic/:moduleSlug/:topicSlug/edit', async function(
     const newSlug = ctx.request.body.fields.slug.trim();
     const newRawContent = ctx.request.body.fields.rawContent.trim();
 
-    if( topic.rawContent == newRawContent) {
+    if( topic && topic.rawContent == newRawContent && topic.name == newName && topic.tocName == newTocName && topic.slug == newSlug) {
         ctx.redirect(`/topic/${moduleSlug}/${topicSlug}`);
         return;
     }
@@ -351,6 +368,29 @@ topicApp.use( router.post( '/exercise/:compositeId/solution', async function( ct
         }
 
         ctx.body = JSON.stringify({solutionIsCorrect, correctIds});
+    } else if( exerciseContent instanceof structmd.CodingProblemContent) {
+        const inSessionId = ctx.request.body.sessionId;
+        const code = ctx.request.body.code;
+        const executionId = ctx.request.body.executionId;
+        const playgroundId = ctx.request.body.playgroundId;
+        const tests = _.pull(exerciseContent.tests.split('\n'), '');
+
+        await models.savePlaygroundCode( ctx.state.user.id, playgroundId, code);
+
+        const {sessionId, output, hasError, testResults} = await plutoid.executeCodeRequest( inSessionId, executionId, code, tests);
+
+        let hasFailedTest = false;
+        for( const test of testResults) {
+            test.content = hljs.highlight( 'python', test.content, true).value;
+            if( test.result != 'ok') { hasFailedTest = true; }
+        }
+
+        const solutionIsCorrect = !hasFailedTest && !hasError;
+        if( solutionIsCorrect) {
+            await models.saveExerciseHistory( ctx.state.user.id, exerciseId, {code});
+        }
+
+        ctx.body = JSON.stringify({output, sessionId, testResults, hasError, solutionIsCorrect});
     } else {
         ctx.status = 404;
     }
