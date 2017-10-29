@@ -20,5 +20,8 @@ const regexMatch = async function( ctx) {
 
 miscApp.use( router.get( '/', index));
 miscApp.use( router.post( '/regex-match', regexMatch));
+miscApp.use( router.get( '/structmd', async function(ctx) {
+    await ctx.render( 'structmd');
+}));
 
 module.exports = { miscApp};

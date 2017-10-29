@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block title %}structmd reference{% endblock %}
+
+{% block maincontent %}
+{% filter markdown %}
+
+# Structured Markdown
+What follows is a high level reference for structured markdown (aka `structmd`). In `structmd`, all the content is divided in sections. Each section begins with a header of the form `.. <section-name>::`. Here is an example of a markdown section:
+
+```
+.. markdown::
+This _is_ a markdown section.
+```
+
+There are four types of sections supported at this point: `markdown`, `code-explorer`, `multiple-choice` and `coding-problem`.
+
+## markdown
+
+Example:
+
+```
+.. markdown::
+
+This _is_ a *markdown* section. It supports Github Flavored Markdown syntax.
+```
+
+## code-explorer
+
+This section type creates an embedded editor whose code can be executed. This is just to play around with some code snippets.
+
+```
+.. code-explorer::
+id: 1945a916-bc88-4e71-9101-253149e44c40
+
+print('hello, world')
+```
+
+As you see in this example, a section can have metadata attached to it. All sections support metadata. Except for `markdown`, all sections require `id` metadata. `id` must be a uuid. Here is a quick command line to generate uuid and copy it to clipboard:
+
+```
+uuidgen | tr '[:upper:]' '[:lower:]' | pbcopy
+```
+
+## multiple-choice
+
+This creates an embedded multiple-choice type exercise.
+
+```
+.. multiple-choice
+id: 5810b9be-973c-49b1-8563-e8e305cfa884
+
+    .. question::
+    This is the question. This is actually markdown.
+
+    .. options::
+    [*] this option represents correct answer.
+    [*] there can be more than one correct answers.
+    [ ] this is not correct answer.
+    [ ] this is also not correct answer.
+```
+
+What we see now are the nested sections. So, `multiple-choice` has two child sections: `question` and `options`.
+
+## coding-problem
+
+```
+
+.. coding-problem::
+id: 4007c758-69cf-46a6-928e-4b7cd55bf4fd
+
+    .. markdown::
+    Write a function `is_starry_movie` that takes a movie name as input. It returns `True` if the movie is from `Star Wars` or `Star Trek` franchise. Otherwise, it returns `False`.
+
+    .. starter-code::
+    # your imports go here.
+
+    def is_starry_movie(movie_name):
+        # function code goes here.
+
+    .. tests::
+    assert is_starry_movie('Star Wars: The Last Jedi') == True
+    assert is_starry_movie('Star Wars: The Force Awakens') == True
+    assert is_starry_movie('Star Trek: Discovery') == True
+    assert is_starry_movie('Star Trek: Voyager') == True
+    assert is_starry_movie('2001: A Space Odyssey') == False
+    assert is_starry_movie('Star Dust') == False
+
+    .. solution::
+    import re
+
+    def is_starry_movie(movie_name):
+        if re.search(r"Star (Wars|Trek):", movie_name):
+            return True
+        else:
+            return False
+```
+
+Here is a rundown of child sections:
+
+* `markdown` - a coding problem can begin with a markdown section where you describe the problem statement.
+* `starter-code` - you must provide some starter code that the user can edit.
+* `tests` - you must provide some tests so that the user code can be tested.
+* `solution` - you must also provide a solution. If someone copy pastes the solution into code editor, all tests should pass.
+
+{% endfilter %}
+{% endblock %}

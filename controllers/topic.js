@@ -104,19 +104,19 @@ async function getPageStore( user, m, topic) {
         let pageContent = null;
         if( baseContent instanceof structmd.MarkdownContent) {
             pageContent = new pageStore.HtmlContentStore();
-            pageContent.html = util.commonmarkToHtml( baseContent.markdown);
+            pageContent.html = util.markdownToHtml( baseContent.markdown);
         } else if( baseContent instanceof structmd.MultipleChoiceContent) {
             exerciseIds.push( baseContent.id);
 
             pageContent = new pageStore.MultipleChoiceContentStore();
             Object.assign( pageContent, { compositeId: `${m.slug}::${topic.slug}::${baseContent.id}`, 
-                id: baseContent.id, question: util.commonmarkToHtml( baseContent.question), 
+                id: baseContent.id, question: util.markdownToHtml( baseContent.question), 
                 code: baseContent.code, choiceOptions: [], done: false, isExercise: true});
             
             for( const choiceOption of baseContent.choiceOptions) {
                 pageContent.choiceOptions.push(
                     Object.assign(new pageStore.ChoiceOptionStore(), 
-                        {id: choiceOption.id, html: util.commonmarkToHtml(choiceOption.markdown)})
+                        {id: choiceOption.id, html: util.markdownToHtml(choiceOption.markdown)})
                 );
             }
         } else if( baseContent instanceof structmd.CodeExplorerContent) {
@@ -134,7 +134,7 @@ async function getPageStore( user, m, topic) {
 
             pageContent = Object.assign( new pageStore.CodingProblemContentStore(), {
                 compositeId: `${m.slug}::${topic.slug}::${baseContent.id}`,
-                id: baseContent.id, problemStatement: util.commonmarkToHtml( baseContent.problemStatement), 
+                id: baseContent.id, problemStatement: util.markdownToHtml( baseContent.problemStatement), 
                 referenceSolution: baseContent.referenceSolution,
                 starterCode: baseContent.starterCode, tests: []
             });
