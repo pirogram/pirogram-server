@@ -91,39 +91,6 @@
     background-color: #f1f5fb;
 }
 
-/*
-.ui.segment.code-playground, .ui.segment.coding-problem {
-    padding: 0.5em 0 0;
-}
-
-.ui.segment.coding-problem  .problem-statement {
-    padding: 0 1em;
-    margin-bottom: 1em;
-}
-
-.runnable-code {
-    padding: 0;
-    border: 1px solid #eee;
-    box-shadow: 1px 1px 1px 1px rgba(241, 245, 251, 0.8);
-}
-
-.code-playground .side-effects, .coding-problem .side-effects {
-    margin-top: 0.5em;
-    padding: 0.5em 1em;
-    border-top: 1px solid rgba(34,36,38,.15);
-    background-color: rgba(241, 245, 251, 0.4);
-}
-
-.code-playground .side-effects pre, .coding-problem .side-effects pre {
-    margin: 0;
-    font-size: 0.9em;
-}
-
-.coding-problem .tests, .coding-problem .submit {
-    padding: 1em;
-    border-top: 1px solid rgba(34,36,38,.15);
-}
-*/
 
 .code-playground {
     margin: 1em 0;
@@ -140,7 +107,7 @@
     padding: 0.5em 1em;
     border-top: 1px solid rgba(34,36,38,.15);
     position: relative;
-    background-color: rgba(241, 245, 251, 0.4);
+    /*background-color: rgba(241, 245, 251, 0.4);*/
 }
 
 .code-playground .output pre {
@@ -151,7 +118,7 @@
 
 .code-playground .code-editor {
     padding: 0.5em;
-    background-color: #f1f5fb;
+    /*background-color: #f1f5fb; */
     position: relative;
 }
 
@@ -187,7 +154,11 @@
 }
 
 .code-playground .monaco-editor .monaco-editor-background, .code-playground .monaco-editor .margin {
-    background-color:#f1f5fb;
+    background-color: #ffffff;
+}
+
+.ui.segment {
+    margin-top: 2em;
 }
 
 .ui.segment.coding-problem {
@@ -209,16 +180,13 @@
     position: absolute;
     right: 0;
     top: 0;
-    border-left: 1px solid rgba(34,36,38,.15);
-    border-bottom: 1px solid rgba(34,36,38,.15);
+    border-left: 1px solid #dae3f1;
+    border-bottom: 1px solid #dae3f1;
     font-size: 0.85em;
     padding: 0 1em;
     border-bottom-left-radius: 4px;
-    color: #999;
+    color: #666;
     z-index: 10;
-}
-
-.code-editor .block-name {
     background-color:#f1f5fb;
 }
 
@@ -228,4 +196,19 @@
 
 .ui.segment div.submit span.failed-attempts {
     color: #999;
+}
+
+code.hljs {
+    background-color: #f1f5fb;
+    padding: 1rem;
+    margin: 0;
+    border-radius: 0.25rem;
+    border: 1px solid #dae3f1;
+}
+
+p code, li code {
+    background-color: #f1f5fb;
+    padding: 0 0.25rem;
+    border-radius: 2px;
+    color: #96541D;
 }

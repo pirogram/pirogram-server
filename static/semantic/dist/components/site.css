@@ -158,17 +158,3 @@ input::selection {
          Site Overrides
 *******************************/
 
-code.hljs {
-  background-color: #f6f6f6;
-  padding: 1rem;
-  margin: 0;
-  border-radius: 0.25rem;
-  border: 1px solid #f0f0f0;
-}
-p code,
-li code {
-  background-color: #f0f0f0;
-  padding: 0 0.25rem;
-  border-radius: 2px;
-  color: #96541D;
-}

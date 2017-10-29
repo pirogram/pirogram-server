@@ -32,7 +32,7 @@ export default class Editor extends React.Component {
 
         const height = (linesCount + 1) * 20;
 
-        return (height < 120 ? 120 : height) + 'px';
+        return height + 'px';
     }
 
     onChange( newValue, e) {
