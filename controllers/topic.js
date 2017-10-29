@@ -120,11 +120,15 @@ async function getPageStore( user, m, topic) {
                 );
             }
         } else if( baseContent instanceof structmd.CodeExplorerContent) {
+            if( !baseContent.id) { continue; } 
+
             playgroundIds.push( baseContent.id);
 
             pageContent = Object.assign( new pageStore.CodeExplorerContentStore(), 
                 {id: baseContent.id, lang: baseContent.lang, starterCode: baseContent.starterCode});
         } else if( baseContent instanceof structmd.CodingProblemContent) {
+            if( !baseContent.id) { continue; } 
+
             exerciseIds.push( baseContent.id);
             playgroundIds.push( baseContent.id);
 

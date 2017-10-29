@@ -151,7 +151,7 @@
 
 .code-playground .code-editor {
     padding: 0.5em;
-    background-color: rgba(241, 245, 251, 0.4);
+    background-color: #f1f5fb;
     position: relative;
 }
 
@@ -187,7 +187,7 @@
 }
 
 .code-playground .monaco-editor .monaco-editor-background, .code-playground .monaco-editor .margin {
-    background-color: rgba(241, 245, 251, 0.4);
+    background-color:#f1f5fb;
 }
 
 .ui.segment.coding-problem {
@@ -219,7 +219,7 @@
 }
 
 .code-editor .block-name {
-    background-color: rgba(241, 245, 251, 0.4);
+    background-color:#f1f5fb;
 }
 
 .ui.segment div.submit button {

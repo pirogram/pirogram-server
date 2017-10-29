@@ -63,19 +63,15 @@
         });
         
         window.topicEditor.setValue( document.getElementById('raw-content-textarea').innerText);
+        window.topicEditor.onDidChangeModelContent(() => {
+            window.onbeforeunload = () => { return "You have unsaved changes."};
+        })
     });
     
     document.getElementById('topic-update-form').addEventListener('submit', function(e) {
         document.getElementById('raw-content-textarea').innerHTML = window.topicEditor.getValue();
+        window.onbeforeunload = null;
     });
-
-    function preventUnload() {
-        if( document.getElementById('raw-content-textarea').innerHTML != window.topicEditor.getValue()) {
-            return "You have unsaved changes.";
-        } else {
-            return null;
-        }
-    }
 </script>
 
 <style>

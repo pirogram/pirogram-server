@@ -117,7 +117,8 @@ function getUpdatedToC( m, tocAsText) {
             existingTopic.level = level;
             updatedTopics.push( existingTopic);
         } else {
-            const topicSlug = slugifier( topicName).toLowerCase();
+            let topicSlug = slugifier( topicName).toLowerCase();
+            if( !topicSlug) {topicSlug = uuid.v4();}
             updatedTopics.push( {id: uuid.v4(), name: topicName, tocName: topicName, slug: topicSlug, filename: topicSlug + '.smd', level});
         }
     }
