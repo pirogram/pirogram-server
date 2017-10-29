@@ -35,16 +35,30 @@ SET default_tablespace = '';
 SET default_with_oids = false;
 
 --
+-- Name: code_playground_data; Type: TABLE; Schema: public; Owner: turtleprogrammer
+--
+
+CREATE TABLE code_playground_data (
+    user_id integer NOT NULL,
+    playground_id character varying(48) NOT NULL,
+    code text NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone
+);
+
+
+ALTER TABLE code_playground_data OWNER TO turtleprogrammer;
+
+--
 -- Name: exercise_history; Type: TABLE; Schema: public; Owner: turtleprogrammer
 --
 
 CREATE TABLE exercise_history (
     user_id integer NOT NULL,
-    exercise_id varchar(64) NOT NULL,
+    exercise_id character varying(64) NOT NULL,
     solution jsonb,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    primary key (user_id, exercise_id)
+    updated_at timestamp without time zone
 );
 
 
@@ -55,14 +69,13 @@ ALTER TABLE exercise_history OWNER TO turtleprogrammer;
 --
 
 CREATE TABLE exercises (
-    module_id varchar(36) NOT NULL,
-    topic_id VARCHAR(36) NOT NULL,
-    exercise_id varchar(64) NOT NULL,
+    module_id character varying(36) NOT NULL,
+    topic_id character varying(36) NOT NULL,
+    exercise_id character varying(64) NOT NULL,
     type character varying(64) NOT NULL,
     content jsonb,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    PRIMARY KEY (module_id, topic_id, exercise_id)
+    updated_at timestamp without time zone
 );
 
 
@@ -81,21 +94,6 @@ CREATE TABLE quizes (
 
 
 ALTER TABLE quizes OWNER TO turtleprogrammer;
-
---
--- Name: toc; Type: TABLE; Schema: public; Owner: turtleprogrammer
---
-
-CREATE TABLE module (
-    slug character varying(64) NOT NULL,
-    name CHARACTER varying(64) NOT NULL,
-    toc_yaml text NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone
-);
-
-
-ALTER TABLE toc OWNER TO turtleprogrammer;
 
 --
 -- Name: topic_drafts; Type: TABLE; Schema: public; Owner: turtleprogrammer
@@ -159,20 +157,9 @@ ALTER SEQUENCE topic_edit_history_id_seq OWNED BY topic_edit_history.id;
 
 CREATE TABLE topic_history (
     user_id integer NOT NULL,
-    topic_id varchar(48) NOT NULL,
+    topic_id character varying(48) NOT NULL,
     created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    primary key (user_id, topic_id)
-);
-
-
-create table code_playground_data (
-    user_id integer NOT NULL,
-    playground_id varchar(48) NOT NULL,
-    code text NOT NULL,
-    created_at timestamp without time zone,
-    updated_at timestamp without time zone,
-    primary key (user_id, playground_id)
+    updated_at timestamp without time zone
 );
 
 
@@ -279,6 +266,14 @@ ALTER TABLE ONLY users ALTER COLUMN id SET DEFAULT nextval('users_id_seq'::regcl
 
 
 --
+-- Name: code_playground_data code_playground_data_pkey; Type: CONSTRAINT; Schema: public; Owner: turtleprogrammer
+--
+
+ALTER TABLE ONLY code_playground_data
+    ADD CONSTRAINT code_playground_data_pkey PRIMARY KEY (user_id, playground_id);
+
+
+--
 -- Name: exercise_history exercise_history_pkey; Type: CONSTRAINT; Schema: public; Owner: turtleprogrammer
 --
 
@@ -291,7 +286,7 @@ ALTER TABLE ONLY exercise_history
 --
 
 ALTER TABLE ONLY exercises
-    ADD CONSTRAINT exercises_pkey PRIMARY KEY (uuid);
+    ADD CONSTRAINT exercises_pkey PRIMARY KEY (module_id, topic_id, exercise_id);
 
 
 --
@@ -300,14 +295,6 @@ ALTER TABLE ONLY exercises
 
 ALTER TABLE ONLY quizes
     ADD CONSTRAINT quizes_pkey PRIMARY KEY (uuid);
-
-
---
--- Name: toc toc_pkey; Type: CONSTRAINT; Schema: public; Owner: turtleprogrammer
---
-
-ALTER TABLE ONLY toc
-    ADD CONSTRAINT toc_pkey PRIMARY KEY (slug);
 
 
 --
