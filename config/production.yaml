@@ -1,2 +1,5 @@
 google_oauth:
   redirect_uri: "http://www.turtleprogrammer.com/google-oauth-callback"
+
+cms:
+  rootdir: /home/ubuntu/cms-modules
