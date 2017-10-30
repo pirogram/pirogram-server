@@ -68,7 +68,11 @@ modulesApp.use( router.post( '/module/:moduleSlug/publish', async function(ctx, 
 
 
 modulesApp.use( router.get( '/module/:moduleSlug', async function(ctx, moduleSlug) {
-    const m = await cms.getModuleBySlug( moduleSlug);
+    let stageName = null;
+    if( ctx.state.user && ctx.state.user.superuser) {
+        stageName = await cms.hasStage( moduleSlug, ctx.state.user.email) ? ctx.state.user.email : null;
+    }
+    const m = await cms.getModuleBySlug( moduleSlug, stageName);
 
     ctx.redirect(`/topic/${m.slug}/${m.topics[0].slug}`)
 }));

@@ -30,7 +30,7 @@ export default class Editor extends React.Component {
             linesCount += Math.floor(line.length/80) + 1;
         }
 
-        const height = (linesCount + 1) * 20;
+        const height = (linesCount) * 20;
 
         return height + 'px';
     }
