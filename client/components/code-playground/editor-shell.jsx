@@ -18,6 +18,8 @@ export default class Editor extends React.Component {
 
     setCode( code) {
         this.editor.setValue(code);
+
+        this.onChange(code);
     }
 
     getCode( code) {
@@ -30,12 +32,14 @@ export default class Editor extends React.Component {
             linesCount += Math.floor(line.length/80) + 1;
         }
 
+        if( linesCount == 0) { linesCount = 1; }
+
         const height = (linesCount) * 20;
 
         return height + 'px';
     }
 
-    onChange( newValue, e) {
+    onChange( newValue) {
         dispatch( 'EDITOR_CONTENT_CHANGE', {editorId: this.props.id, content: newValue});
 
         const newState = {code: newValue, height: this.calcHeight(newValue)};
