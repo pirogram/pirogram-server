@@ -1,4 +1,8 @@
-<h4 class="ui header">{{m.name}} {% if user.superuser %}<a href='/module/{{m.slug}}/toc-edit'><i class='edit icon'></i></a>{% endif %}</h4>
+<h4 class="ui header">{{m.name}}
+{% if user.superuser %}
+        <a href='/module/{{m.slug}}/toc-edit'><i class='edit icon'></i></a> 
+        <!-- <a href='/module/{{m.slug}}/download'><i class='icon download'></i></a> -->
+{% endif %}</h4>
 <div class="ui vertical text menu">
     {% for main_topic in tocTopics %}
         <a class="{% if topic_slug == main_topic.slug %}active{% endif %} item" href="/topic/{{m.slug}}/{{main_topic.slug}}">

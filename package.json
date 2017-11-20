@@ -11,6 +11,7 @@
     "config": "^1.26.2",
     "copy-webpack-plugin": "^4.0.1",
     "disqueue-node": "^1.4.0",
+    "fluent-logger": "^2.6.1",
     "fs-extra": "^4.0.2",
     "googleapis": "^20.1.0",
     "highlight.js": "^9.12.0",

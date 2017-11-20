@@ -16,12 +16,12 @@ const LIVEDIR = path.resolve( ROOTDIR, config.get('cms.livedir'));
 class ModuleExistsError extends Error {}
 
 
-function getLiveModuleDir( id) {
+export function getLiveModuleDir( id) {
     return path.resolve(LIVEDIR, id);
 }
 
 
-function getStageModuleDir( id, stageName) {
+export function getStageModuleDir( id, stageName) {
     return path.resolve( getStageDir( stageName), id);
 }
 

@@ -78,6 +78,20 @@ modulesApp.use( router.get( '/module/:moduleSlug', async function(ctx, moduleSlu
 }));
 
 
+modulesApp.use( router.get( '/module/:moduleSlug/download', async function(ctx, moduleSlug) {
+    let stageName = null;
+    if( ctx.state.user && ctx.state.user.superuser) {
+        stageName = await cms.hasStage( moduleSlug, ctx.state.user.email) ? ctx.state.user.email : null;
+    }
+
+    const dir = stageName ? cms.getStageModuleDir(moduleSlug, stageName) : cms.getLiveModuleDir(moduleSlug);
+
+    //const m = await cms.getModuleBySlug( moduleSlug, stageName);
+
+    ctx.redirect(`/topic/${m.slug}/${m.topics[0].slug}`)
+}));
+
+
 function getTocAsText( m) {
     const lines = [];
     for( const topic of m.topics) {

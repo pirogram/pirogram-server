@@ -4,10 +4,11 @@ import uuid from 'uuid/v4';
 
 let sessionId = null;
 let sessionIsAlive = false;
+let codeExecInProgress = false;
 
 function keepAlive() {
     setInterval( () => {
-        if( !sessionId || !sessionIsAlive) { return; }
+        if( !sessionId || !sessionIsAlive || codeExecInProgress) { return; }
 
         axios({
             method: 'get',
@@ -27,7 +28,7 @@ function keepAlive() {
             sessionIsAlive = false;
             dispatch( 'CODE_SESSION_DEAD', {});
         })
-    }, 15000);
+    }, 12000);
 }
 
 function onCodeExecutionRequest( data) {
@@ -58,15 +59,18 @@ function onCodeExecutionRequest( data) {
             keepAlive();
         }
 
+        codeExecInProgress = false;
         dispatch('CODE_EXECUTION_SUCCESS', {playgroundId: data.playgroundId, 
             output: response.data.output, testResults: response.data.testResults, 
             solutionIsCorrect: response.data.solutionIsCorrect, hasError: response.data.hasError});
     })
     .catch( (err) => {
+        codeExecInProgress = false;
         dispatch('CODE_EXECUTION_FAILURE', {playgroundId: data.playgroundId});
     });
 
     dispatch('CODE_EXECUTION_IN_PROGRESS', {playgroundId: data.playgroundId});
+    codeExecInProgress = true;
 }
 
 export function initCodeExecutor() {
