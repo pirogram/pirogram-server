@@ -14,7 +14,7 @@ const Topic = ({userId, m, topic}) => (
                     question={content.question} code={content.code} choiceOptions={content.choiceOptions}
                     correctIds={content.correctIds} selectedIds={content.selectedIds} done={content.done} />
             } else if( content.type == 'code-explorer') {
-                return <CodeExplorer key={i} id={content.id}
+                return <CodeExplorer key={i} id={content.id} chained={content.chained}
                                 starterCode={content.starterCode} userCode={content.userCode}/>
             } else if( content.type == 'coding-problem') {
                 return <CodingProblem key={i} id={content.id} compositeId={content.compositeId} starterCode={content.starterCode}

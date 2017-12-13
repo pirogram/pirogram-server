@@ -26,6 +26,8 @@ export class MultipleChoiceContentStore {
 export class CodeExplorerContentStore {
     type = 'code-explorer';
     id;
+    chained = false;
+    chainSeqNo = 0;
     starterCode;
     userCode;
 }

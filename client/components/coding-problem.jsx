@@ -109,14 +109,12 @@ export default class CodingProblem extends React.Component {
 
 CodingProblem.PropTypes = {
     id: PropTypes.string.isRequired,
-    problemStatement: PropTypes.string.isRequired,
     starterCode: PropTypes.string.isRequired,
     referenceSolution: PropTypes.string.isRequired,
     tests: PropTypes.string.isRequired,
     userCode: PropTypes.string,
     done: PropTypes.bool
 };
-
 
 class CodingProblemState extends ComponentNuxState {
     constructor(component) {

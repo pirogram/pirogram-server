@@ -16,3 +16,6 @@ cms:
 
 server:
   port: 5000
+
+plutoid:
+  dataset_dir: "/datasets"

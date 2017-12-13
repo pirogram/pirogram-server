@@ -3,3 +3,6 @@ google_oauth:
 
 cms:
   rootdir: /home/ubuntu/cms-modules
+
+plutoid:
+  dataset_dir: "/datasets"

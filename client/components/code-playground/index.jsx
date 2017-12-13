@@ -30,10 +30,17 @@ export default class CodePlayground extends React.Component {
 
 CodePlayground.PropTypes = {
     id: PropTypes.string.isRequired,
+    chained: PropTypes.bool,
+    chainedSeqNo: PropTypes.number,
     starterCode: PropTypes.string.isRequired,
     userCode: PropTypes.string,
     tests: PropTypes.arrayOf( PropTypes.string),
     executeCmd: PropTypes.func.isRequired
+};
+
+CodePlayground.defaultProps = {
+    chained: false,
+    chainedSeqNo: 0
 };
 
 
@@ -65,6 +72,12 @@ class CodePlaygroundState extends ComponentNuxState {
         if( data.playgroundId != this.state.id) { return; }
 
         this.setState(Object.assign({}, this.state, {status: 'inprogress', loading: true, output: [], tests: this.component.props.tests}));
+    }
+
+    onCodeExecutionQueued( data) {
+        if( data.playgroundId != this.state.id) { return; }
+
+        this.setState(Object.assign({}, this.state, {status: 'queued', loading: true, output: [], tests: this.component.props.tests}));
     }
 
     onCodeSessionDead( data) {

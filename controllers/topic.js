@@ -125,7 +125,8 @@ async function getPageStore( user, m, topic) {
             playgroundIds.push( baseContent.id);
 
             pageContent = Object.assign( new pageStore.CodeExplorerContentStore(), 
-                {id: baseContent.id, lang: baseContent.lang, starterCode: baseContent.starterCode});
+                {id: baseContent.id, lang: baseContent.lang, chained: baseContent.chained, 
+                    starterCode: baseContent.starterCode});
         } else if( baseContent instanceof structmd.CodingProblemContent) {
             if( !baseContent.id) { continue; } 
 
