@@ -60,7 +60,7 @@ function onCodeExecutionRequest( data) {
 }
 
 function workOnQueue() {
-    while( queue.length) {
+    if( queue.length) {
         execute( queue.shift());
     }
 }
