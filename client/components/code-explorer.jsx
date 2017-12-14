@@ -23,7 +23,7 @@ export default class CodeExplorer extends React.Component {
     render() {
         return (
             <div className='practise-area'>
-                <CodePlayground id={this.props.id} /*userCode={this.props.userCode}*/ starterCode={this.props.starterCode} 
+                <CodePlayground id={this.props.id} userCode={this.props.userCode} starterCode={this.props.starterCode} 
                     chained={this.props.chained} executeCmd={this.onExecute}/>
             </div>
         );

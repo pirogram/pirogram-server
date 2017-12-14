@@ -46,7 +46,7 @@ function onCodeExecutionRequest( data) {
             if( codeExplorer.props.id == data.playgroundId) { break; }
 
             if( !idsExecutedInSession[ codeExplorer.props.id]) {
-                queue.push({code: codeExplorer.props.userCode, playgroundId: codeExplorer.props.id});
+                queue.push({code: codeExplorer.state.userCode, playgroundId: codeExplorer.props.id});
             }
         }
     }
