@@ -83,6 +83,8 @@ function execute( data) {
         }
 
         codeExecInProgress = false;
+        idsExecutedInSession[data.playgroundId] = true;
+
         dispatch('CODE_EXECUTION_SUCCESS', {playgroundId: data.playgroundId, 
             output: response.data.output, testResults: response.data.testResults, 
             solutionIsCorrect: response.data.solutionIsCorrect, hasError: response.data.hasError});
