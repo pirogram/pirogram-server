@@ -30,19 +30,11 @@ export default class CodePlayground extends React.Component {
 
 CodePlayground.PropTypes = {
     id: PropTypes.string.isRequired,
-    chained: PropTypes.bool,
-    chainedSeqNo: PropTypes.number,
     starterCode: PropTypes.string.isRequired,
     userCode: PropTypes.string,
     tests: PropTypes.arrayOf( PropTypes.string),
     executeCmd: PropTypes.func.isRequired
 };
-
-CodePlayground.defaultProps = {
-    chained: false,
-    chainedSeqNo: 0
-};
-
 
 class CodePlaygroundState extends ComponentNuxState {
     constructor(component) {

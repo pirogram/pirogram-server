@@ -23,8 +23,8 @@ export default class CodeExplorer extends React.Component {
     render() {
         return (
             <div className='practise-area'>
-                <CodePlayground id={this.props.id} userCode={this.props.starterCode} starterCode={this.props.starterCode} 
-                    chained={this.props.chained} chainedSeqNo={this.props.chainedSeqNo} executeCmd={this.onExecute}/>
+                <CodePlayground id={this.props.id} /*userCode={this.props.userCode}*/ starterCode={this.props.starterCode} 
+                    chained={this.props.chained} executeCmd={this.onExecute}/>
             </div>
         );
     }
@@ -33,7 +33,6 @@ export default class CodeExplorer extends React.Component {
 CodeExplorer.PropTypes = {
     id: PropTypes.string.isRequired,
     chained: PropTypes.bool,
-    chainedSeqNo: PropTypes.number,
     userCode: PropTypes.string.isRequired,
     starterCode: PropTypes.string
 };
