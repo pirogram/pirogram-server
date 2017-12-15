@@ -47,6 +47,7 @@ function onCodeExecutionRequest( data) {
 
             if( !idsExecutedInSession[ codeExplorer.props.id]) {
                 queue.push({code: codeExplorer.state.userCode, playgroundId: codeExplorer.props.id});
+                dispatch( 'CODE_EXECUTION_QUEUED', {playgroundId: codeExplorer.props.id});
             }
         }
     }

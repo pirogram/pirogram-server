@@ -73,7 +73,9 @@ class CodePlaygroundState extends ComponentNuxState {
     }
 
     onCodeSessionDead( data) {
-        this.setState(Object.assign({}, this.state, {status: 'session-dead', loading: false}));
+        if( this.state.status == 'inprogress' || this.state.status == 'queued') {
+            this.setState(Object.assign({}, this.state, {status: 'session-dead', loading: false}));
+        }
     }
 
     onCodeExecutionRequiresLogin( data) {
