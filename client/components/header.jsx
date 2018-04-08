@@ -16,14 +16,23 @@ export default class Header extends React.Component {
                     </Dropdown>
                 </Menu.Item>;
         } else {
-            auth = <Menu.Item href="/login" name="about">Login With Google</Menu.Item>;
+            auth = 
+                <Menu.Item>
+                    <Dropdown text="Login" pointing>
+                        <Dropdown.Menu>
+                            <Dropdown.Item href="/login-with-github">With GitHub</Dropdown.Item>
+                            <Dropdown.Item href="/login-with-google">With Google</Dropdown.Item>
+                        </Dropdown.Menu>
+                    </Dropdown>
+                </Menu.Item>;
         }
 
         return(
-            <div className="turtle-header">
+            <div className="pirogram-header">
                 <Menu text size="small">
-                    <Menu.Item href="/" className="logo"><Image className="logo" src="/static/img/turtleprogrammer.png"></Image></Menu.Item>
+                    <Menu.Item href="/" className="logo"><Image className="logo" src="/static/img/pirogram-logo.png"></Image></Menu.Item>
                     <Menu text size="small" className="right">
+                        <Menu.Item href="/study-queue">Your Queue</Menu.Item>
                         {this.props.user && this.props.user.superuser ?
                             <Menu.Item href="/modules">Modules</Menu.Item> : null}
                         {auth}

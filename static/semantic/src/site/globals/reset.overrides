@@ -6,8 +6,7 @@ code,
 kbd,
 pre,
 samp {
-  font-family: Monaco, Consolas, Source Code Pro, monospace;
-  font-size: 0.9em;
+  font-family: 'Inconsolata', monospace;
 }
 
 div.ui.segment.exercise {

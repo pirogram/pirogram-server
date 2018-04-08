@@ -17,13 +17,14 @@ export default class CodeExplorer extends React.Component {
     }
 
     onExecute( code) {
-        dispatch( 'CODE_EXECUTION_REQUEST', {code, playgroundId: this.props.id, chained: this.props.chained});
+        dispatch( 'CODE_EXECUTION_REQUEST', {code, playgroundId: this.props.compositeId, 
+            chained: this.props.chained});
     }
 
     render() {
         return (
             <div className='practise-area'>
-                <CodePlayground id={this.props.id} userCode={this.props.userCode} starterCode={this.props.starterCode} 
+                <CodePlayground id={this.props.compositeId} userCode={this.props.userCode} starterCode={this.props.starterCode} 
                     chained={this.props.chained} executeCmd={this.onExecute}/>
             </div>
         );
@@ -32,6 +33,7 @@ export default class CodeExplorer extends React.Component {
 
 CodeExplorer.PropTypes = {
     id: PropTypes.string.isRequired,
+    compositeId: PropTypes.string.isRequired,
     chained: PropTypes.bool,
     userCode: PropTypes.string.isRequired,
     starterCode: PropTypes.string
@@ -44,7 +46,7 @@ class CodeExplorerState extends ComponentNuxState {
     }
 
     onEditorContentChange(data) {
-        if( data.editorId != this.state.id) { return; }
+        if( data.editorId != this.state.compositeId) { return; }
         
         this.setState(Object.assign({}, this.state, {userCode: data.content}));
     }

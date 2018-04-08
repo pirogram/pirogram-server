@@ -1,8 +1,24 @@
 google_oauth:
-  redirect_uri: "http://www.turtleprogrammer.com/google-oauth-callback"
+  redirect_uri: "https://www.pirogram.com/google-oauth-callback"
+  client_id: "1059786732343-tdls7htliab7nce8lb2vhkvroa5vbj2v.apps.googleusercontent.com"
+  client_secret: "mwxTzOqh5LVlmV11dcpxLTqC"
+  scopes: 
+    - 'https://www.googleapis.com/auth/plus.me'
+    - 'https://www.googleapis.com/auth/userinfo.email'
+    - 'https://www.googleapis.com/auth/userinfo.profile'
+
+github_oauth:
+  redirect_uri: "https://www.pirogram.com/github-oauth-callback"
+  client_id: "1102d82b2d27778a3bb6"
+  client_secret: "93a470f69a9bf8931b334d6d8ea2ac745c140f97"
+  scopes:
+    - read:user
+    - user:email
 
 cms:
   rootdir: /home/ubuntu/cms-modules
 
 plutoid:
   dataset_dir: "/datasets"
+
+pi_home: '../pirogram-content'

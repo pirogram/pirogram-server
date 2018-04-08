@@ -1,2 +1,23 @@
-cms:
-  rootdir: './test-modules'
+db:
+  user: postgres
+  password: postgres
+  name: pirogram
+
+google_oauth:
+  redirect_uri: "http://localhost:5000/google-oauth-callback"
+  client_id: "1059786732343-tdls7htliab7nce8lb2vhkvroa5vbj2v.apps.googleusercontent.com"
+  client_secret: "mwxTzOqh5LVlmV11dcpxLTqC"
+  scopes: 
+    - 'https://www.googleapis.com/auth/plus.me'
+    - 'https://www.googleapis.com/auth/userinfo.email'
+    - 'https://www.googleapis.com/auth/userinfo.profile'
+
+github_oauth:
+  redirect_uri: "http://localhost:5000/github-oauth-callback"
+  client_id: "209e4f8f53ed2925c65d"
+  client_secret: "34dd126cb3df24d2fa7b3d6f2fe9dabcc44dd691"
+  scopes:
+    - read:user
+    - user:email
+
+pi_home: '../pirogram-content'

@@ -1,6 +1,7 @@
 'use strict';
 
 const config = require('config');
+const _ = require('lodash');
 
 const knex = require('knex')({
     client: 'postgres',
@@ -31,16 +32,6 @@ const TopicHistory = bookshelf.Model.extend({
     hasTimestamps: true
 });
 
-const TopicEditHistory = bookshelf.Model.extend({
-    tableName: 'topic_edit_history',
-    hasTimestamps: true
-});
-
-const TopicDraft = bookshelf.Model.extend({
-    tableName: 'topic_drafts',
-    hasTimestamps: true
-});
-
 const ExerciseHistory = bookshelf.Model.extend({
     tableName: 'exercise_history',
     idAttribute: ['user_id', 'exercise_id'],
@@ -65,6 +56,28 @@ const CodePlaygroundData = bookshelf.Model.extend({
     hasTimestamps: true
 });
 
+const StudyQueue = bookshelf.Model.extend({
+    tableName: 'study_queue',
+    idAttribute: ['user_id', 'module_code'],
+    hasTimestamps: true,
+
+    // convert snake_case to camelCase
+    parse: function(attrs) {
+        return _.reduce(attrs, function(memo, val, key) {
+            memo[_.camelCase(key)] = val;
+            return memo;
+        }, {});
+    },
+
+    // convert camelCase to snake_case
+    format: function(attrs) {
+        return _.reduce(attrs, function(memo, val, key) {
+            memo[_.snakeCase(key)] = val;
+            return memo;
+        }, {});
+    }
+});
+
 async function getUserById ( id) {
     try {
         return await new User( { id: id}).fetch();
@@ -81,6 +94,34 @@ async function getUserByEmail( email) {
     catch( e) {
         return null;
     }
+}
+
+async function isModuleInQueue( userId, moduleCode) {
+    const obj = await new StudyQueue({user_id: userId, module_code: moduleCode}).fetch();
+    return obj == null ? false : true;
+}
+
+async function addModuleToQueue( userId, moduleCode) {
+    if( !await isModuleInQueue( userId, moduleCode)) {
+        await new StudyQueue({user_id: userId, module_code: moduleCode}).save();
+    }
+}
+
+async function removeModuleFromQueue( userId, moduleCode) {
+    if( await isModuleInQueue( userId, moduleCode)) {
+        await new StudyQueue().where({user_id: userId, module_code: moduleCode}).destroy();
+    }
+}
+
+async function getQueuedModules( userId) {
+    const objs = await new StudyQueue({user_id: userId}).fetchAll();
+    const moduleCodes = [];
+
+    objs.each( function(obj) {
+        moduleCodes.push( obj.attributes.moduleCode);
+    });
+
+    return moduleCodes;
 }
 
 async function getTopicBySlug( slug) {
@@ -230,7 +271,8 @@ async function createModule(name, slug, tocYaml) {
     return await new Module({name, slug, toc_yaml: tocYaml}).save({}, {method:'insert'});
 }
 
-module.exports = { bookshelf, User, Topic,
+module.exports = { bookshelf, User, Topic, StudyQueue, addModuleToQueue, removeModuleFromQueue,
+    getQueuedModules,
     getUserByEmail, createUser, getUserById, getTopicBySlug, getExerciseHistory, saveExerciseHistory,
     saveTopic, getTopicHistory, saveTopicHistory, saveExercise, getExercise, Module, getAllModules,
     getModuleBySlug, createModule, savePlaygroundCode, getPlaygroundDataset};

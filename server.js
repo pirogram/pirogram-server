@@ -8,9 +8,9 @@ const session = require( './lib/session');
 const oauth = require( './controllers/oauth');
 const flash = require( './lib/flash');
 const auth = require( './lib/auth');
-const topic = require( './controllers/topic');
 const misc = require( './controllers/misc');
 const modules = require( './controllers/modules');
+const user = require( './controllers/user');
 const code = require( './controllers/code');
 const bodyParser = require( 'koa-body');
 const reqLogger = require('koa-logger');
@@ -29,7 +29,7 @@ app.use( view( __dirname + '/views', {
 }));
 
 app.use( mount( oauth.oauthApp));
-app.use( mount( topic.topicApp));
+app.use( mount( user.userApp));
 app.use( mount( modules.modulesApp));
 app.use( mount( misc.miscApp));
 app.use( mount( code.codeApp));

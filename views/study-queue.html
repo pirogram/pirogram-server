@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Study Queue | Pirogram{% endblock %}
+
+{% block bodyclass %}single column{% endblock %}
+
+{% block content %}
+<h1>Modules in Your Queue <span class='toolbar'><a href='/modules'>View all modules &rarr;</a></span></h1>
+
+{% if not moduleList.length %}
+<div class="ui info message">
+    <div class="header">Gosh! your study queue is empty.</div>
+    {% filter markdown %}
+Looks like you are new around here. No worries. Here is what you should do:
+* Browse the available study modules.
+* Whatever you like, add it to your queue.
+* Come back here :)
+    {% endfilter %}
+    <a href="/modules" class="ui primary button">Browse Material &rarr;</a>
+</div>
+{% else %}
+<div id='react-app-module-list'>
+    {{moduleListHtml|safe}}
+</div>
+{% endif %}
+{% endblock %}

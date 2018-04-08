@@ -500,8 +500,7 @@ code,
 kbd,
 pre,
 samp {
-  font-family: Monaco, Consolas, Source Code Pro, monospace;
-  font-size: 0.9em;
+  font-family: 'Inconsolata', monospace;
 }
 
 div.ui.segment.exercise {
@@ -683,6 +682,32 @@ input::selection {
 /*******************************
          Site Overrides
 *******************************/
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-orient: vertical;
+  -webkit-box-direction: normal;
+  -ms-flex-direction: column;
+  flex-direction: column;
+}
+
+.content {
+  -webkit-box-flex: 1;
+  -ms-flex: 1 0 auto;
+  flex: 1 0 auto;
+}
+
+.footer {
+  -ms-flex-negative: 0;
+  flex-shrink: 0;
+}
 /*!
  * # Semantic UI 2.2.10 - Button
  * http://github.com/semantic-org/semantic-ui/

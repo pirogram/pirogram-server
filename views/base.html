@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <link rel="shortcut icon" type="image/png" href="/static/img/favicon.png"/>
     <title>{% block title %}{% endblock %}</title>
-    <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:400,700" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="/static/semantic/dist/semantic.min.css">
     <link rel="stylesheet" type="text/css" href="/static/css/site.css">
     <link rel="stylesheet" type="text/css" href="/static/highlight-themes/github.css">
@@ -15,28 +15,38 @@
 
     {% block extra_head %}{% endblock %}
 </head>
-<body>
-    <div class="ui container full estate">
-        <div id="turtle-header">{{headerHtml|safe}}</div>
+<body class="{% block bodyclass %}{% endblock %}">
+    <div id="turtle-header" class="ui container">{{headerHtml|safe}}</div>
 
-        {% set messages = getFlashMessages(session) %}
-        {% if messages %}
+    {% set messages = getFlashMessages(session) %}
+    {% if messages %}
+        <div class="flash messages ui container">
             {% for m in messages %}
             <div class="ui {{m.category}} message">
                 <!-- <i class="close icon"></i> -->
                 <p>{{m.message}}</p>
             </div>
             {% endfor %}
-        {% endif %}
-
-        {% block maincontent %}
-            {% block maincontent_head %} {% endblock %}
-            <div class="ui container content estate">
-                {% block content %}{% endblock %}
-            </div>
-        {% endblock %}
-
+        </div>
         <div class="ui hidden divider"></div>
+    {% endif %}
+
+    {% block maincontent %}
+        {% block maincontent_head %} {% endblock %}
+        <div class="ui container content">
+            {% block content %}{% endblock %}
+        </div>
+    {% endblock %}
+
+    <div class="ui hidden divider"></div>
+    <div class="ui container footer">
+        <div class="ui text menu">
+            <a class="ui item tiny-font" href="/about">About</a>
+            <div class="ui right item">
+                <a class="ui item tiny-font" href="/privacy">Privacy</a>
+                <a class="ui item tiny-font" href="/terms-of-service">Terms of Service</a>
+            </div>
+        </div>
     </div>
 
     <script src="/static/js/client_bundle.js?hash={{client_bundle_hash}}"></script>

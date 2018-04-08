@@ -1,21 +1,17 @@
 db:
-  host: localhost
-  user: turtleprogrammer
-  password: turtleprogrammer
-  name: turtleprogrammer
+  host: pi_postgres
 
 redis:
-  host: localhost
+  host: pi_redis
 
-google_oauth:
-  redirect_uri: "http://localhost:5000/google-oauth-callback"
-
-cms:
-  rootdir: "./cms-modules"
-  livedir: "live"
+fluentd:
+  host: pi_fluentd
 
 server:
   port: 5000
 
 plutoid:
   dataset_dir: "/datasets"
+
+module_list:
+  - a-perspective-on-data-in-data-analysis

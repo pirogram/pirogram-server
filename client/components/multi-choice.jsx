@@ -35,9 +35,10 @@ export default class MultipleChoice extends React.Component {
                     }}>
                     <Form.Group className="grouped fields">
                         {this.state.choiceOptions.map( (choiceOption, i) => {
-                            const checkedProps = this.state.selectedIds.indexOf( choiceOption.id) >= 0 ? {checked: true} : {};
+                            const checkedProps = this.state.selectedIds.indexOf( choiceOption.id) >= 0 ? 
+                                                    {checked: true} : {};
 
-                            return <Form.Field className={this.state.showHint && this.state.selectedIds.indexOf(choiceOption.id) != this.state.correctIds.indexOf(choiceOption.id) ? 'error' : ''}
+                            return <Form.Field className={this.state.showHint && this.state.selectedIds.includes(choiceOption.id) != this.state.correctIds.includes(choiceOption.id) ? 'error' : ''}
                                         key={choiceOption.id}>
                                         <Checkbox name={'' + choiceOption.id} label={Parser(choiceOption.html)} 
                                             {...checkedProps} onChange={(e, data) => {
@@ -61,7 +62,6 @@ MultipleChoice.propTypes = {
     id: PropTypes.string.isRequired,
     compositeId: PropTypes.string.isRequired,
     question: PropTypes.string.isRequired,
-    code: PropTypes.string,
     done: PropTypes.bool,
     choiceOptions: PropTypes.arrayOf( PropTypes.shape({
         id: PropTypes.string.isRequired,
@@ -76,7 +76,7 @@ MultipleChoice.propTypes = {
 class MultipleChoiceState extends ComponentNuxState {
     constructor( component) {
         super( component);
-
+        this.state.selectedIds = this.state.selectedIds || [];
         this.state = {...this.state, showHint: false, checkingAnswer: false, hintTimer: null};
         component.state = this.state;
     }

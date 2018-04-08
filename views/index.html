@@ -1,9 +1,15 @@
 {% extends "base.html" %}
 
-{% block title %}turtle programmer{% endblock %}
+{% block title %}Pirogram{% endblock %}
 
-{% block maincontent %}
+{% block bodyclass %}single column{% endblock %}
 
-<p>Are you here to learn <a href="/module/regex">Learn Regex</a>?</p>
+{% block content %}
 
+<div class="ui info message">
+    <div class="header">Pirogram is in Private Beta</div>
+    <p>If you have been invited to join, please login using your GitHub or Google account.</p>
+    <a href="/login-with-github" class="ui primary button">Login with GitHub</a>
+    <a href="/login-with-google" class="ui secondary button">Login with Google</a>
+</div>
 {% endblock %}

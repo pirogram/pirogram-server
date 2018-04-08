@@ -1,36 +1,33 @@
 {% extends "base.html" %}
 
-{% block title %}{{m.name}} - {{topic.name}}{% endblock %}
-
-{% block maincontent_head %}
-{% if hasStage %}
-<div class="ui warning message">
-    <form method=POST action="/module/{{m.slug}}/publish">
-    You have unpublished changes in this module. &nbsp;
-        <button class='ui mini button primary' type=submit name=publish>Publish</button>
-        <button class='ui mini button' type=submit name=dicard>Discard</button>
-    </form>
-</div>
-{% endif %}
-{% endblock %}
+{% block title %}{{m.title}} - {{topic.meta.title}}{% endblock %}
 
 {% block content %}
-<div class="ui left rail toc">
-    {% include "toc.html" %}
-</div>
 
-{% if user.superuser %}
-    <div class="ui text menu">
-        <h1>{{topic.name}}</h1>
-        <div class="right menu">
-            <a class="ui tiny item" href="/topic/{{m.slug}}/{{topic.slug}}/edit"><i class="ui icon edit"></i></a>
+<div class='ui grid'>
+    <div class='twelve wide column topic-content'>
+        <h1>{{topic.meta.title}}</h1>
+        <div id='topic-content'>
+            {{topicHtml|safe}}
         </div>
     </div>
-{% else %}
-    <h1>{{topic.name}}</h1>
-{% endif %}
+    <div class='four wide column topic-meta'>
+        <div class='toc'>
+            <div class='ui vertical menu'>
+                <div class='header item'>{{m.title}}
+                    {% if m.author_name %}
+                        <div class='small author'>by <a href='{{m.author_url}}'>{{m.author_name}}</a></div>
+                    {% endif %}
+                </div>
+                {% for t in m.topics %}
+                    <a class='item' href='/modules/{{m.code}}/{{t.meta.code}}'><i class='icon {% if topic.meta.code == t.meta.code %}left arrow{% elif t.state.done == true %}green checkmark{% else %}wait{% endif %}'></i>{{t.meta.title}}</a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
 
-<div id="topic-content">{{topicHtml|safe}}</div>
+{# <div id="topic-content">{{topicHtml|safe}}</div> #}
 
 <div class="ui hidden divider"></div>
 <div>

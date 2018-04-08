@@ -6,24 +6,21 @@ const router = require( 'koa-route');
 const models = require( '../models');
 const flash = require( '../lib/flash');
 const config = require('config');
+const axios = require('axios');
+const _ = require('lodash');
 
 const oauthApp = new Koa();
-const OAuth2 = google.auth.OAuth2;
 
-const scopes = ['https://www.googleapis.com/auth/plus.me',
-    'https://www.googleapis.com/auth/userinfo.email',
-    'https://www.googleapis.com/auth/userinfo.profile'];
-
-oauthApp.use(router.get( '/login', (ctx) => {
-    const oauth2Client = new OAuth2(
-        "1043782400261-4vnh8d1lt76n42djlenkq9r1hj75edui.apps.googleusercontent.com",
-        "owRPFCyM-OXG-JB2u8_ESpLq",
+oauthApp.use(router.get( '/login-with-google', (ctx) => {
+    const oauth2Client = new google.auth.OAuth2(
+        config.get('google_oauth.client_id'),
+        config.get('google_oauth.client_secret'),
         config.get('google_oauth.redirect_uri')
     );
 
     const url = oauth2Client.generateAuthUrl({
         access_type: 'offline',
-        scope: scopes,
+        scope: config.get('google_oauth.scopes'),
     });
 
     ctx.redirect( url);
@@ -58,9 +55,9 @@ function getGoogleProfile(oauth2Client) {
 }
 
 oauthApp.use( router.get( '/google-oauth-callback', async function(ctx) {
-    const oauth2Client = new OAuth2(
-        "1043782400261-4vnh8d1lt76n42djlenkq9r1hj75edui.apps.googleusercontent.com",
-        "owRPFCyM-OXG-JB2u8_ESpLq",
+    const oauth2Client = new google.auth.OAuth2(
+        config.get('google_oauth.client_id'),
+        config.get('google_oauth.client_secret'),
         config.get('google_oauth.redirect_uri')
     );
 
@@ -88,6 +85,111 @@ oauthApp.use( router.get( '/google-oauth-callback', async function(ctx) {
     let user = await models.getUserByEmail( email);
     if( !user) {
         user = await models.createUser( profile.displayName, email, profile.image.url);
+    }
+
+    ctx.session.userId = user.id;
+
+    ctx.redirect( '/');
+}));
+
+async function getGithubToken( data) {
+    return new Promise( (resolve, reject) => {
+        const url = `https://github.com/login/oauth/access_token`;
+
+        axios( { method: 'post',
+            url,
+            data,
+            headers: {'Accept': 'application/json'}
+        })
+        .then( (response) => {
+            resolve( response.data.access_token);
+        })
+        .catch((err) => {
+            reject( err);
+        });
+    });
+}
+
+async function getGithubProfile( token) {
+    return new Promise( (resolve, reject) => {
+        const url = `https://api.github.com/user`;
+
+        axios({ 
+            url,
+            headers: {'Authorization': `token ${token}`}
+        })
+        .then( (response) => {
+            resolve( response.data);
+        })
+        .catch((err) => {
+            reject( err);
+        });
+    });
+}
+
+async function getGithubEmail( token) {
+    return new Promise( (resolve, reject) => {
+        const url = `https://api.github.com/user/emails`;
+
+        axios({ 
+            url,
+            headers: {'Authorization': `token ${token}`}
+        })
+        .then( (response) => {
+            const primary = _.find(response.data, {primary: true});
+            if( !primary) {
+                reject( 'Primary email address not found.');
+            } else {
+                resolve( primary.email);
+            }
+        })
+        .catch((err) => {
+            reject( err);
+        });
+    });
+}
+
+
+oauthApp.use( router.get( '/login-with-github', async function( ctx) {
+    const data = {
+        client_id: config.get('github_oauth.client_id'),
+        redirect_uri: config.get('github_oauth.redirect_uri'),
+        scope: config.get('github_oauth.scopes').join(','),
+        state: Math.random().toString()
+    };
+    const url = `https://github.com/login/oauth/authorize?client_id=${data.client_id}&redirect_uri=${data.redirect_uri}&scope=${data.scope}&state=${data.state}`;
+
+    ctx.session.github_oauth_state = data.state;
+    ctx.redirect( url);
+}));
+
+oauthApp.use( router.get( '/github-oauth-callback', async function( ctx) {
+    const data = {
+        client_id: config.get('github_oauth.client_id'),
+        client_secret: config.get('github_oauth.client_secret'),
+        redirect_uri: config.get('github_oauth.redirect_uri'),
+        state: ctx.session.github_oauth_state,
+        code: ctx.query.code
+    };
+
+    let profile = null;
+    try {
+        const token = await getGithubToken( data);
+        profile = await getGithubProfile( token);
+        if( !profile.email) {
+            profile.email = await getGithubEmail( token);
+        }
+    } catch( err) {
+        flash.addFlashMessage( ctx.session, 'error', 'There was an error in signing you in. Please try again.');
+        ctx.redirect( '/');
+        return;
+    }
+
+    const email = profile.email;
+
+    let user = await models.getUserByEmail( email);
+    if( !user) {
+        user = await models.createUser( profile.name, email, profile.avatar_url);
     }
 
     ctx.session.userId = user.id;
