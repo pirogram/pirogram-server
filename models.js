@@ -196,18 +196,18 @@ async function saveTopic( slug, title, markdown, authorId) {
     }).save();
 }
 
-async function getPlaygroundDataset( userId, playgroundIds) {
+async function getPlaygroundData( userId, playgroundIds) {
     const objs = await CodePlaygroundData.query( function(qb) {
         qb.whereIn('playground_id', playgroundIds).andWhere('user_id', userId);
     }).fetchAll();
 
-    const playgroundDataset = {};
+    const playgroundData = {};
 
     objs.each( function( obj) {
-        playgroundDataset[obj.attributes.playground_id] = obj.attributes;
+        playgroundData[obj.attributes.playground_id] = obj.attributes;
     });
 
-    return playgroundDataset;
+    return playgroundData;
 }
 
 
@@ -275,4 +275,4 @@ module.exports = { bookshelf, User, Topic, StudyQueue, addModuleToQueue, removeM
     getQueuedModules,
     getUserByEmail, createUser, getUserById, getTopicBySlug, getExerciseHistory, saveExerciseHistory,
     saveTopic, getTopicHistory, saveTopicHistory, saveExercise, getExercise, Module, getAllModules,
-    getModuleBySlug, createModule, savePlaygroundCode, getPlaygroundDataset};
+    getModuleBySlug, createModule, savePlaygroundCode, getPlaygroundData};

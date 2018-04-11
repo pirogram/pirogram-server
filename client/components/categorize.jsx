@@ -32,7 +32,8 @@ export default class CategorizationQuestion extends React.Component {
 
                 {Parser(this.state.question)}
 
-                <Form className="quiz" onSubmit={(e) => { 
+                <Form className={this.state.serverError ? "quiz error" : "quiz"}
+                    onSubmit={(e) => { 
                         e.preventDefault();
                         categorizationAnswerCheck( this.state.id);
                     }}>
@@ -49,12 +50,17 @@ export default class CategorizationQuestion extends React.Component {
                                             onChange={(e, data) => {
                                                 dispatch('CATEGORY_SELECTED', {exerciseId: this.state.id, challenge: challenge, category: data.value});
                                             }}/>
+                                        {this.state.showHint ?
+                                            <Label pointing='above' basic color='red'>
+                                                {this.state.correctCategories[challenge]}</Label> : null}
                                     </Form.Field>
                         })}
                         <Form.Field className="field">
                             {submitButton}
                         </Form.Field>
                     </Form.Group>
+                    {this.state.serverError ? 
+                        <Message error size='tiny' content='There was an error communicatig with server.'/> : null}
                 </Form>
             </Segment>
         )
@@ -85,7 +91,8 @@ class CategorizationQuestionState extends ComponentNuxState {
         super( component);
         this.state.selectedCategories = this.state.selectedCategories || {};
         this.state.correctCategories = this.state.correctCategories || {};
-        this.state = {...this.state, showHint: false, checkingAnswer: false, hintTimer: null};
+        this.state = {...this.state, showHint: false, checkingAnswer: false, hintTimer: null,
+            serverError: false};
         component.state = this.state;
     }
 
@@ -116,10 +123,10 @@ class CategorizationQuestionState extends ComponentNuxState {
                 self.updateState();
             }
         }).catch(function() {
-            self.setState( Object.assign({}, self.state, {checkingAnswer: false}));
+            self.setState( Object.assign({}, self.state, {checkingAnswer: false, serverError: true}));
         });
 
-        this.setState( Object.assign({}, this.state, {checkingAnswer: true, showHint: false}));
+        this.setState( Object.assign({}, this.state, {checkingAnswer: true, showHint: false, serverError: false}));
     }
 
 

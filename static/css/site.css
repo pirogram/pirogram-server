@@ -238,3 +238,11 @@ div.module-summary:last-child {
 .right.floated {
     float: right;
 }
+
+.ui.form.quiz .fields .wide.field {
+    padding-left: 0;
+}
+
+.topic-sections .html-content {
+    overflow-x: scroll;
+}

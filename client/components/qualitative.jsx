@@ -29,7 +29,8 @@ export default class QualitativeQuestion extends React.Component {
 
                 {Parser(this.state.question)}
 
-                <Form className="quiz" onSubmit={(e) => { 
+                <Form className={this.state.serverError ? "quiz error" : "quiz"} 
+                    onSubmit={(e) => { 
                         e.preventDefault();
                         dispatch( 'QUALITATIVE_QUESTION_ANSWERED', {exerciseId: this.state.id});
                     }}>
@@ -45,6 +46,8 @@ export default class QualitativeQuestion extends React.Component {
                             {submitButton}
                         </Form.Field>
                     </Form.Group>
+                    {this.state.serverError ? 
+                        <Message error size='tiny' content='There was an error communicatig with server.'/> : null}
                 </Form>
             </Segment>
         )
@@ -64,7 +67,8 @@ QualitativeQuestion.propTypes = {
 class QualitativeQuestionState extends ComponentNuxState {
     constructor( component) {
         super( component);
-        this.state = {...this.state, checkingAnswer: false, answer: this.state.answer || ''};
+        this.state = {...this.state, checkingAnswer: false, answer: this.state.answer || '',
+            serverError: false};
         component.state = this.state;
     }
 
@@ -79,10 +83,10 @@ class QualitativeQuestionState extends ComponentNuxState {
             self.state = Object.assign({}, self.state, {checkingAnswer: false, done: true});
             self.updateState();
         }).catch(function() {
-            self.setState( Object.assign({}, self.state, {checkingAnswer: false}));
+            self.setState( Object.assign({}, self.state, {checkingAnswer: false, serverError: true}));
         });
 
-        this.setState( Object.assign({}, this.state, {checkingAnswer: true}));
+        this.setState( Object.assign({}, this.state, {checkingAnswer: true, serverError: false}));
     }
 
     onQualitativeQuestionUpdated( data) {

@@ -5,6 +5,7 @@ import CodeExplorer from './code-explorer.jsx';
 import CodingProblem from './coding-problem.jsx';
 import CategorizationQuestion from './categorize.jsx';
 import QualitativeQuestion from './qualitative.jsx';
+import FillInTheBlankQuestion from './fill-in-the-blank.jsx';
 
 const Topic = ({userId, m, topic}) => (
     <div className='topic-sections'>
@@ -33,6 +34,11 @@ const Topic = ({userId, m, topic}) => (
             } else if( section.type == 'qualitative-question') {
                 return <QualitativeQuestion key={i} id={section.id} compositeId={section.compositeId}
                     question={section.question} done={section.done} answer={section.answer} userId={userId}/>
+            } else if( section.type == 'fill-in-the-blank-question') {
+                return <FillInTheBlankQuestion key={i} id={section.id} compositeId={section.compositeId}
+                    question={section.question} starterCode={section.starterCode} userCode={section.userCode}
+                    labels={section.labels} answers={section.answers} userId={userId} done={section.done}/>
+
             }
         })}
     </div>

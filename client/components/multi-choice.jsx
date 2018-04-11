@@ -29,7 +29,8 @@ export default class MultipleChoice extends React.Component {
 
                 {Parser(this.state.question)}
 
-                <Form className="quiz" onSubmit={(e) => { 
+                <Form className={this.state.serverError ? "quiz error" : "quiz"} 
+                    onSubmit={(e) => { 
                         e.preventDefault();
                         multipleChoiceAnswerCheck( this.state.id);
                     }}>
@@ -51,6 +52,8 @@ export default class MultipleChoice extends React.Component {
                             {submitButton}
                         </Form.Field>
                     </Form.Group>
+                    {this.state.serverError ? 
+                        <Message error size='tiny' content='There was an error communicatig with server.'/> : null}
                 </Form>
             </Segment>
         )
@@ -77,7 +80,8 @@ class MultipleChoiceState extends ComponentNuxState {
     constructor( component) {
         super( component);
         this.state.selectedIds = this.state.selectedIds || [];
-        this.state = {...this.state, showHint: false, checkingAnswer: false, hintTimer: null};
+        this.state = {...this.state, showHint: false, checkingAnswer: false, hintTimer: null,
+            serverError: false};
         component.state = this.state;
     }
 
@@ -107,10 +111,11 @@ class MultipleChoiceState extends ComponentNuxState {
                 self.updateState();
             }
         }).catch(function() {
-            self.setState( Object.assign({}, self.state, {checkingAnswer: false}));
+            self.setState( Object.assign({}, self.state, {checkingAnswer: false, serverError: true}));
         });
 
-        this.setState( Object.assign({}, this.state, {checkingAnswer: true, showHint: false}));
+        this.setState( Object.assign({}, this.state, {checkingAnswer: true, showHint: false, 
+            serverError: false}));
     }
 
 

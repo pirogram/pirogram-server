@@ -40,8 +40,5 @@ miscApp.use( router.post( '/regex-match', regexMatch));
 miscApp.use( router.get( '/privacy', privacy));
 miscApp.use( router.get( '/about', about));
 miscApp.use( router.get( '/terms-of-service', terms_of_service));
-miscApp.use( router.get( '/structmd', async function(ctx) {
-    await ctx.render( 'structmd');
-}));
 
 module.exports = { miscApp};

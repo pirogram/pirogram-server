@@ -16,11 +16,9 @@ codeApp.use( router.post( '/code-requests', async function( ctx) {
     const executionId = ctx.request.body.executionId;
     const playgroundId = ctx.request.body.playgroundId;
 
-    if( playgroundId) {
-        await models.savePlaygroundCode( ctx.state.user.id, playgroundId, code);
-    }
+    await models.savePlaygroundCode( ctx.state.user.id, playgroundId, code);
 
-    const {sessionId, output, inputRequired, testResults} = await plutoid.executeCodeRequest( inSessionId, executionId, code);
+    const {sessionId, output, inputRequired, testResults} = await plutoid.executeCodeRequest( playgroundId, inSessionId, executionId, code);
 
     ctx.body = JSON.stringify({output, inputRequired, sessionId});
 }));

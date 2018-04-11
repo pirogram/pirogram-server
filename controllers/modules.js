@@ -6,6 +6,7 @@ require('babel-polyfill');
 
 const Koa = require('koa');
 const router = require( 'koa-route');
+const send = require('koa-send');
 const config = require('config');
 const path = require('path');
 const fs = require('fs');
@@ -123,6 +124,10 @@ async function loadTopic( m, file) {
             section.options.map( (o, i) => {
                 if( o.correct) { section.correctIds.push( i.toString()); }
             });
+        } else if( section.type == 'fill-in-the-blank-question') {
+            section.blanks.map( (blank, index) => {
+                blank.answer = blank.answer + "";
+            });
         }
     });
 
@@ -175,6 +180,12 @@ function enrichTopic(m, topic, userId) {
                 type: section.type, id: section.id, compositeId: section.compositeId,
                 done: false, question: markdownToHtml(section.question)
             }
+        } else if( section.type == 'fill-in-the-blank-question') {
+            return {
+                type: section.type, id: section.id, compositeId: section.compositeId,
+                done: false, question: markdownToHtml(section.question), starterCode: section.code,
+                labels: section.blanks.map((blank, index) => { return blank.label; })
+            }
         } else {
             return {type: 'html', html: markdownToHtml(`Unsupported section type: ${section.type}`)};
         }
@@ -190,7 +201,8 @@ function getExerciseIds( topic) {
         if( section.type == 'multiple-choice-question' ||
             section.type == 'coding-question' ||
             section.type == 'categorization-question' ||
-            section.type == 'qualitative-question') { 
+            section.type == 'qualitative-question' ||
+            section.type == 'fill-in-the-blank-question') { 
             compositeIds.push( section.compositeId);
         }
     }
@@ -199,13 +211,24 @@ function getExerciseIds( topic) {
 }
 
 
+function getPlaygroundIds( topic) {
+    const compositeIds = [];
+    topic.sections.map( (section, index) => {
+        if( section.type == 'live-code' || section.type == 'fill-in-the-blank-question') { 
+            compositeIds.push( section.compositeId);
+        }
+    });
+
+    return compositeIds;
+}
+
 function hasExercises( topic) {
     return getExerciseIds(topic).length > 0;
 }
 
 
 async function addUserStateToTopic( m, topic, userId) {
-    const compositeIds = getExerciseIds( topic);
+    let compositeIds = getExerciseIds( topic);
 
     const ehobjs = await models.getExerciseHistory( userId, compositeIds);
 
@@ -225,8 +248,19 @@ async function addUserStateToTopic( m, topic, userId) {
             section.selectedCategories = eh.solution.selectedCategories;
         } else if( section.type == 'qualitative-question') {
             section.answer = eh.solution.answer;
+        } else if( section.type == 'fill-in-the-blank-question') {
+            section.answers = eh.solution.answers;
         }
     }
+
+    compositeIds = getPlaygroundIds( topic);
+    const playgroundData = await models.getPlaygroundData( userId, compositeIds);
+
+    topic.sections.map((section, index) => {
+        if( playgroundData[ section.compositeId]) {
+            section.userCode = playgroundData[ section.compositeId].code;
+        }
+    });
 }
 
 
@@ -292,15 +326,24 @@ async function getQueuedModules( userId) {
     const moduleDict = await getModules();
     await populateUserQueue( userId, moduleDict);
 
-    const moduleList = [];
-    for( const code of config.get('module_list')) {
-        if( moduleDict[code].queued) {
-            moduleList.push(moduleDict[code]);
-        }
-    }
-
-    return moduleList;
+    return _.filter( _.values(moduleDict), {queued: true});
 }
+
+
+modulesApp.use( router.get( '/modules/:moduleCode/assets/:level1', 
+        async function( ctx, moduleCode, level1) {
+    await send( ctx, `${moduleCode}/assets/${level1}`, {root: config.get('pi_home')});
+}));
+
+modulesApp.use( router.get( '/modules/:moduleCode/assets/:level1/:level2', 
+        async function( ctx, moduleCode, level1, level2) {
+    await send( ctx, `${moduleCode}/assets/${level1}/${level2}`, {root: config.get('pi_home')});
+}));
+
+modulesApp.use( router.get( '/modules/:moduleCode/assets/:level1/:level2/:level3', 
+        async function( ctx, moduleCode, level1, level2, level3) {
+    await send( ctx, `${moduleCode}/assets/${level1}/${level2}/${level3}`, {root: config.get('pi_home')});
+}));
 
 
 modulesApp.use( router.get( '/modules', async function(ctx) {
@@ -378,6 +421,7 @@ modulesApp.use( router.get( '/modules/:moduleCode/:topicCode', async function( c
         models.saveTopicHistory( ctx.state.user.id, topic.meta.id);
     }
 
+    console.log(topic);
     const topicHtml = ReactDOMServer.renderToString(
         <Topic m={m} topic={topic} userId={ctx.state.user.id}/>
     );
@@ -426,13 +470,13 @@ modulesApp.use( router.post( '/exercise/:compositeId/solution', async function( 
     const exerciseId = rest.join('::');
 
     const m = await getModuleByCode( moduleCode);
-    if( !m) { ctx.status = 404; return; }
+    if( !m) { ctx.status = 404; ctx.body = 'module not found.'; return; }
 
     const topic = _.find(m.topics, { meta: {code: topicCode}});
-    if( !topic) { ctx.status = 404; return; }
+    if( !topic) { ctx.status = 404; ctx.body = 'topic not found.'; return; }
 
     const exercise = _.find(topic.sections, {id: exerciseId});
-    if( !exercise) { ctx.status = 404; return; }
+    if( !exercise) { ctx.status = 404; ctx.body = 'exercise not found.'; return; }
 
     if( exercise.type == 'multiple-choice-question') {
         const selectedIds = ctx.request.body.selectedIds || [];
@@ -452,7 +496,7 @@ modulesApp.use( router.post( '/exercise/:compositeId/solution', async function( 
 
         await models.savePlaygroundCode( ctx.state.user.id, playgroundId, code);
 
-        const {sessionId, output, hasError, testResults} = await plutoid.executeCodeRequest( inSessionId, executionId, code, tests);
+        const {sessionId, output, hasError, testResults} = await plutoid.executeCodeRequest( playgroundId, inSessionId, executionId, code, tests);
 
         let hasFailedTest = false;
         for( const test of testResults) {
@@ -487,9 +531,31 @@ modulesApp.use( router.post( '/exercise/:compositeId/solution', async function( 
         await models.saveExerciseHistory( ctx.state.user.id, compositeId, {answer});
 
         ctx.body = JSON.stringify({});
+    } else if( exercise.type == 'fill-in-the-blank-question') {
+        const answers = ctx.request.body.answers;
+        const corrections = {};
+
+        let solutionIsCorrect = true;
+        for( const blank of exercise.blanks) {
+            const label = blank.label;
+            const userAnswer = answers[label];
+
+            if( !userAnswer || userAnswer.trim().toLowerCase() != blank.answer.toLowerCase()) {
+                corrections[label] = blank.answer;
+                solutionIsCorrect = false;
+            }
+        }
+
+        if( solutionIsCorrect) {
+            await models.saveExerciseHistory( ctx.state.user.id, compositeId, {answers});
+        }
+
+        ctx.body = JSON.stringify({solutionIsCorrect, corrections});
     }
 
     await markDoneTopicAsDone( ctx.state.user.id, topic);
 }));
+
+
 
 module.exports = {modulesApp};
