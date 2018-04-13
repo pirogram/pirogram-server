@@ -14,7 +14,8 @@
     <div class='four wide column topic-meta'>
         <div class='toc'>
             <div class='ui vertical menu'>
-                <div class='header item'>{{m.title}}
+                <div class='header item'>
+                    <i class='icon {% if m.done %}green checkmark{% else %}wait{% endif %}'></i>{{m.title}}
                     {% if m.author_name %}
                         <div class='small author'>by <a href='{{m.author_url}}'>{{m.author_name}}</a></div>
                     {% endif %}

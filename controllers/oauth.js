@@ -204,5 +204,8 @@ oauthApp.use( router.get( '/logout', async function( ctx) {
     ctx.redirect( '/');
 }));
 
+oauthApp.use( router.get( '/login', async function( ctx) {
+    ctx.redirect( '/');
+}));
 
 module.exports = { oauthApp};

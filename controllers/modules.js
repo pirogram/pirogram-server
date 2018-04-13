@@ -273,6 +273,8 @@ async function addUserStateToModule( m, userId) {
     m.topics.map( (topic, index) => {
         if( thObjs[topic.meta.id]) topic.state.done = true;
     });
+
+    if( await models.getSinglePackageHistory( userId, m.code)) { m.done = true; }
 }
 
 
@@ -314,19 +316,29 @@ async function getModuleList( moduleDict) {
 
 async function populateUserQueue( userId, moduleDict) {
     const moduleCodes = await models.getQueuedModules(userId);
+    const moduleList = [];
     for( const moduleCode of moduleCodes) {
         if( moduleDict[moduleCode]) {
             moduleDict[moduleCode].queued = true;
+            moduleList.push( moduleDict[ moduleCode]);
         }
     }
+
+    return moduleList;
 }
 
 
 async function getQueuedModules( userId) {
     const moduleDict = await getModules();
-    await populateUserQueue( userId, moduleDict);
+    const moduleList = await populateUserQueue( userId, moduleDict);
+    const packageIds = moduleList.map( (m, index) => { return m.code; });
 
-    return _.filter( _.values(moduleDict), {queued: true});
+    const phObjs = await models.getPackageHistory( userId, packageIds);
+    moduleList.map( (m, index) => {
+        if( phObjs[ m.code]) m.done = true;
+    })
+    
+    return _.sortBy( moduleList, [function(m) { return m.done ? 1 : 0; }]);
 }
 
 
@@ -353,6 +365,7 @@ modulesApp.use( router.get( '/modules', async function(ctx) {
     await populateUserQueue(ctx.state.user.id, moduleDict);
 
     const moduleList = await getModuleList(moduleDict);
+    
     const moduleListHtml = ReactDOMServer.renderToString(
         <ModuleSummaryList moduleList={moduleList} />
     );
@@ -416,17 +429,12 @@ modulesApp.use( router.get( '/modules/:moduleCode/:topicCode', async function( c
     topic = enrichTopic(m, topic, ctx.state.user.id);
     await addUserStateToTopic( m, topic, ctx.state.user.id);
     await addUserStateToModule(m, ctx.state.user.id);
-    
-    if( !hasExercises(topic)) {
-        models.saveTopicHistory( ctx.state.user.id, topic.meta.id);
-    }
 
-    console.log(topic);
     const topicHtml = ReactDOMServer.renderToString(
         <Topic m={m} topic={topic} userId={ctx.state.user.id}/>
     );
 
-    markDoneTopicAsDone( ctx.state.user.id, topic);
+    markDoneTopicAsDone( ctx.state.user.id, topic, m);
 
     await ctx.render( 'topic', {m, topic, topicHtml}, {m, topic});
 }));
@@ -444,7 +452,7 @@ modulesApp.use( router.get('/study-queue', async function( ctx) {
 }));
 
 
-async function markDoneTopicAsDone( userId, topic) {
+async function markDoneTopicAsDone( userId, topic, m) {
     const th = await models.getTopicHistory( userId, [topic.meta.id]);
     if( th[topic.meta.id]) return;
 
@@ -460,6 +468,21 @@ async function markDoneTopicAsDone( userId, topic) {
     }
 
     await models.saveTopicHistory( userId, topic.meta.id);
+    await markDonePackageAsDone( userId, m);
+}
+
+
+async function markDonePackageAsDone( userId, m) {
+    const topicIds = m.topics.map((topic, index) => {
+        return topic.meta.id;
+    });
+
+    const thObjs = await models.getTopicHistory( userId, topicIds);
+    if( _.keys( thObjs).length != topicIds.length) return;
+
+    if( await models.getSinglePackageHistory( userId, m.code)) return;
+
+    models.savePackageHistory( userId, m.code);
 }
 
 
@@ -553,7 +576,7 @@ modulesApp.use( router.post( '/exercise/:compositeId/solution', async function( 
         ctx.body = JSON.stringify({solutionIsCorrect, corrections});
     }
 
-    await markDoneTopicAsDone( ctx.state.user.id, topic);
+    await markDoneTopicAsDone( ctx.state.user.id, topic, m);
 }));
 
 

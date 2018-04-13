@@ -50,7 +50,9 @@ export default class CategorizationQuestion extends React.Component {
                                             onChange={(e, data) => {
                                                 dispatch('CATEGORY_SELECTED', {exerciseId: this.state.id, challenge: challenge, category: data.value});
                                             }}/>
-                                        {this.state.showHint ?
+                                        {this.state.showHint && 
+                                            this.state.selectedCategories[challenge] != 
+                                                this.state.correctCategories[challenge] ?
                                             <Label pointing='above' basic color='red'>
                                                 {this.state.correctCategories[challenge]}</Label> : null}
                                     </Form.Field>

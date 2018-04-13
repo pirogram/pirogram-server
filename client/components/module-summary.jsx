@@ -47,7 +47,7 @@ ModuleSummary.propTypes = {
     title: PropTypes.string.isRequired,
     description: PropTypes.string.isRequired,
     queued: PropTypes.bool,
-    completed: PropTypes.bool
+    done: PropTypes.bool
 };
 
 class ModuleSummaryState extends ComponentNuxState {

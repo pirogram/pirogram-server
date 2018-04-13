@@ -7,7 +7,7 @@ export default class ModuleSummaryList extends React.Component {
             <div className='module-summary-list'>
                 {this.props.moduleList.map( (m, i) => {
                     return <ModuleSummary key={i} code={m.code} title={m.title} description={m.description}
-                        queued={m.queued} completed={m.completed} />
+                        queued={m.queued} done={m.done} />
                 })}
             </div>
         );

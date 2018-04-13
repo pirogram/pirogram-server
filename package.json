@@ -56,7 +56,8 @@
   "scripts": {
     "test": "NODE_ENV=test jest",
     "webpack": "webpack --watch",
-    "start": "nodemon -e js,html server.js"
+    "dev_start": "nodemon -e js,html server.js",
+    "production_start": "node server.js"
   },
   "author": "Manas Garg",
   "license": "ISC"

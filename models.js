@@ -32,21 +32,15 @@ const TopicHistory = bookshelf.Model.extend({
     hasTimestamps: true
 });
 
+const PackageHistory = bookshelf.Model.extend({
+    tableName: 'package_history',
+    idAttribute: ['user_id', 'package_id'],
+    hasTimestamps: true
+});
+
 const ExerciseHistory = bookshelf.Model.extend({
     tableName: 'exercise_history',
     idAttribute: ['user_id', 'exercise_id'],
-    hasTimestamps: true
-});
-
-const Exercise = bookshelf.Model.extend({
-    tableName: 'exercises',
-    idAttribute: ['module_id', 'topic_id', 'exercise_id'],
-    hasTimestamps: true
-});
-
-const Module = bookshelf.Model.extend({
-    tableName: 'module',
-    idAttribute: 'slug',
     hasTimestamps: true
 });
 
@@ -124,14 +118,6 @@ async function getQueuedModules( userId) {
     return moduleCodes;
 }
 
-async function getTopicBySlug( slug) {
-    try {
-        return await new Topic( {slug: slug}).fetch();
-    } catch( e) {
-        return null;
-    }
-}
-
 async function createUser( name, email, avatar) {
     return await new User({name: name, email: email, avatar: avatar, active: true}).save();
 }
@@ -177,25 +163,6 @@ async function getTopicHistory( userId, topicIds) {
     return th;
 }
 
-async function createTopic( slug, title, markdown, authorId) {
-    return await new Topic({slug, title, markdown, author_id: authorId, version_number: 1}).save()
-}
-
-async function saveTopic( slug, title, markdown, authorId) {
-    let topic = await getTopicBySlug( slug);
-    
-    if( !topic) {
-        topic = await createTopic( slug, title, markdown, authorId);
-    } else {
-        topic = await topic.save({title, markdown, version_number: topic.attributes.version_number+1}, {patch: true});
-    }
-
-    await new TopicEditHistory({topic_id: topic.attributes.id, author_id: authorId, 
-        version_number: topic.attributes.version_number,
-        title: title, markdown: markdown, slug: slug
-    }).save();
-}
-
 async function getPlaygroundData( userId, playgroundIds) {
     const objs = await CodePlaygroundData.query( function(qb) {
         qb.whereIn('playground_id', playgroundIds).andWhere('user_id', userId);
@@ -230,23 +197,6 @@ async function savePlaygroundCode( userId, playgroundId, code) {
     }
 }
 
-async function getExercise( moduleId, topicId, exerciseId) {
-    try {
-        return await new Exercise({module_id: moduleId, topic_id: topicId, exercise_id: exerciseId}).fetch();
-    } catch( e) {
-        return null;
-    }
-}
-
-async function saveExercise(moduleId, topicId, exerciseId, type, content) {
-    const exercise = await getExerciseById(moduleId, topicId, exerciseId);
-    if( !exercise) {
-        return await new Exercise({module_id: moduleId, topic_id: topicId, exercise_id: exerciseId, type, content}).save({}, {method:'insert'});
-    } else {
-        await exercise.save({type, content}, {method: 'update', patch: true});
-    }
-}
-
 async function saveTopicHistory( userId, topicId) {
     try {
         await new TopicHistory({user_id: userId, topic_id: topicId}).save();
@@ -255,24 +205,34 @@ async function saveTopicHistory( userId, topicId) {
     }
 }
 
-async function getAllModules() {
-    return await Module.collection().fetch();
+async function getPackageHistory( userId, packageIds) {
+    const objs = await PackageHistory.query( function(qb) {
+        qb.whereIn('package_id', packageIds).andWhere('user_id', userId);
+    }).fetchAll();
+
+    const ph = {};
+
+    objs.each( function( obj) {
+        ph[obj.attributes.package_id] = obj.attributes;
+    });
+
+    return ph;
 }
 
-async function getModuleBySlug( slug) {
+async function getSinglePackageHistory( userId, packageId) {
+    const ph = await getPackageHistory( userId, [packageId]);
+    return ph[packageId];
+}
+
+async function savePackageHistory( userId, packageId) {
     try {
-        return await new Module( {slug: slug}).fetch();
+        await new PackageHistory({user_id: userId, package_id: packageId}).save();
     } catch( e) {
-        return null;
+        // ignore duplicate save.
     }
 }
 
-async function createModule(name, slug, tocYaml) {
-    return await new Module({name, slug, toc_yaml: tocYaml}).save({}, {method:'insert'});
-}
-
-module.exports = { bookshelf, User, Topic, StudyQueue, addModuleToQueue, removeModuleFromQueue,
-    getQueuedModules,
-    getUserByEmail, createUser, getUserById, getTopicBySlug, getExerciseHistory, saveExerciseHistory,
-    saveTopic, getTopicHistory, saveTopicHistory, saveExercise, getExercise, Module, getAllModules,
-    getModuleBySlug, createModule, savePlaygroundCode, getPlaygroundData};
+module.exports = { bookshelf, User, StudyQueue, addModuleToQueue, removeModuleFromQueue,
+    getQueuedModules, getPackageHistory, getSinglePackageHistory, savePackageHistory,
+    getUserByEmail, createUser, getUserById, getExerciseHistory, saveExerciseHistory,
+    getTopicHistory, saveTopicHistory, savePlaygroundCode, getPlaygroundData};
