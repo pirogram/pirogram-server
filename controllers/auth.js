@@ -95,9 +95,9 @@ authApp.use( router.get( '/google-oauth-callback', async function(ctx) {
 
 async function createUser( ctx, name, email, avatar) {
     let username = slugify(name.toLowerCase(), '');
-    if( await models.getUserByUsername(username)) {
+    if( !await models.isUsernameAvaialble(username)) {
         username = slugify(email.split('@')[0]);
-        if( await models.getUserByUsername( username)) {
+        if( !await models.isUsernameAvaialble( username)) {
             username = slugify(name.toLowerCase(), '') + (Math.floor(Math.random() * Math.floor(10000)));
         }
     }

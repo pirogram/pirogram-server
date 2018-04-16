@@ -1,6 +1,7 @@
 'use strict';
 
 const config = require('config');
+const reservedUsernames = require('./lib/reserved-usernames');
 const _ = require('lodash');
 
 const knex = require('knex')({
@@ -96,6 +97,17 @@ async function getUserByUsername( username) {
     } catch( e) {
         return null;
     }
+}
+
+async function isUsernameAvaialble( username) {
+    if( reservedUsernames[ username.toLowerCase()]) {
+        return false;
+    }
+
+    const user = await getUserByUsername( username);
+    if(user) { return false; }
+
+    return true;
 }
 
 async function isModuleInQueue( userId, moduleCode) {
@@ -244,4 +256,4 @@ async function savePackageHistory( userId, packageId) {
 module.exports = { bookshelf, User, StudyQueue, addModuleToQueue, removeModuleFromQueue,
     getQueuedModules, getPackageHistory, getSinglePackageHistory, savePackageHistory,
     getUserByEmail, getUserByUsername, createUser, getUserById, getExerciseHistory, saveExerciseHistory,
-    getTopicHistory, saveTopicHistory, savePlaygroundCode, getPlaygroundData};
+    getTopicHistory, saveTopicHistory, savePlaygroundCode, getPlaygroundData, isUsernameAvaialble};

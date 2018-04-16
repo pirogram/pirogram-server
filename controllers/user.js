@@ -33,7 +33,7 @@ userApp.use( router.post( '/account/update', async function( ctx) {
         errors['username'] = 'Username must be 5 to 24 characters. Alphanumeric and - allowed.';
     }
 
-    if( username.toLowerCase() != user.attributes.username && await models.getUserByUsername( username)) {
+    if( username.toLowerCase() != user.attributes.username && !await models.isUsernameAvaialble( username)) {
         errors['username'] = 'Sorry, this username is already taken.';
     }
 
