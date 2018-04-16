@@ -9,9 +9,3 @@ fluentd:
 
 server:
   port: 5000
-
-plutoid:
-  dataset_dir: "/datasets"
-
-module_list:
-  - a-perspective-on-data-in-data-analysis

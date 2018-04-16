@@ -21,3 +21,6 @@ github_oauth:
     - user:email
 
 pi_home: '../pirogram-content'
+
+session:
+  app_key: kl1234123412nkfnasodifhowfhsdjkfnakdf

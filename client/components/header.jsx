@@ -11,6 +11,7 @@ export default class Header extends React.Component {
                 <Menu.Item>
                     <Dropdown text={this.props.user.name} pointing>
                         <Dropdown.Menu>
+                            <Dropdown.Item href="/account/update">Update Account</Dropdown.Item>
                             <Dropdown.Item href="/logout">Logout</Dropdown.Item>
                         </Dropdown.Menu>
                     </Dropdown>

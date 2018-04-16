@@ -2,3 +2,6 @@ db:
   user: DB_USER
   password: DB_PASSWORD
   name: DB_NAME
+
+session:
+  appkey: SESSION_APP_KEY

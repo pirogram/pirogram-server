@@ -90,6 +90,14 @@ async function getUserByEmail( email) {
     }
 }
 
+async function getUserByUsername( username) {
+    try {
+        return await new User( {username: username.toLowerCase()}).fetch();
+    } catch( e) {
+        return null;
+    }
+}
+
 async function isModuleInQueue( userId, moduleCode) {
     const obj = await new StudyQueue({user_id: userId, module_code: moduleCode}).fetch();
     return obj == null ? false : true;
@@ -118,8 +126,9 @@ async function getQueuedModules( userId) {
     return moduleCodes;
 }
 
-async function createUser( name, email, avatar) {
-    return await new User({name: name, email: email, avatar: avatar, active: true}).save();
+async function createUser( username, email, avatar) {
+    return await new User({name: username, username: username.toLowerCase(), 
+        email: email, avatar: avatar, active: true}).save();
 }
 
 async function getExerciseHistory( userId, exerciseIds) {
@@ -234,5 +243,5 @@ async function savePackageHistory( userId, packageId) {
 
 module.exports = { bookshelf, User, StudyQueue, addModuleToQueue, removeModuleFromQueue,
     getQueuedModules, getPackageHistory, getSinglePackageHistory, savePackageHistory,
-    getUserByEmail, createUser, getUserById, getExerciseHistory, saveExerciseHistory,
+    getUserByEmail, getUserByUsername, createUser, getUserById, getExerciseHistory, saveExerciseHistory,
     getTopicHistory, saveTopicHistory, savePlaygroundCode, getPlaygroundData};

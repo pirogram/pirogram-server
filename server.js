@@ -5,9 +5,9 @@ const view = require( './lib/view');
 const serve = require( 'koa-static');
 const mount = require( 'koa-mount');
 const session = require( './lib/session');
-const oauth = require( './controllers/oauth');
+const auth = require( './controllers/auth');
 const flash = require( './lib/flash');
-const auth = require( './lib/auth');
+const authlib = require( './lib/auth');
 const misc = require( './controllers/misc');
 const packages = require( './controllers/packages');
 const user = require( './controllers/user');
@@ -21,14 +21,14 @@ const app = new Koa();
 app.use( bodyParser({multipart: true}));
 app.use( reqLogger());
 app.use( session( app));
-app.use( auth.setSessionUser);
+app.use( authlib.setSessionUser);
 app.use( view( __dirname + '/views', {
     globals: {
         'getFlashMessages': flash.getFlashMessages
     }
 }));
 
-app.use( mount( oauth.oauthApp));
+app.use( mount( auth.authApp));
 app.use( mount( user.userApp));
 app.use( mount( packages.packagesApp));
 app.use( mount( misc.miscApp));

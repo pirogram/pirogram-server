@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Delete Account | Pirogram{% endblock %}
+
+{% block bodyclass %}single column{% endblock %}
+
+{% block content %}
+<h1>Delete Account</h1>
+<p>Please confirm account deletion by typing your username.</p>
+<form method='POST' class="ui form {% if errors %}error{% endif %}">
+    <div class="field">
+        <input type=text name=username placeholder="Username" value="{{username}}"/>
+        {% if errors.username %}
+            <div class="ui error message tiny">{{errors.username}}</div>
+        {% endif %}
+    </div>
+    <div class="field">
+        <button class="ui button" type="submit">I confirm my account deletion</button>
+    </div>
+</form>
+{% endblock %}

@@ -39,8 +39,10 @@
     "react-dom": "^15.6.1",
     "react-monaco-editor": "^0.10.0",
     "semantic-ui-react": "^0.79.1",
+    "slugify": "^1.2.9",
     "style-loader": "^0.18.2",
     "uuid": "^3.1.0",
+    "validator": "^9.4.1",
     "webpack": "^3.5.3",
     "winston": "^2.3.1"
   },

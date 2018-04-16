@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Update Account | Pirogram{% endblock %}
+
+{% block bodyclass %}single column{% endblock %}
+
+{% block content %}
+<h1>Update Account</h1>
+<form method='POST' class="ui form {% if errors %}error{% endif %}">
+    <div class="field">
+        <label>Username</label>
+        <input type=text name=username placeholder=Username value="{{username}}"/>
+        {% if errors.username %}
+            <div class="ui error message tiny">{{errors.username}}</div>
+        {% endif %}
+    </div>
+
+    <div class="field">
+        <label>Blurb</label>
+        <textarea name=blurb>{{blurb}}</textarea>
+        {% if errors.blurb %}
+            <div class="ui error message tiny">{{errors.blurb}}</div>
+        {% endif %}
+    </div>
+
+    <div class="field">
+        <button class="ui primary button" type="submit">Save</button>
+    </div>
+</form>
+
+<div class="ui divider"></div>
+
+<p>In case you wish to part ways, you can delete your account. We'll remove all personal information about you from the site.</p>
+
+<p>
+    <a href="/account/delete" class="ui button">Delete Account</a>
+</p>
+{% endblock %}
