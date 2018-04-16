@@ -1,6 +1,7 @@
 'use strict';
 
 const config = require('config');
+const {logger} = require('./lib/logger');
 const reservedUsernames = require('./lib/reserved-usernames');
 const _ = require('lodash');
 
@@ -22,8 +23,8 @@ const User = bookshelf.Model.extend({
     hasTimestamps: true
 });
 
-const Topic = bookshelf.Model.extend({
-    tableName: 'topics',
+const PasswordResetRequests = bookshelf.Model.extend({
+    tableName: 'password_reset_requests',
     hasTimestamps: true
 });
 
@@ -84,7 +85,7 @@ async function getUserById ( id) {
 
 async function getUserByEmail( email) {
     try {
-        return await new User( { email: email}).fetch();
+        return await new User( { email: email, is_deleted: false}).fetch();
     }
     catch( e) {
         return null;
@@ -93,7 +94,7 @@ async function getUserByEmail( email) {
 
 async function getUserByUsername( username) {
     try {
-        return await new User( {username: username.toLowerCase()}).fetch();
+        return await new User( {username: username.toLowerCase(), is_deleted: false}).fetch();
     } catch( e) {
         return null;
     }
@@ -141,6 +142,18 @@ async function getQueuedModules( userId) {
 async function createUser( username, email, avatar) {
     return await new User({name: username, username: username.toLowerCase(), 
         email: email, avatar: avatar, active: true}).save();
+}
+
+async function createPasswordResetRequest( id, userId) {
+    await PasswordResetRequests.forge({id}).save({user_id: userId}, {method: 'insert'});
+}
+
+async function getPasswordResetRequest( id) {
+    try {
+        return await new PasswordResetRequests({id}).fetch();
+    } catch(e) {
+        return null;
+    }
 }
 
 async function getExerciseHistory( userId, exerciseIds) {
@@ -256,4 +269,5 @@ async function savePackageHistory( userId, packageId) {
 module.exports = { bookshelf, User, StudyQueue, addModuleToQueue, removeModuleFromQueue,
     getQueuedModules, getPackageHistory, getSinglePackageHistory, savePackageHistory,
     getUserByEmail, getUserByUsername, createUser, getUserById, getExerciseHistory, saveExerciseHistory,
-    getTopicHistory, saveTopicHistory, savePlaygroundCode, getPlaygroundData, isUsernameAvaialble};
+    getTopicHistory, saveTopicHistory, savePlaygroundCode, getPlaygroundData, isUsernameAvaialble,
+    createPasswordResetRequest, getPasswordResetRequest};

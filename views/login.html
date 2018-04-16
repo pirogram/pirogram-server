@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Login | Pirogram{% endblock %}
+
+{% block bodyclass %}single column{% endblock %}
+
+{% block content %}
+<h1>Login</h1>
+
+<div class="ui grid">
+    <div class="eight wide column">
+        <form method='POST' class='ui form'>
+            <div class="field">
+                <label>Username or Email</label>
+                <input type=text name=usernameOrEmail placeholder="Username or Email" />
+            </div>
+            <div class="field">
+                <label>Password</label>
+                <input type=password name=password placeholder="Password" />
+            </div>
+            <div class="field">
+                <button type=submit name=submit class="ui button">Login</button>
+            </div>
+        </form>
+    </div>
+    
+</div>
+
+<div class="ui horizontal section divider">Or</div>
+
+<p><a href="/login-with-github" class="ui primary button">Login with GitHub</a>
+<a href="/login-with-google" class="ui secondary button">Login with Google</a></p>
+
+{% endblock %}

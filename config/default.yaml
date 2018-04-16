@@ -9,3 +9,12 @@ fluentd:
 
 server:
   port: 5000
+
+email:
+  engine: stdout
+  system_from: 'Pirogram <contact@pirogram.com>'
+
+site:
+  domain_base: localhost
+  url_base: http://localhost:5000
+  name: Local Pirogram

@@ -22,3 +22,12 @@ plutoid:
   dataset_dir: "/datasets"
 
 pi_home: '../pirogram-content'
+
+email:
+  engine: mailgun
+  system_from: 'Pirogram <hi@pirogram.com>'
+
+site:
+  domain_base: pirogram.com
+  url_base: https://www.pirogram.com
+  name: Pirogram

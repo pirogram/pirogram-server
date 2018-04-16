@@ -23,6 +23,7 @@ export default class Header extends React.Component {
                         <Dropdown.Menu>
                             <Dropdown.Item href="/login-with-github">With GitHub</Dropdown.Item>
                             <Dropdown.Item href="/login-with-google">With Google</Dropdown.Item>
+                            <Dropdown.Item href="/login">With Password</Dropdown.Item>
                         </Dropdown.Menu>
                     </Dropdown>
                 </Menu.Item>;

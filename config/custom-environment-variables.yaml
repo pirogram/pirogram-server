@@ -5,3 +5,7 @@ db:
 
 session:
   appkey: SESSION_APP_KEY
+
+email:
+  mailgun_apikey: MAILGUN_APIKEY
+  mailgun_domain: MAILGUN_DOMAIN

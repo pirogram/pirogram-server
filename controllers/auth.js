@@ -94,11 +94,12 @@ authApp.use( router.get( '/google-oauth-callback', async function(ctx) {
 }));
 
 async function createUser( ctx, name, email, avatar) {
-    let username = slugify(name.toLowerCase(), '');
+    let username = slugify(name.toLowerCase(), '').replace(/-/g, '');
     if( !await models.isUsernameAvaialble(username)) {
         username = slugify(email.split('@')[0]);
         if( !await models.isUsernameAvaialble( username)) {
-            username = slugify(name.toLowerCase(), '') + (Math.floor(Math.random() * Math.floor(10000)));
+            username = slugify(name.toLowerCase(), '').replace(/-/g, '') + 
+                        (Math.floor(Math.random() * Math.floor(10000)));
         }
     }
 
@@ -219,8 +220,5 @@ authApp.use( router.get( '/logout', async function( ctx) {
     ctx.redirect( '/');
 }));
 
-authApp.use( router.get( '/login', async function( ctx) {
-    ctx.redirect( '/');
-}));
 
 module.exports = { authApp};

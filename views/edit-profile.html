@@ -28,7 +28,37 @@
     </div>
 </form>
 
-<div class="ui divider"></div>
+<div class="ui section horizontal divider header">Password</div>
+
+{% if user.password %}
+    <form method="POST" class="ui form {% if errors %}error{% endif %}" action="/account/password">
+        <div class="field">
+            <label>Current Password</label>
+            <input type=password name=current placeholder="Current Password" />
+        </div>
+        <div class="field">
+            <label>New Password (at least 8 chars)</label>
+            <input type=password name=newPassword1 placeholder="New Password" />
+        </div>
+        <div class="field">
+            <label>Re-enter New Password</label>
+            <input type=password name=newPassword2 placeholder="Re-enter New Password" />
+        </div>
+        <div class="field">
+            <button class="ui primary button" type="submit">Change Password</button>
+            <a href="/account/reset-password-link-request">Forgot Current Password?</a>
+        </div>
+    </form>
+{% else %}
+    <p>In order to set a password, please generate a unique url for setting password.</p>
+    <form method="POST" class="ui form" action="/account/reset-password-link-request">
+        <div class="field">
+                <button class="ui secondary button" type="submit">Generate Password Reset Link</button>
+        </div>
+    </form>
+{% endif %}
+
+<div class="ui section horizontal divider header">Delete Account</div>
 
 <p>In case you wish to part ways, you can delete your account. We'll remove all personal information about you from the site.</p>
 
