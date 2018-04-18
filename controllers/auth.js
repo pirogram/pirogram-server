@@ -205,7 +205,7 @@ authApp.use( router.get( '/github-oauth-callback', async function( ctx) {
 
     let user = await models.getUserByEmail( email);
     if( !user) {
-        user = await createUser( ctx, profile.name, email, profile.avatar_url);
+        user = await createUser( ctx, profile.login, email, profile.avatar_url);
     }
 
     ctx.session.userId = user.id;
