@@ -5,10 +5,10 @@ import {ComponentNuxState, dispatch} from '../nux';
 import {Menu, Icon} from 'semantic-ui-react';
 import Parser from 'html-react-parser';
 
-export default class ModuleSummary extends React.Component {
+export default class PackageSummary extends React.Component {
     constructor(props) {
         super( props);
-        this.nuxState = new ModuleSummaryState( this);
+        this.nuxState = new PackageSummaryState( this);
         this.state = this.nuxState.state;
         this.removeFromQueue = this.removeFromQueue.bind(this);
         this.addToQueue = this.addToQueue.bind(this);
@@ -16,23 +16,23 @@ export default class ModuleSummary extends React.Component {
 
     addToQueue(e) {
         e.preventDefault();
-        dispatch('MODULE_ADD_TO_QUEUE', {code: this.state.code});
+        dispatch('PACKAGE_ADD_TO_QUEUE', {code: this.state.code});
     }
 
     removeFromQueue(e) {
         e.preventDefault();
-        dispatch('MODULE_REMOVE_FROM_QUEUE', {code: this.state.code});
+        dispatch('PACKAGE_REMOVE_FROM_QUEUE', {code: this.state.code});
     }
 
     render() {
         return (
             <div className='package-summary'>
-                <h3><a href={'/packages/' + this.state.code}>{this.state.title}</a>
+                <h3><a href={`/@${this.state.author}/${this.state.code}`}>{this.state.title}</a>
                     <span className='toolbar'>
                         {this.state.queued ? 
-                            <a className='action' href={'/packages/' + this.state.code + '/remove_from_queue'}  
+                            <a className='action' href={`/@${this.state.author}/${this.state.code}/from-from-queue`}  
                                 onClick={this.removeFromQueue}><Icon name={this.state.modifyingQueue ? 'wait' : 'remove circle'}/>remove from your queue</a> : 
-                            <a className='action' href={'/packages/' + this.state.code + '/add_to_queue'} 
+                            <a className='action' href={`/@${this.state.author}/${this.state.code}/add-to-queue`} 
                                 onClick={this.addToQueue}><Icon name={this.state.modifyingQueue ? 'wait' : 'add circle'}/>add to your queue</a>}
                     </span>
                 </h3>
@@ -42,7 +42,8 @@ export default class ModuleSummary extends React.Component {
     }
 }
 
-ModuleSummary.propTypes = {
+PackageSummary.propTypes = {
+    author: PropTypes.string.isRequired,
     code: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
     description: PropTypes.string.isRequired,
@@ -50,7 +51,7 @@ ModuleSummary.propTypes = {
     done: PropTypes.bool
 };
 
-class ModuleSummaryState extends ComponentNuxState {
+class PackageSummaryState extends ComponentNuxState {
     constructor( component) {
         super( component);
 
@@ -58,13 +59,13 @@ class ModuleSummaryState extends ComponentNuxState {
         component.state = this.state;
     }
 
-    onModuleAddToQueue(data) {
+    onPackageAddToQueue(data) {
         if( this.state.modifyingQueue) { return; }
         if( this.state.code != data.code) { return; }
 
         const self = this;
 
-        axios.post('/packages/' + self.state.code + '/add-to-queue')
+        axios.post(`/@${this.state.author}/${this.state.code}/add-to-queue`)
         .then(function(response) {
             self.setState( Object.assign({}, self.state, {modifyingQueue: false, queued: true}));
         }).catch(function() {
@@ -74,13 +75,13 @@ class ModuleSummaryState extends ComponentNuxState {
         this.setState( Object.assign({}, this.state, {modifyingQueue: true}));
     }
 
-    onModuleRemoveFromQueue(data) {
+    onPackageRemoveFromQueue(data) {
         if( this.state.modifyingQueue) { return; }
         if( this.state.code != data.code) { return; }
 
         const self = this;
 
-        axios.post('/packages/' + self.state.code + '/remove-from-queue')
+        axios.post(`/@${this.state.author}/${this.state.code}/from-from-queue`)
         .then(function(response) {
             self.setState( Object.assign({}, self.state, {modifyingQueue: false, queued: false}));
         }).catch(function() {

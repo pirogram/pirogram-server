@@ -10,181 +10,67 @@ const send = require('koa-send');
 const config = require('config');
 const path = require('path');
 const fs = require('fs');
-const yaml = require('js-yaml');
-const joi = require('joi');
 const _ = require('lodash');
-const hljs = require('highlight.js');
 const models = require( '../models');
 const {logger} = require('../lib/logger');
 const plutoid = require('../lib/plutoid');
-import {ensureUser, glob, markdownToHtml} from '../lib/util';
+const cms = require('../lib/cms');
+import {ensureUser, glob} from '../lib/util';
 
-import ModuleSummaryList from '../client/components/package-summary-list.jsx';
+import PackageSummaryList from '../client/components/package-summary-list.jsx';
 import Topic from '../client/components/topic.jsx';
 const React = require('react');
 const ReactDOMServer = require('react-dom/server');
 
 const packagesApp = new Koa();
 
-const packageSchema = joi.object().keys({
-    code: joi.string().alphanum().min(3).max(256).required(),
-    title: joi.string().required(),
-    description: joi.string().required(),
-    author_name: joi.string(),
-    author_url: joi.string()
-});
-
-async function loadYaml( path, schema) {
-    const content = await new Promise((resolve, reject) => {
-        fs.readFile(path, (err, data) => {
-            if(err) { reject(err); }
-            else { resolve(data); }
-        });
-    });
-
-    const data = yaml.safeLoad( content);
-
-    if( schema) {
-        const {err, value} = joi.validate( data, schema);
-
-        if( err) {
-            logger.emit('packages', {type: 'invalid-schema', path, err});
-            return null;
-        }
-    }
-
-    return data;    
-}
-
-
-async function loadYamlAll( path) {
-    const content = await new Promise((resolve, reject) => {
-        fs.readFile(path, (err, data) => {
-            if(err) { reject(err); }
-            else { resolve(data); }
-        });
-    });
-
-    return yaml.safeLoadAll( content, null, {disableAlias: true});
-}
-
-
-async function getModules() {
-    const packageDict = {};
-
-    const files = await glob(config.get('pi_home') + '/*/package.yaml');
-    
-    for( const file of files) {
-        const data = await loadYaml(file, packageSchema);
-        if( data) { 
-            packageDict[data.code] = data;
-        }
-    }
-
-    return packageDict;
-}
-
-const filenameRegex = /\/\d*-?([-\w]+)\.md$/;
-async function loadTopic( p, file) {
-    let data = null;
-    try {
-        data = await loadYamlAll(file);
-    } catch( e) {
-        logger.emit('cms', {type: 'yaml-parse-error', file, package: p.code, message: e.message});
-        return null;
-    }
-
-    const topic = {meta: data[0], state: {done: false}, sections: data.slice(1)};
-    
-    topic.meta.title = topic.meta.title || '';
-    if( !topic.meta.code) {
-        const match = filenameRegex.exec(file);
-        if( !match) {
-            logger.emit('cms', {type: 'invalid-data', file, package: p.code, message: "missing code for topic."});
-            return null;
-        }
-        topic.meta.code = match[1];
-    }
-
-    if( !topic.meta.id) {
-        topic.meta.id = `${p.code}::${topic.meta.code}`;
-    }
-
-    topic.sections = _.filter( topic.sections, (o) => { return o != null;});
-
-    topic.sections.map( (section, i) => {
-        if( section.id) {
-            section.id = section.id.toString();
-            section.compositeId = `${p.code}::${topic.meta.code}::${section.id}`;
-        }
-
-        if( section.type == 'multiple-choice-question') {
-            section.correctIds = [];
-            section.options = section.options || [];
-            section.options.map( (o, i) => {
-                if( o.correct) { section.correctIds.push( i.toString()); }
-            });
-        } else if( section.type == 'fill-in-the-blank-question') {
-            section.blanks.map( (blank, index) => {
-                blank.answer = blank.answer + "";
-            });
-        }
-    });
-
-    return topic;
-}
-
 function enrichTopic(p, topic, userId) {
     topic = _.cloneDeep(topic);
 
     topic.sections = topic.sections.map( (section, i) => {
-        if( typeof( section) == "string") {
-            return {type: 'html', html: markdownToHtml(section)};
-        } else if( section.type == 'multiple-choice-question') {
-            const choiceOptions = section.options.map( (o, i) => {
-                return {id: i.toString(), html: markdownToHtml( o.text)};
-            });
+        const compositeId = `${p.code}::${topic.meta.code}::${section.id}`;
 
+        if( section.type == 'markdown') {
+            return {type: 'html', html: section.html};
+        } else if( section.type == 'multiple-choice-question') {
             return {
                 type: section.type,
-                question: markdownToHtml(section.question), choiceOptions,
-                compositeId: section.compositeId,
+                question: section.questionHtml, options: section.options,
+                compositeId,
                 id: section.id, done: false, selectedIds: []
             };
         } else if( section.type == 'live-code') {
             return { type: section.type, id: section.id,
-                compositeId: section.compositeId, starterCode: section.code};
+                compositeId,
+                starterCode: section.code};
         } else if( section.type == 'coding-question') {
-            const tests = section.tests ? _.pull(section.tests.split(/\r?\n/), '') : [];
             return {
                 type: section.type, id: section.id,
-                compositeId: section.compositeId, done: false,
+                compositeId, done: false,
                 starterCode: section.code || '',
-                problemStatement: markdownToHtml(section.question),
-                referenceSolution: section.solution ? hljs.highlight( 'python', section.solution, true).value : null,
-                tests: tests.map((test, i) => {
-                        return {content: hljs.highlight( 'python', test, true).value};
-                    })
+                problemStatement: section.questionHtml,
+                referenceSolution: section.solutionHtml,
+                tests: section.testsHtml
             }
         } else if( section.type == 'categorization-question') {
-            const categories = section.categories || _.sortedUniq( _.values(section.mappings).sort());
+            const categories = section.categories;
             const challenges = _.keys( section.mappings);
             return {
                 type: section.type, id: section.id,
-                compositeId: section.compositeId, done: false,
-                question: markdownToHtml(section.question),
+                compositeId, done: false,
+                question: section.questionHtml,
                 categories, challenges
             }
         } else if( section.type == 'qualitative-question') {
             return {
-                type: section.type, id: section.id, compositeId: section.compositeId,
-                done: false, question: markdownToHtml(section.question)
+                type: section.type, id: section.id, compositeId,
+                done: false, question: section.questionHtml
             }
         } else if( section.type == 'fill-in-the-blank-question') {
             return {
-                type: section.type, id: section.id, compositeId: section.compositeId,
-                done: false, question: markdownToHtml(section.question), starterCode: section.code,
-                labels: section.blanks.map((blank, index) => { return blank.label; })
+                type: section.type, id: section.id, compositeId,
+                done: false, question: section.questionHtml, starterCode: section.code,
+                labels: _.keys(section.blanks)
             }
         } else {
             return {type: 'html', html: markdownToHtml(`Unsupported section type: ${section.type}`)};
@@ -264,17 +150,17 @@ async function addUserStateToTopic( p, topic, userId) {
 }
 
 
-async function addUserStateToModule( p, userId) {
+async function addUserStateToPackage( p, userId) {
     const topicIds = p.topics.map((topic, index) => {
-        return topic.meta.id;
+        return topic.compositeId;
     });
 
     const thObjs = await models.getTopicHistory( userId, topicIds);
     p.topics.map( (topic, index) => {
-        if( thObjs[topic.meta.id]) topic.state.done = true;
+        if( thObjs[topic.compositeId]) topic.state.done = true;
     });
 
-    if( await models.getSinglePackageHistory( userId, p.code)) { p.done = true; }
+    //if( await models.getSinglePackageHistory( userId, p.code)) { p.done = true; }
 }
 
 
@@ -291,8 +177,8 @@ async function inferToc( p) {
 }
 
 
-async function getModuleByCode( packageCode) {
-    const packageDict = await getModules();
+async function getPackageByCode( packageCode) {
+    const packageDict = await getPackages();
     const p = packageDict[packageCode];
 
     if( !p) { return null; }
@@ -303,24 +189,13 @@ async function getModuleByCode( packageCode) {
 }
 
 
-async function getModuleList( packageDict) {
-    /*const packageList = [];
-
-    for( const code of config.get('package_list')) {
-        packageList.push(packageDict[code]);
-    }
-    return packageList;*/
-    return _.values(packageDict);
-}
-
-
 async function populateUserQueue( userId, packageDict) {
-    const packageCodes = await models.getQueuedModules(userId);
+    const packageIds = await models.getQueuedPackages(userId);
     const packageList = [];
-    for( const packageCode of packageCodes) {
-        if( packageDict[packageCode]) {
-            packageDict[packageCode].queued = true;
-            packageList.push( packageDict[ packageCode]);
+    for( const packageId of packageIds) {
+        if( packageDict[packageId]) {
+            packageDict[packageId].queued = true;
+            packageList.push( packageDict[ packageId]);
         }
     }
 
@@ -328,8 +203,8 @@ async function populateUserQueue( userId, packageDict) {
 }
 
 
-async function getQueuedModules( userId) {
-    const packageDict = await getModules();
+async function getQueuedPackages( userId) {
+    const packageDict = await cms.getLivePackages();
     const packageList = await populateUserQueue( userId, packageDict);
     const packageIds = packageList.map( (p, index) => { return p.code; });
 
@@ -361,74 +236,78 @@ packagesApp.use( router.get( '/packages/:packageCode/assets/:level1/:level2/:lev
 packagesApp.use( router.get( '/packages', async function(ctx) {
     if( !ensureUser( ctx)) { return; }
 
-    const packageDict = await getModules();
+    const packageDict = await cms.getLivePackages();
     await populateUserQueue(ctx.state.user.id, packageDict);
 
-    const packageList = await getModuleList(packageDict);
+    const packageList = _.values(packageDict);
     
     const packageListHtml = ReactDOMServer.renderToString(
-        <ModuleSummaryList packageList={packageList} />
+        <PackageSummaryList packageList={packageList} />
     );
 
     await ctx.render('packages', {packageList, packageListHtml}, {packageList});
 }));
 
 
-packagesApp.use( router.post( '/packages/:packageCode/add-to-queue', async function(ctx, packageCode) {
+packagesApp.use( router.post( '/@:author/:packageCode/add-to-queue', async function(ctx, author, packageCode) {
     if( !ensureUser( ctx)) { return; }
 
-    const packageDict = await getModules();
-    if( !packageDict[packageCode]) {
+    const pirep = cms.getLivePackage( author, packageCode);
+
+    if( !pirep) {
         ctx.status = 404;
-        ctx.body = 'Module Not Found';
+        ctx.body = 'Package Not Found';
         return;
     }
 
-    await models.addModuleToQueue( ctx.state.user.id, packageCode);
+    await models.addPackageToQueue( ctx.state.user.id, pirep.id);
 
     ctx.status = 200;
 }));
 
 
-packagesApp.use( router.post( '/packages/:packageCode/remove-from-queue', async function(ctx, packageCode) {
+packagesApp.use( router.post( '/@:author/:packageCode/remove-from-queue', async function(ctx, author, packageCode) {
     if( !ensureUser( ctx)) { return; }
 
-    const packageDict = await getModules();
-    if( !packageDict[packageCode]) {
+    const pirep = cms.getLivePackage( author, packageCode);
+
+    if( !pirep) {
         ctx.status = 404;
-        ctx.body = 'Module Not Found';
+        ctx.body = 'Package Not Found';
         return;
     }
 
-    await models.removeModuleFromQueue( ctx.state.user.id, packageCode);
+    await models.removePackageFromQueue( ctx.state.user.id, pirep.id);
 
     ctx.status = 200;
 }));
 
 
-packagesApp.use( router.get( '/packages/:packageCode', async function( ctx, packageCode) {
-    const p = await getModuleByCode( packageCode);
-    if( !p) {
+packagesApp.use( router.get( '/@:author/:packageCode', async function( ctx, author, packageCode) {
+    const pirep = cms.getLivePackage( author, packageCode);
+    if( !pirep) {
         ctx.status = 404;
         return;
     }
 
-    ctx.redirect(`/packages/${packageCode}/${p.topics[0].meta.code}`);
+    ctx.redirect(`/@${author}/${packageCode}/${pirep.getP().topics[0].meta.code}`);
 }));
 
 
-packagesApp.use( router.get( '/packages/:packageCode/:topicCode', async function( ctx, packageCode, topicCode) {
+packagesApp.use( router.get( '/@:author/:packageCode/:topicCode', async function( ctx, author, packageCode, topicCode) {
     if( !ensureUser( ctx)) { return; }
 
-    const p = await getModuleByCode( packageCode);
-    if( !p) { ctx.status = 404; return; }
+    const pirep = cms.getLivePackage( author, packageCode);
+    if( !pirep) { ctx.status = 404; return; }
+
+    const p = _.cloneDeep(pirep.getP());
 
     let topic = _.find(p.topics, { meta: {code: topicCode}});
     if( !topic) { ctx.status = 404; return; }
     
     topic = enrichTopic(p, topic, ctx.state.user.id);
     await addUserStateToTopic( p, topic, ctx.state.user.id);
-    await addUserStateToModule(p, ctx.state.user.id);
+    await addUserStateToPackage(p, ctx.state.user.id);
 
     const topicHtml = ReactDOMServer.renderToString(
         <Topic p={p} topic={topic} userId={ctx.state.user.id}/>
@@ -436,16 +315,16 @@ packagesApp.use( router.get( '/packages/:packageCode/:topicCode', async function
 
     markDoneTopicAsDone( ctx.state.user.id, topic, p);
 
-    await ctx.render( 'topic', {p, topic, topicHtml}, {p, topic});
+    await ctx.render( 'topic', {pirep, p, topic, topicHtml}, {pirep, p, topic});
 }));
 
 
 packagesApp.use( router.get('/study-queue', async function( ctx) { 
     if( !ensureUser( ctx)) { return; }
 
-    const packageList = await getQueuedModules( ctx.state.user.id);
+    const packageList = await getQueuedPackages( ctx.state.user.id);
     const packageListHtml = ReactDOMServer.renderToString(
-        <ModuleSummaryList packageList={packageList} />
+        <PackageSummaryList packageList={packageList} />
     );
 
     await ctx.render( 'study-queue', {packageList, packageListHtml}, {packageList});
@@ -453,8 +332,8 @@ packagesApp.use( router.get('/study-queue', async function( ctx) {
 
 
 async function markDoneTopicAsDone( userId, topic, p) {
-    const th = await models.getTopicHistory( userId, [topic.meta.id]);
-    if( th[topic.meta.id]) return;
+    const th = await models.getTopicHistory( userId, [topic.compositeId]);
+    if( th[topic.compositeId]) return;
 
     const compositeIds = getExerciseIds( topic);
 
@@ -467,22 +346,22 @@ async function markDoneTopicAsDone( userId, topic, p) {
         }
     }
 
-    await models.saveTopicHistory( userId, topic.meta.id);
+    await models.saveTopicHistory( userId, topic.compositeId);
     await markDonePackageAsDone( userId, p);
 }
 
 
 async function markDonePackageAsDone( userId, p) {
     const topicIds = p.topics.map((topic, index) => {
-        return topic.meta.id;
+        return topic.compositeId;
     });
 
     const thObjs = await models.getTopicHistory( userId, topicIds);
     if( _.keys( thObjs).length != topicIds.length) return;
 
-    if( await models.getSinglePackageHistory( userId, p.code)) return;
+    //if( await models.getSinglePackageHistory( userId, p.code)) return;
 
-    models.savePackageHistory( userId, p.code);
+    //models.savePackageHistory( userId, p.code);
 }
 
 
@@ -492,7 +371,7 @@ packagesApp.use( router.post( '/exercise/:compositeId/solution', async function(
     const [packageCode, topicCode, ...rest] = compositeId.split('::');
     const exerciseId = rest.join('::');
 
-    const p = await getModuleByCode( packageCode);
+    const p = await getPackageByCode( packageCode);
     if( !p) { ctx.status = 404; ctx.body = 'package not found.'; return; }
 
     const topic = _.find(p.topics, { meta: {code: topicCode}});

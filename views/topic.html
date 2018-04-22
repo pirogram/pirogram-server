@@ -21,7 +21,7 @@
                     {% endif %}
                 </div>
                 {% for t in p.topics %}
-                    <a class='item' href='/packages/{{p.code}}/{{t.meta.code}}'><i class='icon {% if topic.meta.code == t.meta.code %}left arrow{% elif t.state.done == true %}green checkmark{% else %}wait{% endif %}'></i>{{t.meta.title}}</a>
+                    <a class='item' href='/@{{pirep.author}}/{{p.code}}/{{t.meta.code}}'><i class='icon {% if topic.meta.code == t.meta.code %}left arrow{% elif t.state.done == true %}green checkmark{% else %}wait{% endif %}'></i>{{t.meta.title}}</a>
                 {% endfor %}
             </div>
         </div>

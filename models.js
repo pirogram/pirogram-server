@@ -54,7 +54,7 @@ const CodePlaygroundData = bookshelf.Model.extend({
 
 const StudyQueue = bookshelf.Model.extend({
     tableName: 'study_queue',
-    idAttribute: ['user_id', 'module_code'],
+    idAttribute: ['user_id', 'package_id'],
     hasTimestamps: true,
 
     // convert snake_case to camelCase
@@ -111,32 +111,32 @@ async function isUsernameAvaialble( username) {
     return true;
 }
 
-async function isModuleInQueue( userId, moduleCode) {
-    const obj = await new StudyQueue({user_id: userId, module_code: moduleCode}).fetch();
+async function isPackageInQueue( userId, packageId) {
+    const obj = await new StudyQueue({user_id: userId, package_id: packageId}).fetch();
     return obj == null ? false : true;
 }
 
-async function addModuleToQueue( userId, moduleCode) {
-    if( !await isModuleInQueue( userId, moduleCode)) {
-        await new StudyQueue({user_id: userId, module_code: moduleCode}).save();
+async function addPackageToQueue( userId, packageId) {
+    if( !await isPackageInQueue( userId, packageId)) {
+        await new StudyQueue({user_id: userId, package_id: packageId}).save();
     }
 }
 
-async function removeModuleFromQueue( userId, moduleCode) {
-    if( await isModuleInQueue( userId, moduleCode)) {
-        await new StudyQueue().where({user_id: userId, module_code: moduleCode}).destroy();
+async function removePackageFromQueue( userId, packageId) {
+    if( await isPackageInQueue( userId, packageId)) {
+        await new StudyQueue().where({user_id: userId, package_id: packageId}).destroy();
     }
 }
 
-async function getQueuedModules( userId) {
+async function getQueuedPackages( userId) {
     const objs = await new StudyQueue({user_id: userId}).fetchAll();
-    const moduleCodes = [];
+    const packageIds = [];
 
     objs.each( function(obj) {
-        moduleCodes.push( obj.attributes.moduleCode);
+        packageIds.push( obj.attributes.packageId);
     });
 
-    return moduleCodes;
+    return packageIds;
 }
 
 async function createUser( username, email, avatar) {
@@ -266,8 +266,8 @@ async function savePackageHistory( userId, packageId) {
     }
 }
 
-module.exports = { bookshelf, User, StudyQueue, addModuleToQueue, removeModuleFromQueue,
-    getQueuedModules, getPackageHistory, getSinglePackageHistory, savePackageHistory,
+module.exports = { bookshelf, User, StudyQueue, addPackageToQueue, removePackageFromQueue,
+    getQueuedPackages, getPackageHistory, getSinglePackageHistory, savePackageHistory,
     getUserByEmail, getUserByUsername, createUser, getUserById, getExerciseHistory, saveExerciseHistory,
     getTopicHistory, saveTopicHistory, savePlaygroundCode, getPlaygroundData, isUsernameAvaialble,
     createPasswordResetRequest, getPasswordResetRequest};
