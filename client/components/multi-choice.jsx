@@ -21,7 +21,7 @@ export default class MultipleChoice extends React.Component {
 
         const submitButton = this.state.userId ?
                 <Button size='small' primary type="submit" labelPosition='left' {...buttonProps}/> :
-                <a className="ui small button" href='/login'>Login with Google to try</a>
+                <a className="ui small button" href='/login'>Login to try</a>
         
         return (
             <Segment>
@@ -35,16 +35,16 @@ export default class MultipleChoice extends React.Component {
                         multipleChoiceAnswerCheck( this.state.id);
                     }}>
                     <Form.Group className="grouped fields">
-                        {this.state.choiceOptions.map( (choiceOption, i) => {
-                            const checkedProps = this.state.selectedIds.indexOf( choiceOption.id) >= 0 ? 
+                        {this.state.options.map( (option, i) => {
+                            const checkedProps = this.state.selectedIds.indexOf( option.id) >= 0 ? 
                                                     {checked: true} : {};
 
-                            return <Form.Field className={this.state.showHint && this.state.selectedIds.includes(choiceOption.id) != this.state.correctIds.includes(choiceOption.id) ? 'error' : ''}
-                                        key={choiceOption.id}>
-                                        <Checkbox name={'' + choiceOption.id} label={Parser(choiceOption.html)} 
+                            return <Form.Field className={this.state.showHint && this.state.selectedIds.includes(option.id) != this.state.correctIds.includes(option.id) ? 'error' : ''}
+                                        key={option.id}>
+                                        <Checkbox name={'' + option.id} label={Parser(option.html)} 
                                             {...checkedProps} onChange={(e, data) => {
                                                 const action = data.checked ? multipleChoiceOptionSelect : multipleChoiceOptionUnselect;
-                                                action( this.state.id, choiceOption.id);
+                                                action( this.state.id, option.id);
                                             }}/>
                                     </Form.Field>
                         })}
@@ -66,7 +66,7 @@ MultipleChoice.propTypes = {
     compositeId: PropTypes.string.isRequired,
     question: PropTypes.string.isRequired,
     done: PropTypes.bool,
-    choiceOptions: PropTypes.arrayOf( PropTypes.shape({
+    options: PropTypes.arrayOf( PropTypes.shape({
         id: PropTypes.string.isRequired,
         html: PropTypes.string.isRequired
     })),
@@ -122,8 +122,8 @@ class MultipleChoiceState extends ComponentNuxState {
     onMultipleChoiceOptionSelect( data) {
         if( data.exerciseId != this.state.id) return;
 
-        if( this.state.selectedIds.indexOf( data.choiceOptionId) == -1) {
-            this.state = {...this.state, selectedIds: this.state.selectedIds.concat( data.choiceOptionId)};
+        if( this.state.selectedIds.indexOf( data.optionId) == -1) {
+            this.state = {...this.state, selectedIds: this.state.selectedIds.concat( data.optionId)};
             this.updateState();
         }
     }
@@ -132,7 +132,7 @@ class MultipleChoiceState extends ComponentNuxState {
     onMultipleChoiceOptionUnselect( data) {
         if( data.exerciseId != this.state.id) return;
 
-        this.state = {...this.state, selectedIds: without( this.state.selectedIds, data.choiceOptionId)};
+        this.state = {...this.state, selectedIds: without( this.state.selectedIds, data.optionId)};
         this.updateState();
     }
 }
@@ -143,11 +143,11 @@ function multipleChoiceAnswerCheck( exerciseId) {
 }
 
 
-function multipleChoiceOptionSelect( exerciseId, choiceOptionId) {
-    dispatch( 'MULTIPLE_CHOICE_OPTION_SELECT', { exerciseId, choiceOptionId });
+function multipleChoiceOptionSelect( exerciseId, optionId) {
+    dispatch( 'MULTIPLE_CHOICE_OPTION_SELECT', { exerciseId, optionId });
 }
 
 
-function multipleChoiceOptionUnselect( exerciseId, choiceOptionId) {
-    dispatch( 'MULTIPLE_CHOICE_OPTION_UNSELECT', { exerciseId, choiceOptionId });
+function multipleChoiceOptionUnselect( exerciseId, optionId) {
+    dispatch( 'MULTIPLE_CHOICE_OPTION_UNSELECT', { exerciseId, optionId });
 }

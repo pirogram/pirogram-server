@@ -11,6 +11,7 @@ const config = require('config');
 const path = require('path');
 const fs = require('fs');
 const _ = require('lodash');
+const hljs = require('highlight.js');
 const models = require( '../models');
 const {logger} = require('../lib/logger');
 const plutoid = require('../lib/plutoid');
@@ -24,60 +25,57 @@ const ReactDOMServer = require('react-dom/server');
 
 const packagesApp = new Koa();
 
-function enrichTopic(p, topic, userId) {
-    topic = _.cloneDeep(topic);
+function makePresentableTopic(p, topic, userId) {
+    const presentableTopic = {meta: _.cloneDeep( topic.meta)};
 
-    topic.sections = topic.sections.map( (section, i) => {
-        const compositeId = `${p.code}::${topic.meta.code}::${section.id}`;
-
+    presentableTopic.sections = topic.sections.map( (section, i) => {
         if( section.type == 'markdown') {
             return {type: 'html', html: section.html};
         } else if( section.type == 'multiple-choice-question') {
             return {
                 type: section.type,
                 question: section.questionHtml, options: section.options,
-                compositeId,
-                id: section.id, done: false, selectedIds: []
+                compositeId: section.compositeId, done: false, selectedIds: []
             };
         } else if( section.type == 'live-code') {
             return { type: section.type, id: section.id,
-                compositeId,
+                compositeId: section.compositeId,
                 starterCode: section.code};
         } else if( section.type == 'coding-question') {
             return {
                 type: section.type, id: section.id,
-                compositeId, done: false,
+                compositeId: section.compositeId, done: false,
                 starterCode: section.code || '',
-                problemStatement: section.questionHtml,
+                question: section.questionHtml,
                 referenceSolution: section.solutionHtml,
-                tests: section.testsHtml
+                tests: section.testsHtml.map((html, index) => { 
+                    return {content: html}; 
+                })
             }
         } else if( section.type == 'categorization-question') {
-            const categories = section.categories;
-            const challenges = _.keys( section.mappings);
             return {
                 type: section.type, id: section.id,
-                compositeId, done: false,
+                compositeId: section.compositeId, done: false,
                 question: section.questionHtml,
-                categories, challenges
+                categories: section.categories, challenges: _.keys(section.mappings)
             }
         } else if( section.type == 'qualitative-question') {
             return {
-                type: section.type, id: section.id, compositeId,
+                type: section.type, id: section.id, compositeId: section.compositeId,
                 done: false, question: section.questionHtml
             }
         } else if( section.type == 'fill-in-the-blank-question') {
             return {
-                type: section.type, id: section.id, compositeId,
+                type: section.type, id: section.id, compositeId: section.compositeId,
                 done: false, question: section.questionHtml, starterCode: section.code,
-                labels: _.keys(section.blanks)
+                labels: section.blanks.map( (blank, index) => blank.label)
             }
         } else {
             return {type: 'html', html: markdownToHtml(`Unsupported section type: ${section.type}`)};
         }
     });
 
-    return topic;
+    return presentableTopic;
 }
 
 
@@ -100,7 +98,7 @@ function getExerciseIds( topic) {
 function getPlaygroundIds( topic) {
     const compositeIds = [];
     topic.sections.map( (section, index) => {
-        if( section.type == 'live-code' || section.type == 'fill-in-the-blank-question') { 
+        if( section.type == 'live-code' || section.type == 'coding-question' || section.starterCode) { 
             compositeIds.push( section.compositeId);
         }
     });
@@ -113,12 +111,12 @@ function hasExercises( topic) {
 }
 
 
-async function addUserStateToTopic( p, topic, userId) {
-    let compositeIds = getExerciseIds( topic);
+async function addUserStateToTopic( p, presentableTopic, userId) {
+    let compositeIds = getExerciseIds( presentableTopic);
 
     const ehobjs = await models.getExerciseHistory( userId, compositeIds);
 
-    for( const section of topic.sections) {
+    for( const section of presentableTopic.sections) {
         if( !ehobjs[section.compositeId]) {
             continue; 
         }
@@ -139,10 +137,10 @@ async function addUserStateToTopic( p, topic, userId) {
         }
     }
 
-    compositeIds = getPlaygroundIds( topic);
+    compositeIds = getPlaygroundIds( presentableTopic);
     const playgroundData = await models.getPlaygroundData( userId, compositeIds);
 
-    topic.sections.map((section, index) => {
+    presentableTopic.sections.map((section, index) => {
         if( playgroundData[ section.compositeId]) {
             section.userCode = playgroundData[ section.compositeId].code;
         }
@@ -152,68 +150,44 @@ async function addUserStateToTopic( p, topic, userId) {
 
 async function addUserStateToPackage( p, userId) {
     const topicIds = p.topics.map((topic, index) => {
-        return topic.compositeId;
+        return topic.meta.compositeId;
     });
 
     const thObjs = await models.getTopicHistory( userId, topicIds);
     p.topics.map( (topic, index) => {
-        if( thObjs[topic.compositeId]) topic.state.done = true;
+        if( thObjs[topic.meta.compositeId]) topic.meta.done = true;
     });
 
-    //if( await models.getSinglePackageHistory( userId, p.code)) { p.done = true; }
+    if( await models.getSinglePackageHistory( userId, p.meta.code)) { p.meta.done = true; }
 }
 
 
-async function inferToc( p) {
-    const topics = [];
-
-    const files = await glob(`${config.get('pi_home')}/${p.code}/topics/*.md`);
-    for( const file of files) {
-        const topic = await loadTopic(p, file);
-        if( topic) topics.push( topic);
-    }
-
-    return topics;
-}
-
-
-async function getPackageByCode( packageCode) {
-    const packageDict = await getPackages();
-    const p = packageDict[packageCode];
-
-    if( !p) { return null; }
-
-    p.topics = await inferToc(p);
-
-    return p;
-}
-
-
-async function populateUserQueue( userId, packageDict) {
+async function populateUserQueue( userId, packageMetaDict) {
     const packageIds = await models.getQueuedPackages(userId);
-    const packageList = [];
+    const packageMetaList = [];
     for( const packageId of packageIds) {
-        if( packageDict[packageId]) {
-            packageDict[packageId].queued = true;
-            packageList.push( packageDict[ packageId]);
+        if( packageMetaDict[packageId]) {
+            packageMetaDict[packageId].queued = true;
+            packageMetaList.push( packageMetaDict[ packageId]);
         }
     }
 
-    return packageList;
+    return packageMetaList;
 }
 
 
 async function getQueuedPackages( userId) {
-    const packageDict = await cms.getLivePackages();
-    const packageList = await populateUserQueue( userId, packageDict);
-    const packageIds = packageList.map( (p, index) => { return p.code; });
+    const packageMetaDict = await cms.getAllLivePackageInfo();
+    const packageMetaList = await populateUserQueue( userId, packageMetaDict);
+    console.log(packageMetaList);
+    const packageIds = packageMetaList.map( (pMeta, index) => { return pMeta.code; });
 
     const phObjs = await models.getPackageHistory( userId, packageIds);
-    packageList.map( (p, index) => {
-        if( phObjs[ p.code]) p.done = true;
+    packageMetaList.map( (pMeta, index) => {
+        if( phObjs[ pMeta.code]) pMeta.done = true;
     })
     
-    return _.sortBy( packageList, [function(p) { return p.done ? 1 : 0; }]);
+    return _.sortBy( packageMetaList, [function(pMeta) { return pMeta.done ? 1 : 0; }]);
 }
 
 
@@ -234,25 +208,28 @@ packagesApp.use( router.get( '/packages/:packageCode/assets/:level1/:level2/:lev
 
 
 packagesApp.use( router.get( '/packages', async function(ctx) {
-    if( !ensureUser( ctx)) { return; }
+    const packageDict = await cms.getAllLivePackageInfo();
+    const userId = ctx.state.user ? ctx.state.user.id : null;
 
-    const packageDict = await cms.getLivePackages();
-    await populateUserQueue(ctx.state.user.id, packageDict);
+    if( userId) {
+        await populateUserQueue(userId, packageDict);
+    }
 
     const packageList = _.values(packageDict);
     
     const packageListHtml = ReactDOMServer.renderToString(
-        <PackageSummaryList packageList={packageList} />
+        <PackageSummaryList packageList={packageList} userId={userId} />
     );
 
-    await ctx.render('packages', {packageList, packageListHtml}, {packageList});
+    await ctx.render('packages', {packageList, packageListHtml}, {packageList, userId});
 }));
 
 
-packagesApp.use( router.post( '/@:author/:packageCode/add-to-queue', async function(ctx, author, packageCode) {
+packagesApp.use( router.post( '/@:author/:packageCode/add-to-queue', 
+        async function(ctx, author, packageCode) {
     if( !ensureUser( ctx)) { return; }
 
-    const pirep = cms.getLivePackage( author, packageCode);
+    const pirep = cms.getLivePackageInfo( author, packageCode);
 
     if( !pirep) {
         ctx.status = 404;
@@ -266,10 +243,11 @@ packagesApp.use( router.post( '/@:author/:packageCode/add-to-queue', async funct
 }));
 
 
-packagesApp.use( router.post( '/@:author/:packageCode/remove-from-queue', async function(ctx, author, packageCode) {
+packagesApp.use( router.post( '/@:author/:packageCode/remove-from-queue', 
+        async function(ctx, author, packageCode) {
     if( !ensureUser( ctx)) { return; }
 
-    const pirep = cms.getLivePackage( author, packageCode);
+    const pirep = cms.getLivePackageInfo( author, packageCode);
 
     if( !pirep) {
         ctx.status = 404;
@@ -284,38 +262,45 @@ packagesApp.use( router.post( '/@:author/:packageCode/remove-from-queue', async 
 
 
 packagesApp.use( router.get( '/@:author/:packageCode', async function( ctx, author, packageCode) {
-    const pirep = cms.getLivePackage( author, packageCode);
-    if( !pirep) {
+    const p = cms.getLivePackage( author, packageCode);
+    if( !p) {
         ctx.status = 404;
         return;
     }
 
-    ctx.redirect(`/@${author}/${packageCode}/${pirep.getP().topics[0].meta.code}`);
+    ctx.redirect(`/@${author}/${packageCode}/${p.topics[0].meta.code}`);
 }));
 
 
-packagesApp.use( router.get( '/@:author/:packageCode/:topicCode', async function( ctx, author, packageCode, topicCode) {
-    if( !ensureUser( ctx)) { return; }
-
-    const pirep = cms.getLivePackage( author, packageCode);
-    if( !pirep) { ctx.status = 404; return; }
-
-    const p = _.cloneDeep(pirep.getP());
-
-    let topic = _.find(p.topics, { meta: {code: topicCode}});
-    if( !topic) { ctx.status = 404; return; }
+packagesApp.use( router.get( '/@:author/:packageCode/:topicCode', 
+        async function( ctx, author, packageCode, topicCode) {
     
-    topic = enrichTopic(p, topic, ctx.state.user.id);
-    await addUserStateToTopic( p, topic, ctx.state.user.id);
-    await addUserStateToPackage(p, ctx.state.user.id);
+    const userId = ctx.state.user ? ctx.state.user.id : null;
+    const p = cms.getLivePackage( author, packageCode);
+    if( !p) { ctx.status = 404; return; }
+
+    let topicIndex = _.findIndex(p.topics, { meta: {code: topicCode}});
+    if( topicIndex < 0) { ctx.status = 404; return; }
+    
+    const presentableTopic = makePresentableTopic(p, p.topics[topicIndex], userId);
+
+    if( userId) {
+        await addUserStateToTopic( p, presentableTopic, userId);
+        await addUserStateToPackage(p, userId);
+    }
+
+    let nextTopic, prevTopic;
+    if( topicIndex > 0) prevTopic = p.topics[topicIndex - 1];
+    if( topicIndex < p.topics.length - 1) nextTopic = p.topics[topicIndex + 1];
 
     const topicHtml = ReactDOMServer.renderToString(
-        <Topic p={p} topic={topic} userId={ctx.state.user.id}/>
+        <Topic p={p} topic={presentableTopic} userId={userId}/>
     );
 
-    markDoneTopicAsDone( ctx.state.user.id, topic, p);
+    if( userId) markDoneTopicAsDone( userId, presentableTopic, p);
 
-    await ctx.render( 'topic', {pirep, p, topic, topicHtml}, {pirep, p, topic});
+    await ctx.render( 'topic', {p, topic: presentableTopic, topicHtml, nextTopic, prevTopic}, 
+        {p, topic: presentableTopic});
 }));
 
 
@@ -332,8 +317,11 @@ packagesApp.use( router.get('/study-queue', async function( ctx) {
 
 
 async function markDoneTopicAsDone( userId, topic, p) {
-    const th = await models.getTopicHistory( userId, [topic.compositeId]);
-    if( th[topic.compositeId]) return;
+    const th = await models.getTopicHistory( userId, [topic.meta.compositeId]);
+    if( th[topic.meta.compositeId]) {
+        await markDonePackageAsDone( userId, p);
+        return;
+    }
 
     const compositeIds = getExerciseIds( topic);
 
@@ -346,32 +334,30 @@ async function markDoneTopicAsDone( userId, topic, p) {
         }
     }
 
-    await models.saveTopicHistory( userId, topic.compositeId);
+    await models.saveTopicHistory( userId, topic.meta.compositeId);
     await markDonePackageAsDone( userId, p);
 }
 
 
 async function markDonePackageAsDone( userId, p) {
     const topicIds = p.topics.map((topic, index) => {
-        return topic.compositeId;
+        return topic.meta.compositeId;
     });
 
     const thObjs = await models.getTopicHistory( userId, topicIds);
     if( _.keys( thObjs).length != topicIds.length) return;
 
-    //if( await models.getSinglePackageHistory( userId, p.code)) return;
-
-    //models.savePackageHistory( userId, p.code);
+    await models.savePackageHistory( userId, p.code);
 }
 
 
 packagesApp.use( router.post( '/exercise/:compositeId/solution', async function( ctx, compositeId) {
     if( !ensureUser( ctx)) { return; }
 
-    const [packageCode, topicCode, ...rest] = compositeId.split('::');
+    const [author, packageCode, topicCode, ...rest] = compositeId.split('::');
     const exerciseId = rest.join('::');
 
-    const p = await getPackageByCode( packageCode);
+    const p = await cms.getLivePackage( author, packageCode);
     if( !p) { ctx.status = 404; ctx.body = 'package not found.'; return; }
 
     const topic = _.find(p.topics, { meta: {code: topicCode}});
@@ -394,11 +380,10 @@ packagesApp.use( router.post( '/exercise/:compositeId/solution', async function(
         const code = ctx.request.body.code;
         const executionId = ctx.request.body.executionId;
         const playgroundId = ctx.request.body.playgroundId;
-        const tests = _.pull(exercise.tests.split(/\r?\n/), '');
 
         await models.savePlaygroundCode( ctx.state.user.id, playgroundId, code);
 
-        const {sessionId, output, hasError, testResults} = await plutoid.executeCodeRequest( playgroundId, inSessionId, executionId, code, tests);
+        const {sessionId, output, hasError, testResults} = await plutoid.executeCodeRequest( playgroundId, inSessionId, executionId, code, exercise.tests);
 
         let hasFailedTest = false;
         for( const test of testResults) {

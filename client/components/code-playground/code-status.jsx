@@ -18,8 +18,8 @@ export default class CodeStatus extends React.Component {
             html = 'Failed to executed code.';
             statusClass = 'error';
         } else if( status == 'require-login') {
-            html = <div>Please <a href='/login'>login with Google</a> to execute code.</div>;
-            statusClass = 'error';
+            html = <div>Please <a href='/login'>login</a> to execute code.</div>;
+            statusClass='error';
         }
 
         return (

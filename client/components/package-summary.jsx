@@ -28,13 +28,13 @@ export default class PackageSummary extends React.Component {
         return (
             <div className='package-summary'>
                 <h3><a href={`/@${this.state.author}/${this.state.code}`}>{this.state.title}</a>
-                    <span className='toolbar'>
+                    {this.state.userId ? <span className='toolbar'>
                         {this.state.queued ? 
                             <a className='action' href={`/@${this.state.author}/${this.state.code}/from-from-queue`}  
                                 onClick={this.removeFromQueue}><Icon name={this.state.modifyingQueue ? 'wait' : 'remove circle'}/>remove from your queue</a> : 
                             <a className='action' href={`/@${this.state.author}/${this.state.code}/add-to-queue`} 
                                 onClick={this.addToQueue}><Icon name={this.state.modifyingQueue ? 'wait' : 'add circle'}/>add to your queue</a>}
-                    </span>
+                    </span> : null}
                 </h3>
                 <p>{this.state.description}</p>
             </div>

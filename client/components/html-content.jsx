@@ -6,7 +6,7 @@ export default class HtmlContent extends React.Component {
     render() {
         return (
             <div className='html-content'>
-                {Parser(this.props.html)}
+                {this.props.html ? Parser(this.props.html) : 'missing'}
             </div>
         );
     }

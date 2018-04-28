@@ -26,7 +26,7 @@ export default class FillInTheBlankQuestion extends React.Component {
 
         const submitButton = this.state.userId ?
                 <Button size='small' primary type="submit" labelPosition='left' {...buttonProps}/> :
-                <a className="ui small button" href='/login'>Login with Google to try</a>
+                <a className="ui small button" href='/login'>Login to try</a>
 
         return (
             <Segment>
@@ -79,7 +79,8 @@ FillInTheBlankQuestion.propTypes = {
     id: PropTypes.string.isRequired,
     compositeId: PropTypes.string.isRequired,
     question: PropTypes.string.isRequired,
-    code: PropTypes.string,
+    starterCode: PropTypes.string,
+    userCode: PropTypes.string,
     done: PropTypes.bool,
     labels: PropTypes.arrayOf( PropTypes.string),
     answers: PropTypes.arrayOf( PropTypes.string),

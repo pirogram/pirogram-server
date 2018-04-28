@@ -39,8 +39,9 @@ CodePlayground.PropTypes = {
 class CodePlaygroundState extends ComponentNuxState {
     constructor(component) {
         super( component);
-        this.state = Object.assign({}, this.state, {output: [], status: 'null', loading: false,
-            code: this.state.userCode ? this.state.userCode : this.state.starterCode})
+        this.state = Object.assign({}, this.state, {output: [], loading: false,
+            code: this.state.userCode ? this.state.userCode : this.state.starterCode,
+            status: null});
     }
 
     onCodeExecutionSuccess( data) {

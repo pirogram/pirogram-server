@@ -19,7 +19,7 @@ if( window.initialStore.topic) {
 
 if( window.initialStore.packageList) {
     render(
-        <ModuleSummaryList packageList={window.initialStore.packageList}/>,
+        <ModuleSummaryList packageList={window.initialStore.packageList} userId={window.initialStore.userId}/>,
         document.getElementById('react-app-package-list')
     )
 }

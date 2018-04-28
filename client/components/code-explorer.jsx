@@ -24,7 +24,8 @@ export default class CodeExplorer extends React.Component {
     render() {
         return (
             <div className='practise-area'>
-                <CodePlayground id={this.props.compositeId} userCode={this.props.userCode} starterCode={this.props.starterCode} 
+                <CodePlayground id={this.props.compositeId} userCode={this.props.userCode} 
+                    starterCode={this.props.starterCode} userId={this.props.userId}
                     chained={this.props.chained} executeCmd={this.onExecute}/>
             </div>
         );

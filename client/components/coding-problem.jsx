@@ -61,7 +61,7 @@ export default class CodingProblem extends React.Component {
     }
 
     onExecute( code) {
-        dispatch( 'CODE_EXECUTION_REQUEST', {code, playgroundId: this.state.id, 
+        dispatch( 'CODE_EXECUTION_REQUEST', {code, playgroundId: this.state.compositeId, 
             route: 'exercise', compositeId: this.state.compositeId});
     }
 
@@ -80,7 +80,7 @@ export default class CodingProblem extends React.Component {
 
         const submitButton = this.state.userId ?
             <Button size='small' primary labelPosition='left' {...buttonProps}/> :
-            <a className="ui small button" href='/login'>Login with Google to try</a>
+            <a className="ui small button" href='/login'>Login to try</a>
 
         return(
             <Segment className='coding-problem'>
@@ -89,12 +89,12 @@ export default class CodingProblem extends React.Component {
                      Coding Problem (Shift+Enter to Execute)
                 </Label>
 
-                {this.state.problemStatement ? 
+                {this.state.question ? 
                     <div className='problem-statement'>
-                        <HtmlContent html={this.state.problemStatement}/>
+                        <HtmlContent html={this.state.question}/>
                     </div> : '' }
 
-                <CodePlayground id={this.state.id} starterCode={this.state.starterCode} userCode={this.state.userCode}
+                <CodePlayground id={this.state.compositeId} starterCode={this.state.starterCode} userCode={this.state.userCode}
                     tests={this.state.tests} executeCmd={this.onExecute}/>
 
                 <div className='submit'>
@@ -109,6 +109,8 @@ export default class CodingProblem extends React.Component {
 
 CodingProblem.PropTypes = {
     id: PropTypes.string.isRequired,
+    compositeId: PropTypes.string.isRequired,
+    question: PropTypes.string.isRequired,
     starterCode: PropTypes.string.isRequired,
     referenceSolution: PropTypes.string.isRequired,
     tests: PropTypes.string.isRequired,
@@ -119,12 +121,11 @@ CodingProblem.PropTypes = {
 class CodingProblemState extends ComponentNuxState {
     constructor(component) {
         super( component);
-        const code = this.state.userCode ? this.state.userCode : this.state.starterCode;
         this.state = Object.assign({}, this.state, {loading: false, failedAttempts: 0});
     }
     
     onCodeExecutionSuccess( data) {
-        if( data.playgroundId != this.state.id) { return; }
+        if( data.playgroundId != this.state.compositeId) { return; }
 
         const newState = Object.assign({}, this.state, {loading: false, done: data.solutionIsCorrect});
         if( !data.solutionIsCorrect) {
@@ -135,19 +136,19 @@ class CodingProblemState extends ComponentNuxState {
     }
 
     onCodeExecutionFailure( data) {
-        if( data.playgroundId != this.state.id) { return; }
+        if( data.playgroundId != this.state.compositeId) { return; }
 
         this.setState(Object.assign({}, this.state, {loading: false}));
     }
 
     onCodeExecutionInProgress( data) {
-        if( data.playgroundId != this.state.id) { return; }
+        if( data.playgroundId != this.state.compositeId) { return; }
 
         this.setState(Object.assign({}, this.state, {loading: true}));
     }
 
     onEditorContentChange( data) {
-        if( data.editorId != this.state.id) { return ; }
+        if( data.editorId != this.state.compositeId) { return ; }
 
         this.setState(Object.assign({}, this.state, {currentCode: data.content}));
     }

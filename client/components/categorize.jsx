@@ -20,7 +20,7 @@ export default class CategorizationQuestion extends React.Component {
 
         const submitButton = this.state.userId ?
                 <Button size='small' primary type="submit" labelPosition='left' {...buttonProps}/> :
-                <a className="ui small button" href='/login'>Login with Google to try</a>
+                <a className="ui small button" href='/login'>Login to try</a>
 
         const dropdownValues = this.state.categories.map( (category, index) => {
             return {text: category, value: category};
