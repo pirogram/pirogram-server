@@ -4,7 +4,7 @@ db:
   name: DB_NAME
 
 session:
-  appkey: SESSION_APP_KEY
+  app_key: SESSION_APP_KEY
 
 email:
   mailgun_apikey: MAILGUN_APIKEY
