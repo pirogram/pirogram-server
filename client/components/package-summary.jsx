@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import axios from 'axios';
 import {ComponentNuxState, dispatch} from '../nux';
-import {Menu, Icon} from 'semantic-ui-react';
+import {Menu, Icon, Card} from 'semantic-ui-react';
 import Parser from 'html-react-parser';
 
 export default class PackageSummary extends React.Component {
@@ -26,7 +26,16 @@ export default class PackageSummary extends React.Component {
 
     render() {
         return (
-            <div className='package-summary'>
+            <Card className="package-summary">
+                <Card.Content>
+                    <Card.Header as='a' href={`/@${this.state.author}/${this.state.code}`}>{this.state.title}</Card.Header>
+                    <Card.Meta>by {this.state.author}</Card.Meta>
+                </Card.Content>
+                <Card.Content>
+                    <Card.Description>{this.state.description}</Card.Description>
+                </Card.Content>
+            </Card>
+            /*<div className='package-summary'>
                 <h3><a href={`/@${this.state.author}/${this.state.code}`}>{this.state.title}</a>
                     {this.state.userId ? <span className='toolbar'>
                         {this.state.queued ? 
@@ -37,7 +46,7 @@ export default class PackageSummary extends React.Component {
                     </span> : null}
                 </h3>
                 <p>{this.state.description}</p>
-            </div>
+            </div>*/
         );
     }
 }
@@ -56,6 +65,9 @@ class PackageSummaryState extends ComponentNuxState {
         super( component);
 
         this.state = {...this.state, modifyingQueue: false};
+        if( this.state.description.length > 200) {
+            this.state.description = this.state.description.slice(0, 197) + "...";
+        }
         component.state = this.state;
     }
 

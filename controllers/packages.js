@@ -162,32 +162,31 @@ async function addUserStateToPackage( p, userId) {
 }
 
 
-async function populateUserQueue( userId, packageMetaDict) {
+async function populateUserQueue( userId, packageSummaryDict) {
     const packageIds = await models.getQueuedPackages(userId);
-    const packageMetaList = [];
+    const packageSummaryList = [];
     for( const packageId of packageIds) {
-        if( packageMetaDict[packageId]) {
-            packageMetaDict[packageId].queued = true;
-            packageMetaList.push( packageMetaDict[ packageId]);
+        if( packageSummaryDict[packageId]) {
+            packageSummaryDict[packageId].meta.queued = true;
+            packageSummaryList.push( packageSummaryDict[ packageId]);
         }
     }
 
-    return packageMetaList;
+    return packageSummaryList;
 }
 
 
 async function getQueuedPackages( userId) {
-    const packageMetaDict = await cms.getAllLivePackageInfo();
-    const packageMetaList = await populateUserQueue( userId, packageMetaDict);
-    console.log(packageMetaList);
-    const packageIds = packageMetaList.map( (pMeta, index) => { return pMeta.code; });
+    const packageSummaryDict = await cms.getAllLivePackageSummary();
+    const packageSummaryList = await populateUserQueue( userId, packageSummaryDict);
+    const packageIds = packageSummaryList.map( (p, index) => { return p.meta.code; });
 
     const phObjs = await models.getPackageHistory( userId, packageIds);
-    packageMetaList.map( (pMeta, index) => {
-        if( phObjs[ pMeta.code]) pMeta.done = true;
+    packageSummaryList.map( (p, index) => {
+        if( phObjs[ p.meta.code]) p.meta.done = true;
     })
     
-    return _.sortBy( packageMetaList, [function(pMeta) { return pMeta.done ? 1 : 0; }]);
+    return _.sortBy( packageSummaryList, [function(p) { return p.meta.done ? 1 : 0; }]);
 }
 
 
@@ -208,20 +207,20 @@ packagesApp.use( router.get( '/packages/:packageCode/assets/:level1/:level2/:lev
 
 
 packagesApp.use( router.get( '/packages', async function(ctx) {
-    const packageDict = await cms.getAllLivePackageInfo();
+    const packageSummaryDict = await cms.getAllLivePackageSummary();
     const userId = ctx.state.user ? ctx.state.user.id : null;
 
     if( userId) {
-        await populateUserQueue(userId, packageDict);
+        await populateUserQueue(userId, packageSummaryDict);
     }
 
-    const packageList = _.values(packageDict);
+    const packageSummaryList = _.values(packageSummaryDict);
     
     const packageListHtml = ReactDOMServer.renderToString(
-        <PackageSummaryList packageList={packageList} userId={userId} />
+        <PackageSummaryList packageList={packageSummaryList} userId={userId} />
     );
 
-    await ctx.render('packages', {packageList, packageListHtml}, {packageList, userId});
+    await ctx.render('packages', {packageSummaryList, packageListHtml}, {packageSummaryList, userId});
 }));
 
 
@@ -307,12 +306,12 @@ packagesApp.use( router.get( '/@:author/:packageCode/:topicCode',
 packagesApp.use( router.get('/study-queue', async function( ctx) { 
     if( !ensureUser( ctx)) { return; }
 
-    const packageList = await getQueuedPackages( ctx.state.user.id);
+    const packageSummaryList = await getQueuedPackages( ctx.state.user.id);
     const packageListHtml = ReactDOMServer.renderToString(
-        <PackageSummaryList packageList={packageList} />
+        <PackageSummaryList packageList={packageSummaryList} />
     );
 
-    await ctx.render( 'study-queue', {packageList, packageListHtml}, {packageList});
+    await ctx.render( 'study-queue', {packageSummaryList, packageListHtml}, {packageSummaryList});
 }));
 
 
@@ -347,7 +346,7 @@ async function markDonePackageAsDone( userId, p) {
     const thObjs = await models.getTopicHistory( userId, topicIds);
     if( _.keys( thObjs).length != topicIds.length) return;
 
-    await models.savePackageHistory( userId, p.code);
+    await models.savePackageHistory( userId, p.meta.code);
 }
 
 

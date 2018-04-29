@@ -204,15 +204,8 @@ h1 span.toolbar a.action, h2 span.toolbar a.action, h3 span.toolbar a.action, h4
     margin: 0 0.5em;
 }
 
-div.package-summary {
-    padding-bottom: 1rem;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid #eee;
-}
-
-div.package-summary:last-child {
-    padding-bottom: 0;
-    border-bottom: none;
+.ui.card.package-summary {
+    font-size: 90%;
 }
 
 .toc .ui.menu .item {
