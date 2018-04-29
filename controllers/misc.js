@@ -52,7 +52,7 @@ miscApp.use( router.get( '/sitemap.xml', async function(ctx) {
     
     const body = [];
     body.push( `<?xml version="1.0" encoding="UTF-8"?>`);
-    body.push( `<urlset>`);
+    body.push( `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`);
 
     _.values( packageSummaryDict).map( (p, i) => {
         p.topics.map( (topic, j) => {
