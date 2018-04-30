@@ -9,7 +9,7 @@ export default class PackageSummaryList extends React.Component {
             <Card.Group>
                 {this.props.packageList.map( (p, i) => {
                     return <PackageSummary key={i} code={p.meta.code} title={p.meta.title} 
-                        description={p.meta.description}
+                        description={p.meta.description} status={p.meta.status}
                         queued={p.meta.queued} done={p.meta.done} author={p.meta.author} 
                         userId={this.props.userId} />
                 })}

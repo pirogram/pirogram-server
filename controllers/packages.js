@@ -209,6 +209,14 @@ packagesApp.use( router.get( '/packages/:packageCode/assets/:level1/:level2/:lev
 packagesApp.use( router.get( '/packages', async function(ctx) {
     const packageSummaryDict = await cms.getAllLivePackageSummary();
     const userId = ctx.state.user ? ctx.state.user.id : null;
+    const username = ctx.state.user ? ctx.state.user.username : null;
+
+    _.keys( packageSummaryDict).map( (key, i) => {
+        const p = packageSummaryDict[ key];
+        if( p.meta.status == 'draft' && p.meta.author != username) {
+            delete( packageSummaryDict[ key]);
+        }
+    });
 
     if( userId) {
         await populateUserQueue(userId, packageSummaryDict);
@@ -279,7 +287,7 @@ packagesApp.use( router.get( '/@:author/:packageCode/:topicCode',
     if( !p) { ctx.status = 404; return; }
 
     let topicIndex = _.findIndex(p.topics, { meta: {code: topicCode}});
-    if( topicIndex < 0) { ctx.status = 404; return; }
+    if( topicIndex < 0) { ctx.redirect(`/@${author}/${packageCode}`); return; }
     
     const presentableTopic = makePresentableTopic(p, p.topics[topicIndex], userId);
 

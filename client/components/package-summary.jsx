@@ -28,7 +28,7 @@ export default class PackageSummary extends React.Component {
         return (
             <Card className="package-summary">
                 <Card.Content>
-                    <Card.Header as='a' href={`/@${this.state.author}/${this.state.code}`}>{this.state.title}</Card.Header>
+                    <Card.Header as='a' href={`/@${this.state.author}/${this.state.code}`}>{this.state.title}{this.state.status == 'draft' ? ' (Draft)' : null}</Card.Header>
                     <Card.Meta>by {this.state.author}</Card.Meta>
                 </Card.Content>
                 <Card.Content>
@@ -56,6 +56,7 @@ PackageSummary.propTypes = {
     code: PropTypes.string.isRequired,
     title: PropTypes.string.isRequired,
     description: PropTypes.string.isRequired,
+    status: PropTypes.string.isRequired,
     queued: PropTypes.bool,
     done: PropTypes.bool
 };
