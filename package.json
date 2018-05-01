@@ -38,7 +38,7 @@
     "nunjucks": "^3.0.1",
     "path": "^0.12.7",
     "pg": "^6.4.0",
-    "pirogram-package-loader": "git://github.com/pirogram/pirogram-package-loader.git",
+    "prep-loader": "^0.1.1",
     "prop-types": "^15.6.0",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
