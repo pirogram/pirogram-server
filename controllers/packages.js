@@ -33,7 +33,7 @@ function makePresentableTopic(p, topic, userId) {
             return {type: 'html', html: section.html};
         } else if( section.type == 'multiple-choice-question') {
             return {
-                type: section.type,
+                type: section.type, id: section.id,
                 question: section.questionHtml, options: section.options,
                 compositeId: section.compositeId, done: false, selectedIds: []
             };
