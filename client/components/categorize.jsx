@@ -11,6 +11,11 @@ export default class CategorizationQuestion extends React.Component {
         super( props);
         this.nuxState = new CategorizationQuestionState( this);
         this.state = this.nuxState.state;
+        this.onExecute = this.onExecute.bind(this);
+    }
+
+    onExecute( code) {
+        dispatch( 'CODE_EXECUTION_REQUEST', {code, playgroundId: this.props.compositeId});
     }
 
     render() {
@@ -31,6 +36,13 @@ export default class CategorizationQuestion extends React.Component {
                 <Label attached='top'><Icon name={this.state.done ? 'checkmark':'wait'} className="exercise status"/>Exercise</Label>
 
                 {Parser(this.state.question)}
+
+                {this.state.starterCode ? 
+                    <div className='practise-area'>
+                        <CodePlayground id={this.state.compositeId} userCode={this.state.userCode} 
+                        starterCode={this.state.starterCode} 
+                        chained={false} executeCmd={this.onExecute}/>
+                    </div> : null}
 
                 <Form className={this.state.serverError ? "quiz error" : "quiz"}
                     onSubmit={(e) => { 
@@ -73,6 +85,8 @@ CategorizationQuestion.propTypes = {
     id: PropTypes.string.isRequired,
     compositeId: PropTypes.string.isRequired,
     question: PropTypes.string.isRequired,
+    starterCode: PropTypes.string,
+    userCode: PropTypes.string,
     done: PropTypes.bool,
     categories: PropTypes.arrayOf( PropTypes.string),
     challenges: PropTypes.arrayOf( PropTypes.string),
@@ -139,6 +153,12 @@ class CategorizationQuestionState extends ComponentNuxState {
         newSelectedCategories[data.challenge] = data.category;
 
         this.setState( Object.assign({}, this.state, {selectedCategories: newSelectedCategories}));
+    }
+
+    onEditorContentChange(data) {
+        if( data.editorId != this.state.compositeId) { return; }
+        
+        this.setState(Object.assign({}, this.state, {userCode: data.content}));
     }
 }
 

@@ -51,9 +51,9 @@ export default class FillInTheBlankQuestion extends React.Component {
                             const className = this.state.showHint && 
                                 this.state.corrections[label] ? 'error' : '';
 
-                            return <Form.Field width={4} key={index} className={className}>
+                            return <Form.Field key={index} className={className}>
                                         <label>{label}</label>
-                                        <Input placeholder='Answer' 
+                                        <Input className="six wide field" placeholder='Answer' 
                                             value={this.state.answers[label] || ''}
                                             onChange={(e, data) => {
                                                 dispatch('FILL_IN_THE_BLANK_VALUE_CHANGE', {exerciseId: this.state.id, label, answer: data.value});
