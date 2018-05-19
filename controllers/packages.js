@@ -56,7 +56,7 @@ function makePresentableTopic(p, topic, userId) {
             return {
                 type: section.type, id: section.id,
                 compositeId: section.compositeId, done: false,
-                question: section.questionHtml,
+                question: section.questionHtml, starterCode: section.code,
                 categories: section.categories, challenges: _.keys(section.mappings)
             }
         } else if( section.type == 'qualitative-question') {
