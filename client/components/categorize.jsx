@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import axios from 'axios';
 import {Segment, Label, Icon, Form, Button, Dropdown} from 'semantic-ui-react';
 import {ComponentNuxState, dispatch} from '../nux';
+import CodePlayground from './code-playground/index.jsx';
 
 
 export default class CategorizationQuestion extends React.Component {
