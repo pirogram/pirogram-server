@@ -27,7 +27,8 @@ const Topic = ({userId, m, topic}) => (
                     referenceSolution={section.referenceSolution} tests={section.tests} userId={userId}/>
             } else if( section.type == 'categorization-question') {
                 return <CategorizationQuestion key={i} id={section.id} compositeId={section.compositeId}
-                    question={section.question} done={section.done}
+                    question={section.question} done={section.done} starterCode={section.starterCode} 
+                    userCode={section.userCode}
                     categories={section.categories} challenges={section.challenges}
                     selectedCategories={section.selectedCategories} correctCategories={section.correctCategories}
                     userId={userId}/>
