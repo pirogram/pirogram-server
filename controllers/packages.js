@@ -15,6 +15,7 @@ const hljs = require('highlight.js');
 const models = require( '../models');
 const {logger} = require('../lib/logger');
 const plutoid = require('../lib/plutoid');
+const {CodeExecutor} = require('../lib/code-executor');
 const cms = require('../lib/cms');
 import {ensureUser, glob} from '../lib/util';
 
@@ -390,7 +391,13 @@ packagesApp.use( router.post( '/exercise/:compositeId/solution', async function(
 
         await models.savePlaygroundCode( ctx.state.user.id, playgroundId, code);
 
-        const {sessionId, output, hasError, testResults} = await plutoid.executeCodeRequest( playgroundId, inSessionId, executionId, code, exercise.tests);
+        var codeExecutor = null;
+        if(inSessionId) { codeExecutor = CodeExecutor.getById(inSessionId); }
+        else { codeExecutor = CodeExecutor.get(); }
+
+        const {output, hasError, testResults} = await codeExecutor.execute(code, exercise.tests);
+
+        //const {sessionId, output, hasError, testResults} = await plutoid.executeCodeRequest( playgroundId, inSessionId, executionId, code, exercise.tests);
 
         let hasFailedTest = false;
         for( const test of testResults) {
@@ -403,7 +410,8 @@ packagesApp.use( router.post( '/exercise/:compositeId/solution', async function(
             await models.saveExerciseHistory( ctx.state.user.id, compositeId, {code});
         }
 
-        ctx.body = JSON.stringify({output, sessionId, testResults, hasError, solutionIsCorrect});
+        ctx.body = JSON.stringify({output, sessionId: codeExecutor.id, testResults, hasError, 
+            solutionIsCorrect});
     } else if( exercise.type == 'categorization-question') {
         const selectedCategories = ctx.request.body.selectedCategories;
         const correctCategories = exercise.mappings;
