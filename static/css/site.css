@@ -80,7 +80,7 @@
     position: relative;
 }
 
-.code-playground .output {
+.code-playground .output, .code-playground .input-required {
     padding: 0.5em 1em;
     border-top: 1px solid rgba(34,36,38,.15);
     position: relative;

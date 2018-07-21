@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import CodeEditor from './code-editor.jsx';
 import CodeOutput from './code-output.jsx';
+import CodeInput from './code-input.jsx';
 import CodeTests from './code-tests.jsx';
 import CodeStatus from './code-status.jsx';
 import {ComponentNuxState, dispatch} from '../../nux.js';
@@ -22,6 +23,7 @@ export default class CodePlayground extends React.Component {
 
                 <CodeTests tests={this.state.tests} />
                 <CodeOutput output={this.state.output} />
+                {this.state.needInput ? <CodeInput id={this.state.id}/> : null}
                 <CodeStatus status={this.state.status} />
             </div>
         );
@@ -41,13 +43,14 @@ class CodePlaygroundState extends ComponentNuxState {
         super( component);
         this.state = Object.assign({}, this.state, {output: [], loading: false,
             code: this.state.userCode ? this.state.userCode : this.state.starterCode,
-            status: null});
+            status: null, needInput: false});
     }
 
     onCodeExecutionSuccess( data) {
         if( data.playgroundId != this.state.id) { return; }
 
-        const newState = Object.assign({}, this.state, {status: 'success', loading: false, output: data.output});
+        const newState = Object.assign({}, this.state, {status: 'success', loading: false, 
+            output: this.state.output.concat(data.output), needInput: false});
         if(!data.hasError) {
             newState.tests = data.testResults;
         }
@@ -55,16 +58,43 @@ class CodePlaygroundState extends ComponentNuxState {
         this.setState(newState);
     }
 
+    onCodeExecutionNeedInput(data) {
+        if( data.playgroundId != this.state.id) { return; }
+
+        const newState = Object.assign({}, this.state, {status: 'awaiting_input', loading: false, 
+            output: this.state.output.concat(data.output), needInput: true});
+
+        this.setState(newState);
+    }
+
+    onCodeExecutionInputProvided(data) {
+        if( data.playgroundId != this.state.id) { return; }
+        
+        const newOutput = this.state.output;
+        if( newOutput.length == 0 || newOutput[newOutput.length-1].name != 'stdout') {
+            newOutput.push({name: 'stdout', text: data.inputValue});
+        } else {
+            const lastOutput = newOutput[newOutput.length - 1];
+            lastOutput.text = lastOutput.text + data.inputValue;
+        }
+
+        const newState = Object.assign({}, this.state, {status: 'inprogress', loading: true, 
+            output: newOutput, needInput: false});
+
+        this.setState(newState);
+    }
+
     onCodeExecutionFailure( data) {
         if( data.playgroundId != this.state.id) { return; }
 
-        this.setState(Object.assign({}, this.state, {status: 'failure', loading: false, tests: this.component.props.tests}));
+        this.setState(Object.assign({}, this.state, {status: 'failure', loading: false, 
+            tests: this.component.props.tests, needInput: false}));
     }
 
     onCodeExecutionInProgress( data) {
         if( data.playgroundId != this.state.id) { return; }
 
-        this.setState(Object.assign({}, this.state, {status: 'inprogress', loading: true, output: [], tests: this.component.props.tests}));
+        this.setState(Object.assign({}, this.state, {status: 'inprogress', loading: true, output: [], tests: this.component.props.tests, needInput: false}));
     }
 
     onCodeExecutionQueued( data) {
@@ -75,7 +105,7 @@ class CodePlaygroundState extends ComponentNuxState {
 
     onCodeSessionDead( data) {
         if( this.state.status == 'inprogress' || this.state.status == 'queued') {
-            this.setState(Object.assign({}, this.state, {status: 'session-dead', loading: false}));
+            this.setState(Object.assign({}, this.state, {status: 'session-dead', loading: false, needInput: false}));
         }
     }
 

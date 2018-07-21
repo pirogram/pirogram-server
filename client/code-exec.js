@@ -83,14 +83,20 @@ function execute( data) {
             keepAlive();
         }
 
-        codeExecInProgress = false;
-        idsExecutedInSession[data.playgroundId] = true;
+        if( !response.data.needInput) {
+            codeExecInProgress = false;
+            idsExecutedInSession[data.playgroundId] = true;
 
-        dispatch('CODE_EXECUTION_SUCCESS', {playgroundId: data.playgroundId, 
-            output: response.data.output, testResults: response.data.testResults, 
-            solutionIsCorrect: response.data.solutionIsCorrect, hasError: response.data.hasError});
+            dispatch('CODE_EXECUTION_SUCCESS', {playgroundId: data.playgroundId, 
+                output: response.data.output, testResults: response.data.testResults, 
+                solutionIsCorrect: response.data.solutionIsCorrect, hasError: response.data.hasError});
 
-        workOnQueue();
+            workOnQueue();
+        } else {
+            dispatch('CODE_EXECUTION_NEED_INPUT', {playgroundId: data.playgroundId, 
+                output: response.data.output, hasError: response.data.hasError, 
+                needInput: response.data.needInput});
+        }
     })
     .catch( (err) => {
         codeExecInProgress = false;
@@ -100,6 +106,33 @@ function execute( data) {
 
     dispatch('CODE_EXECUTION_IN_PROGRESS', {playgroundId: data.playgroundId});
     codeExecInProgress = true;
+}
+
+function onCodeExecutionInputProvided( data) {
+    const reqdata = {sessionId: sessionId, inputValue: data.inputValue, playgroundId: data.playgroundId};
+    const url = `/code-input`;
+    axios.post(url, reqdata)
+    .then((response) => {
+        if( !response.data.needInput) {
+            codeExecInProgress = false;
+            idsExecutedInSession[data.playgroundId] = true;
+
+            dispatch('CODE_EXECUTION_SUCCESS', {playgroundId: data.playgroundId, 
+                output: response.data.output, testResults: response.data.testResults, 
+                solutionIsCorrect: response.data.solutionIsCorrect, hasError: response.data.hasError});
+
+            workOnQueue();
+        } else {
+            dispatch('CODE_EXECUTION_NEED_INPUT', {playgroundId: data.playgroundId, 
+                output: response.data.output, hasError: response.data.hasError, 
+                needInput: response.data.needInput});
+        }
+    })
+    .catch( (err) => {
+        codeExecInProgress = false;
+        //dispatch('CODE_EXECUTION_FAILURE', {playgroundId: data.playgroundId});
+        dispatch( 'CODE_SESSION_DEAD', {});
+    });
 }
 
 function onCodeSessionDead() {
@@ -112,4 +145,5 @@ export function initCodeExecutor() {
     addListener( 'CODE_EXECUTION_REQUEST', onCodeExecutionRequest);
     addListener( 'CODE_EXECUTION_CHAIN_NEW_LINK', onCodeExecutionChainNewLink);
     addListener( 'CODE_SESSION_DEAD', onCodeSessionDead);
+    addListener( 'CODE_EXECUTION_INPUT_PROVIDED', onCodeExecutionInputProvided);
 }

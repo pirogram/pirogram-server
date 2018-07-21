@@ -14,7 +14,6 @@ codeApp.use( router.post( '/code-requests', async function( ctx) {
 
     const inSessionId = ctx.request.body.sessionId;
     const code = ctx.request.body.code;
-    const executionId = ctx.request.body.executionId;
     const playgroundId = ctx.request.body.playgroundId;
 
     await models.savePlaygroundCode( ctx.state.user.id, playgroundId, code);
@@ -24,9 +23,27 @@ codeApp.use( router.post( '/code-requests', async function( ctx) {
     if( inSessionId) { codeExecutor = CodeExecutor.getById(inSessionId); }
     else { codeExecutor = CodeExecutor.get(); }
     
-    const {output, hasError} = await codeExecutor.execute(code);
+    const {output, hasError, needInput} = await codeExecutor.execute(code);
 
-    ctx.body = JSON.stringify({output, hasError, inputRequired: false, sessionId: codeExecutor.id});
+    ctx.body = JSON.stringify({output, hasError, needInput, sessionId: codeExecutor.id});
+}));
+
+
+codeApp.use( router.post( '/code-input', async function( ctx) {
+    if(!ctx.state.user) { ctx.redirect('/login'); return; }
+
+    const inSessionId = ctx.request.body.sessionId;
+    const inputValue = ctx.request.body.inputValue;
+
+    const codeExecutor = CodeExecutor.getById(inSessionId);
+    if( !codeExecutor) {
+        ctx.status = 404;
+        return;
+    }
+
+    const {output, hasError, needInput} = await codeExecutor.provideInput(inputValue);
+
+    ctx.body = JSON.stringify({output, hasError, needInput, sessionId: codeExecutor.id});
 }));
 
 
