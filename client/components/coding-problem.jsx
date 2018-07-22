@@ -67,7 +67,7 @@ export default class CodingProblem extends React.Component {
 
     render() {
         const buttonProps = {loading: this.state.loading ? true : false, 
-            content: this.state.done ? 'Done' : 'Check'};
+            content: this.state.done ? 'Done' : 'Run Code'};
 
         if( this.state.loading) { buttonProps.icon = 'spinner'; }
         else if( this.state.done) { buttonProps.icon = 'checkmark'; }

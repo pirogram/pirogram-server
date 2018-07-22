@@ -42,6 +42,10 @@ function makePresentableTopic(p, topic, userId) {
             return { type: section.type, id: section.id,
                 compositeId: section.compositeId,
                 starterCode: section.code};
+        } else if( section.type == 'testless-coding-question') {
+            return { type: section.type, id: section.id,
+                compositeId: section.compositeId, starterCode: section.code || '',
+                done: false, question: section.questionHtml};
         } else if( section.type == 'coding-question') {
             return {
                 type: section.type, id: section.id,
@@ -87,7 +91,8 @@ function getExerciseIds( topic) {
             section.type == 'coding-question' ||
             section.type == 'categorization-question' ||
             section.type == 'qualitative-question' ||
-            section.type == 'fill-in-the-blank-question') { 
+            section.type == 'fill-in-the-blank-question' ||
+            section.type == 'testless-coding-question') { 
             compositeIds.push( section.compositeId);
         }
     }
@@ -99,7 +104,8 @@ function getExerciseIds( topic) {
 function getPlaygroundIds( topic) {
     const compositeIds = [];
     topic.sections.map( (section, index) => {
-        if( section.type == 'live-code' || section.type == 'coding-question' || section.starterCode) { 
+        if( section.type == 'live-code' || section.type == 'coding-question' 
+                || section.type == 'testless-coding-question' || section.starterCode) { 
             compositeIds.push( section.compositeId);
         }
     });
@@ -128,7 +134,9 @@ async function addUserStateToTopic( p, presentableTopic, userId) {
         if( section.type == 'multiple-choice-question') {
             section.selectedIds = eh.solution.selectedIds;
         } else if( section.type == 'coding-question') {
-            section.userCode = eh.solution.code;
+            section.userCode = eh.solution.code || '';
+        } else if( section.type == 'testless-coding-question') {
+            section.userCode = eh.solution.code || '';
         } else if( section.type == 'categorization-question') {
             section.selectedCategories = eh.solution.selectedCategories;
         } else if( section.type == 'qualitative-question') {
@@ -433,6 +441,12 @@ packagesApp.use( router.post( '/exercise/:compositeId/solution', async function(
         await models.saveExerciseHistory( ctx.state.user.id, compositeId, {answer});
 
         ctx.body = JSON.stringify({});
+    } else if( exercise.type == 'testless-coding-question') {
+        const code = ctx.request.body.code;
+
+        await models.saveExerciseHistory( ctx.state.user.id, compositeId, {code});
+
+        ctx.body = JSON.stringify({});
     } else if( exercise.type == 'fill-in-the-blank-question') {
         const answers = ctx.request.body.answers;
         const corrections = {};
@@ -457,7 +471,6 @@ packagesApp.use( router.post( '/exercise/:compositeId/solution', async function(
 
     await markDoneTopicAsDone( ctx.state.user.id, topic, p);
 }));
-
 
 
 module.exports = {packagesApp};

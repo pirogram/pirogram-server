@@ -17,7 +17,7 @@ export default class QualitativeQuestion extends React.Component {
     render() {
         const buttonProps = {loading: this.state.checkingAnswer ? true : false, 
             icon: this.state.done ? 'checkmark' : 'wait',
-            content: this.state.done ? 'Saved' : 'Save'};
+            content: this.state.done ? 'Marked As Done' : 'Mark As Done'};
 
         const submitButton = this.state.userId ?
                 <Button size='small' primary type="submit" labelPosition='left' {...buttonProps}/> :

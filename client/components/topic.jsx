@@ -6,6 +6,7 @@ import CodingProblem from './coding-problem.jsx';
 import CategorizationQuestion from './categorize.jsx';
 import QualitativeQuestion from './qualitative.jsx';
 import FillInTheBlankQuestion from './fill-in-the-blank.jsx';
+import TestlessCodingProblem from './testless-coding-problem.jsx';
 
 const Topic = ({userId, m, topic}) => (
     <div className='topic-sections'>
@@ -25,6 +26,10 @@ const Topic = ({userId, m, topic}) => (
                     starterCode={section.starterCode}
                     userCode={section.userCode} question={section.question} done={section.done}
                     referenceSolution={section.referenceSolution} tests={section.tests} userId={userId}/>
+            } else if( section.type == 'testless-coding-question') {
+                return <TestlessCodingProblem key={i} id={section.id} compositeId={section.compositeId} 
+                    chained={section.chained} userId={userId} starterCode={section.starterCode} 
+                    userCode={section.userCode} question={section.question} done={section.done}/>
             } else if( section.type == 'categorization-question') {
                 return <CategorizationQuestion key={i} id={section.id} compositeId={section.compositeId}
                     question={section.question} done={section.done} starterCode={section.starterCode} 
