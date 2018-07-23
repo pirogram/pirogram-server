@@ -29,12 +29,12 @@ export default class Editor extends React.Component {
     calcHeight( code) {
         let linesCount = 0;
         for( const line of code.split('\n')) {
-            linesCount += Math.floor(line.length/80) + 1;
+            linesCount += Math.floor(line.length/96) + 1;
         }
 
         if( linesCount == 0) { linesCount = 1; }
 
-        const height = (linesCount) * 20;
+        const height = (linesCount) * 24;
 
         return height + 'px';
     }
@@ -90,8 +90,8 @@ export default class Editor extends React.Component {
             horizontalHasArrows: true,
             horizontal: 'visible',
             minimap: { enabled: false },
-            fontSize: 13,
-            fontFamily: "Monaco",
+            fontSize: 16,
+            fontFamily: "Inconsolata",
             renderLineHighlight: 'none'
         };
 
