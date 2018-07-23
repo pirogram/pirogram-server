@@ -239,3 +239,19 @@ h1 span.toolbar a.action, h2 span.toolbar a.action, h3 span.toolbar a.action, h4
 .topic-sections .html-content {
     overflow-x: scroll;
 }
+
+.ansi-blue-fg {
+    color: #5829bb;
+}
+
+.ansi-red-fg {
+    color: #DB2828;
+}
+
+.ansi-green-fg {
+    color: #2C8848;
+}
+
+.ansi-cyan-fg {
+    color: #3ac0ff;
+}

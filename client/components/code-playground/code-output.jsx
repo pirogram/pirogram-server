@@ -17,7 +17,8 @@ export default class CodeOutput extends React.Component {
                             return <img className='ui image' src={'data:image/png;base64,' + item.data['image/png']}/>
                         }
                     } else if( item.name == 'traceback') {
-                        return <pre className='traceback'>{Parser(item.data.traceback)}</pre>
+                        console.log()
+                        return <pre className='traceback'>{Parser(item.data)}</pre>
                     }
                 })}
             </div>

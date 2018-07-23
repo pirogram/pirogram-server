@@ -102,6 +102,7 @@ function execute( data) {
         codeExecInProgress = false;
         //dispatch('CODE_EXECUTION_FAILURE', {playgroundId: data.playgroundId});
         dispatch( 'CODE_SESSION_DEAD', {});
+        console.log(err);
     });
 
     dispatch('CODE_EXECUTION_IN_PROGRESS', {playgroundId: data.playgroundId});
