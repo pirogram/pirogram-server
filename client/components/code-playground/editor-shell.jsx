@@ -29,7 +29,7 @@ export default class Editor extends React.Component {
     calcHeight( code) {
         let linesCount = 0;
         for( const line of code.split('\n')) {
-            linesCount += Math.floor(line.length/96) + 1;
+            linesCount += Math.floor(line.length/80) + 1;
         }
 
         if( linesCount == 0) { linesCount = 1; }
