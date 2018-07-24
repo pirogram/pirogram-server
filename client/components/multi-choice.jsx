@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import axios from 'axios';
 import {Segment, Label, Icon, Form, Checkbox, Button} from 'semantic-ui-react';
 import {ComponentNuxState, dispatch} from '../nux';
+import CodePlayground from './code-playground/index.jsx';
 
 
 export default class MultipleChoice extends React.Component {
@@ -12,6 +13,11 @@ export default class MultipleChoice extends React.Component {
         super( props);
         this.nuxState = new MultipleChoiceState( this);
         this.state = this.nuxState.state;
+        this.onExecute = this.onExecute.bind(this);
+    }
+
+    onExecute( code) {
+        dispatch( 'CODE_EXECUTION_REQUEST', {code, playgroundId: this.props.compositeId});
     }
 
     render() {
@@ -28,6 +34,13 @@ export default class MultipleChoice extends React.Component {
                 <Label attached='top'><Icon name={this.state.done ? 'checkmark':'wait'} className="exercise status"/>Exercise</Label>
 
                 {Parser(this.state.question)}
+
+                {this.state.starterCode ? 
+                    <div className='practise-area'>
+                        <CodePlayground id={this.state.compositeId} userCode={this.state.userCode} 
+                        starterCode={this.state.starterCode} 
+                        chained={false} executeCmd={this.onExecute}/>
+                    </div> : null}
 
                 <Form className={this.state.serverError ? "quiz error" : "quiz"} 
                     onSubmit={(e) => { 
@@ -134,6 +147,12 @@ class MultipleChoiceState extends ComponentNuxState {
 
         this.state = {...this.state, selectedIds: without( this.state.selectedIds, data.optionId)};
         this.updateState();
+    }
+
+    onEditorContentChange(data) {
+        if( data.editorId != this.state.compositeId) { return; }
+        
+        this.setState(Object.assign({}, this.state, {userCode: data.content}));
     }
 }
 

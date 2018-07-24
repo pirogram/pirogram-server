@@ -34,7 +34,7 @@ function makePresentableTopic(p, topic, userId) {
             return {type: 'html', html: section.html};
         } else if( section.type == 'multiple-choice-question') {
             return {
-                type: section.type, id: section.id,
+                type: section.type, id: section.id, starterCode: section.code,
                 question: section.questionHtml, options: section.options,
                 compositeId: section.compositeId, done: false, selectedIds: []
             };
@@ -104,10 +104,11 @@ function getExerciseIds( topic) {
 function getPlaygroundIds( topic) {
     const compositeIds = [];
     topic.sections.map( (section, index) => {
-        if( section.type == 'live-code' || section.type == 'coding-question' 
-                || section.type == 'testless-coding-question' || section.starterCode) { 
-            compositeIds.push( section.compositeId);
-        }
+        //if( section.type == 'live-code' || section.type == 'coding-question' 
+        //        || section.type == 'testless-coding-question' || section.starterCode) { 
+        //    compositeIds.push( section.compositeId);
+        //}
+        if( section.compositeId) compositeIds.push(section.compositeId);
     });
 
     return compositeIds;

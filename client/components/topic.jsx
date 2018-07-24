@@ -15,7 +15,8 @@ const Topic = ({userId, m, topic}) => (
                 return <HtmlContent key={i} html={section.html}/>
             } else if( section.type == 'multiple-choice-question') {
                 return <MultipleChoice key={i} userId={userId} id={section.id} compositeId={section.compositeId}
-                    question={section.question} options={section.options}
+                    question={section.question} options={section.options} starterCode={section.starterCode} 
+                    userCode={section.userCode}
                     correctIds={section.correctIds} selectedIds={section.selectedIds} done={section.done} />
             } else if( section.type == 'live-code') {
                 return <CodeExplorer key={i} id={section.id} compositeId={section.compositeId} 
