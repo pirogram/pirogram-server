@@ -29,7 +29,7 @@ export default class Editor extends React.Component {
     calcHeight( code) {
         let linesCount = 0;
         for( const line of code.split('\n')) {
-            linesCount += Math.floor(line.length/80) + 1;
+            linesCount += Math.floor(line.length/74) + 1;
         }
 
         if( linesCount == 0) { linesCount = 1; }
@@ -83,16 +83,22 @@ export default class Editor extends React.Component {
 
         const editorOptions = {
             wrappingColumn: 80,
-            lineNumbers: false,
+            lineNumbers: true,
             scrollBeyondLastLine: false,
-            wordWrap: "wordWrapColumn",
+            wordWrap: "on",
             wrappingIndent: "same",
             horizontalHasArrows: true,
             horizontal: 'visible',
             minimap: { enabled: false },
             fontSize: 16,
             fontFamily: "Inconsolata",
-            renderLineHighlight: 'none'
+            renderLineHighlight: 'none',
+            autoClosingBrackets: true,
+            autoIndent: true,
+            formatOnPaste: true,
+            formatOnType: true,
+            renderIndentGuides: true,
+            suggestSelection: 'recentlyUsed'
         };
 
         return(

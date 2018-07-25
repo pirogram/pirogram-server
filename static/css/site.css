@@ -67,9 +67,10 @@
     padding: 4px;
 }
 
+/*
 .monaco-editor-shell .monaco-editor .view-overlays .current-line {
     border: none;
-}
+}*/
 
 .monaco-editor-shell .monaco-editor .view-overlays.focused .current-line {
     background-color: #f1f5fb;
@@ -133,10 +134,10 @@
 .code-playground .tests pre div {
     display: inline;
 }
-
+/*
 .code-playground .monaco-editor .monaco-editor-background, .code-playground .monaco-editor .margin {
     background-color: #ffffff;
-}
+}*/
 
 .ui.segment {
     margin-top: 2em;
