@@ -401,8 +401,13 @@ packagesApp.use( router.post( '/exercise/:compositeId/solution', async function(
         await models.savePlaygroundCode( ctx.state.user.id, playgroundId, code);
 
         var codeExecutor = null;
-        if(inSessionId) { codeExecutor = CodeExecutor.getById(inSessionId); }
-        else { codeExecutor = CodeExecutor.get(); }
+        if(inSessionId) { 
+            codeExecutor = CodeExecutor.getById(inSessionId); 
+        } else { 
+            codeExecutor = CodeExecutor.get(); 
+            const dir = `/home/jupyter/content/live/${author}/${packageCode}`;
+            await codeExecutor.execute(`import os\nos.chdir('${dir}')\n`);
+        }
 
         const {output, hasError, testResults} = await codeExecutor.execute(code, exercise.tests);
 

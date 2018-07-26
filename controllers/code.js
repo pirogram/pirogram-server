@@ -20,8 +20,14 @@ codeApp.use( router.post( '/code-requests', async function( ctx) {
 
     //const {sessionId, output, inputRequired, testResults} = await plutoid.executeCodeRequest( playgroundId, inSessionId, executionId, code);
     var codeExecutor = null;
-    if( inSessionId) { codeExecutor = CodeExecutor.getById(inSessionId); }
-    else { codeExecutor = CodeExecutor.get(); }
+    if( inSessionId) { 
+        codeExecutor = CodeExecutor.getById(inSessionId); 
+    } else { 
+        codeExecutor = CodeExecutor.get(); 
+        const [author, moduleCode, ...rest] = playgroundId.split('::');
+        const dir = `/home/jupyter/content/live/${author}/${moduleCode}`;
+        await codeExecutor.execute(`import os\nos.chdir('${dir}')\n`);
+    }
     
     const {output, hasError, needInput} = await codeExecutor.execute(code);
 
