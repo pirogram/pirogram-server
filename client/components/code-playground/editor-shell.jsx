@@ -29,7 +29,7 @@ export default class Editor extends React.Component {
     calcHeight( code) {
         let linesCount = 0;
         for( const line of code.split('\n')) {
-            linesCount += Math.floor(line.length/74) + 1;
+            linesCount += Math.floor(line.length/75) + 1;
         }
 
         if( linesCount == 0) { linesCount = 1; }
@@ -56,6 +56,7 @@ export default class Editor extends React.Component {
         this.editor.layout();
     }
 
+    
     editorDidMount(editor, m) {
         const self = this;
 
@@ -82,7 +83,7 @@ export default class Editor extends React.Component {
         };
 
         const editorOptions = {
-            wrappingColumn: 80,
+            wrappingColumn: 75,
             lineNumbers: true,
             scrollBeyondLastLine: false,
             wordWrap: "on",
@@ -98,7 +99,9 @@ export default class Editor extends React.Component {
             formatOnPaste: true,
             formatOnType: true,
             renderIndentGuides: true,
-            suggestSelection: 'recentlyUsed'
+            suggestSelection: 'recentlyUsed',
+            lineNumbersMinChars: 2,
+            language: 'python'
         };
 
         return(

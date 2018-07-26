@@ -20,6 +20,10 @@ module.exports = {
         new webpack.DefinePlugin({
             'process.env.NODE_ENV': '"production"'
         }),
+        new webpack.ContextReplacementPlugin(
+            /monaco-editor(\\|\/)esm(\\|\/)vs(\\|\/)editor(\\|\/)common(\\|\/)services/,
+            __dirname
+        ),
         new webpack.optimize.UglifyJsPlugin({
             mangle: true,
             compress: {
