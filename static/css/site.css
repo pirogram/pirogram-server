@@ -256,3 +256,9 @@ h1 span.toolbar a.action, h2 span.toolbar a.action, h3 span.toolbar a.action, h4
 .ansi-cyan-fg {
     color: #3ac0ff;
 }
+
+div.ipython-html {
+    font-size: 0.8em;
+    overflow-x: scroll;
+    white-space: pre;
+}
