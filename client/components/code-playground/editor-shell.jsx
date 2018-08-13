@@ -34,7 +34,6 @@ export default class Editor extends React.Component {
 
         if( linesCount == 0) { linesCount = 1; }
 
-        console.log(linesCount, code);
         const height = (linesCount) * 24;
 
         return height + 'px';
@@ -46,14 +45,14 @@ export default class Editor extends React.Component {
         const newState = {code: newValue, height: this.calcHeight(newValue)};
 
         this.setState(Object.assign({}, this.state, newState));
-        this.adjustEditorHeight();
+        this.adjustEditorHeight( newState.height);
     }
 
-    adjustEditorHeight() {
+    adjustEditorHeight(height) {
         const shellEl = document.querySelector(`#${this.state.shellId}`);
         if( !shellEl) return;
 
-        shellEl.style.height = this.state.height;
+        shellEl.style.height = height || this.state.height;
         this.editor.layout();
     }
 
