@@ -16,6 +16,9 @@ const bodyParser = require( 'koa-body');
 const reqLogger = require('koa-logger');
 const config = require('config');
 
+const {CodeExecutor} = require('./lib/code-executor');
+CodeExecutor.buildPool();
+
 const app = new Koa();
 
 app.use( bodyParser({multipart: true}));

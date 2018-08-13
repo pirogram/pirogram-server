@@ -56,7 +56,7 @@ export default class CategorizationQuestion extends React.Component {
                                 this.state.selectedCategories[challenge] != 
                                     this.state.correctCategories[challenge] ? 'error' : '';
 
-                            return <Form.Field width={4} key={index} className={className}>
+                            return <Form.Field width={8} key={index} className={className}>
                                         <label>{challenge}</label>
                                         <Dropdown placeholder='Select' selection options={dropdownValues}
                                             value={this.state.selectedCategories[challenge] || ''}
