@@ -7,10 +7,133 @@
 {% block content %}
 
 <div class="ui info message">
-    <div class="header">Pirogram is in Beta</div>
-    <p>If this is your first time around here, please <a href="/about">read the about section</a>.</p>
-    <p>To get going, please login using your GitHub or Google account.</p>
-    <a href="/login-with-github" class="ui primary button">Login with GitHub</a>
-    <a href="/login-with-google" class="ui secondary button">Login with Google</a>
+    <p>If you are new around here, please <b><a href="/about">read the about section</a></b> to get oriented.</p>
 </div>
+
+<div class="package tree">
+    {% for folder in packageDisplayList %}
+        <h2>{{folder.title}}</h2>
+        <p>{{folder.description|markdown}}</p>
+        <div class="ui list">
+            {% for package in folder.packages %}
+                <div class="item">
+                    <div class="content">
+                        <a class="header" href="/@{{package.code}}">{{package.title}}</a>
+                        <div class="description">{{package.description|markdown}}</div>
+                        <div class="ui tiny bulleted horizontal list">
+                            <div class="item">{{package.meta.topicCount}} topics</div>
+                            <div class="item">{{package.meta.exampleCount}} code samples</div>
+                            <div class="item">{{package.meta.exerciseCount}} exercises</div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        {% if not loop.last %}
+            <div class="ui section divider"></div>
+        {% endif %}
+    {% endfor %}
+</div>
+
+<!--
+<div class="package tree">
+    <h2>Programming in Python</h2>
+    <p>Build solid foundation. Designed for people starting out on the path of programming.</p>
+    <div class="ui list">
+        <div class="item">
+
+            <div class="content">
+                <a class="header">Control Statements</a>
+                <div class="description"><code>if/elif/else</code> and <code>while</code> loop.</div>
+                <div class="ui tiny bulleted horizontal list">
+                    <div class="item">6 sections</div>
+                    <div class="item">12 code samples</div>
+                    <div class="item">17 exercises</div>
+                </div>
+            </div>
+        </div>
+        <div class="item">
+
+            <div class="content">
+                <a class="header" href="/">Data Structures</a>
+                <div class="description">Basics of <code>list</code>, <code>tuple</code>, <code>set</code> and <code>dict</code>.</div>
+                <div class="ui tiny bulleted horizontal list">
+                        <div class="item">6 sections</div>
+                        <div class="item">12 code samples</div>
+                        <div class="item">17 exercises</div>
+                </div>
+            </div>
+        </div>
+        <div class="item">
+
+            <div class="content">
+                <a class="header" href="/">Iteration &amp; Comprehension</a>
+                <div class="description">Iterating over items, index based iteration, simple and conditional comprehension for lists and dict.</div>
+                <div class="ui tiny bulleted horizontal list">
+                        <div class="item">6 sections</div>
+                        <div class="item">12 code samples</div>
+                        <div class="item">17 exercises</div>
+                </div>
+            </div>
+        </div>
+        <div class="item">
+
+            <div class="content">
+                <a class="header" href="/">Working with Strings</a>
+                <div class="description"><code>str</code> as a sequence, formatting, splittig, joining, stripping, matching, searching etc.</div>
+                <div class="ui tiny bulleted horizontal list">
+                        <div class="item">6 sections</div>
+                        <div class="item">12 code samples</div>
+                        <div class="item">17 exercises</div>
+                </div>
+            </div>
+        </div>
+        <div class="item">
+
+            <div class="content">
+                <a class="header" href="/">Basics of Functions</a>
+                <div class="description">Simple functions, multiple return values, default argument values, variable arguments and recursion.</div>
+                <div class="ui tiny bulleted horizontal list">
+                        <div class="item">6 sections</div>
+                        <div class="item">12 code samples</div>
+                        <div class="item">17 exercises</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ui divider"></div>
+
+    <h2>Data Science with Python</h2>
+    <p>Libraries and frameworks for data science in Python.</p>
+
+    <div class="ui list">
+        <div class="item">
+
+            <div class="content">
+                <a class="header" href="/">ndarray basics</a>
+                <div class="description">1-d and N-d array creation, data types and conversion.</div>
+                <div class="ui tiny bulleted horizontal list">
+                        <div class="item">6 sections</div>
+                        <div class="item">12 code samples</div>
+                        <div class="item">17 exercises</div>
+                </div>
+            </div>
+        </div>
+        <div class="item">
+
+                <div class="content">
+                    <a class="header" href="/">ndarray indexing/slicing</a>
+                    <div class="description">indexing and slicing for 1-d and N-d arrays.</div>
+                    <div class="ui tiny bulleted horizontal list">
+                            <div class="item">6 sections</div>
+                            <div class="item">12 code samples</div>
+                            <div class="item">17 exercises</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+-->
 {% endblock %}

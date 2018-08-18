@@ -57,7 +57,6 @@ export default class QualitativeQuestion extends React.Component {
 
 QualitativeQuestion.propTypes = {
     id: PropTypes.string.isRequired,
-    compositeId: PropTypes.string.isRequired,
     question: PropTypes.string.isRequired,
     done: PropTypes.bool,
     answer: PropTypes.string
@@ -77,7 +76,7 @@ class QualitativeQuestionState extends ComponentNuxState {
 
         const self = this;
 
-        axios.post('/exercise/' + self.state.compositeId + '/solution', 
+        axios.post('/exercise/' + self.state.id + '/solution', 
             {answer: this.state.answer})
         .then(function(response) {
             self.state = Object.assign({}, self.state, {checkingAnswer: false, done: true});

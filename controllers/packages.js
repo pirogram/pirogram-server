@@ -6,20 +6,14 @@ require('babel-polyfill');
 
 const Koa = require('koa');
 const router = require( 'koa-route');
-const send = require('koa-send');
-const config = require('config');
-const path = require('path');
-const fs = require('fs');
 const _ = require('lodash');
 const hljs = require('highlight.js');
 const models = require( '../models');
 const {logger} = require('../lib/logger');
-const plutoid = require('../lib/plutoid');
 const {CodeExecutor} = require('../lib/code-executor');
 const cms = require('../lib/cms');
-import {ensureUser, glob} from '../lib/util';
+import {ensureUser} from '../lib/util';
 
-import PackageSummaryList from '../client/components/package-summary-list.jsx';
 import Topic from '../client/components/topic.jsx';
 const React = require('react');
 const ReactDOMServer = require('react-dom/server');
@@ -36,20 +30,19 @@ function makePresentableTopic(p, topic, userId) {
             return {
                 type: section.type, id: section.id, starterCode: section.code,
                 question: section.questionHtml, options: section.options,
-                compositeId: section.compositeId, done: false, selectedIds: []
+                done: false, selectedIds: []
             };
         } else if( section.type == 'live-code') {
             return { type: section.type, id: section.id,
-                compositeId: section.compositeId,
                 starterCode: section.code};
         } else if( section.type == 'testless-coding-question') {
             return { type: section.type, id: section.id,
-                compositeId: section.compositeId, starterCode: section.code || '',
+                starterCode: section.code || '',
                 done: false, question: section.questionHtml};
         } else if( section.type == 'coding-question') {
             return {
                 type: section.type, id: section.id,
-                compositeId: section.compositeId, done: false,
+                done: false,
                 starterCode: section.code || '',
                 question: section.questionHtml,
                 referenceSolution: section.solutionHtml,
@@ -60,18 +53,18 @@ function makePresentableTopic(p, topic, userId) {
         } else if( section.type == 'categorization-question') {
             return {
                 type: section.type, id: section.id,
-                compositeId: section.compositeId, done: false,
+                done: false,
                 question: section.questionHtml, starterCode: section.code,
                 categories: section.categories, challenges: _.keys(section.mappings)
             }
         } else if( section.type == 'qualitative-question') {
             return {
-                type: section.type, id: section.id, compositeId: section.compositeId,
+                type: section.type, id: section.id,
                 done: false, question: section.questionHtml
             }
         } else if( section.type == 'fill-in-the-blank-question') {
             return {
-                type: section.type, id: section.id, compositeId: section.compositeId,
+                type: section.type, id: section.id,
                 done: false, question: section.questionHtml, starterCode: section.code,
                 labels: section.blanks.map( (blank, index) => blank.label)
             }
@@ -85,51 +78,40 @@ function makePresentableTopic(p, topic, userId) {
 
 
 function getExerciseIds( topic) {
-    const compositeIds = [];
+    const exerciseIds = [];
     for( const section of topic.sections) {
-        if( section.type == 'multiple-choice-question' ||
-            section.type == 'coding-question' ||
-            section.type == 'categorization-question' ||
-            section.type == 'qualitative-question' ||
-            section.type == 'fill-in-the-blank-question' ||
-            section.type == 'testless-coding-question') { 
-            compositeIds.push( section.compositeId);
+        if( cms.isExercise(section)) { 
+                exerciseIds.push( section.id);
         }
     }
 
-    return compositeIds;
+    return exerciseIds;
 }
 
 
 function getPlaygroundIds( topic) {
-    const compositeIds = [];
-    topic.sections.map( (section, index) => {
-        //if( section.type == 'live-code' || section.type == 'coding-question' 
-        //        || section.type == 'testless-coding-question' || section.starterCode) { 
-        //    compositeIds.push( section.compositeId);
-        //}
-        if( section.compositeId) compositeIds.push(section.compositeId);
-    });
+    const plagroundIds = [];
+    for( const section of topic.sections) {
+        if( cms.canHaveCodePlayground(section)) { 
+            plagroundIds.push( section.id);
+        }
+    }
 
-    return compositeIds;
-}
-
-function hasExercises( topic) {
-    return getExerciseIds(topic).length > 0;
+    return plagroundIds;
 }
 
 
 async function addUserStateToTopic( p, presentableTopic, userId) {
-    let compositeIds = getExerciseIds( presentableTopic);
+    let exerciseIds = getExerciseIds( presentableTopic);
 
-    const ehobjs = await models.getExerciseHistory( userId, compositeIds);
+    const ehobjs = await models.getExerciseHistory( userId, exerciseIds);
 
     for( const section of presentableTopic.sections) {
-        if( !ehobjs[section.compositeId]) {
+        if( !ehobjs[section.id]) {
             continue; 
         }
 
-        const eh = ehobjs[section.compositeId];
+        const eh = ehobjs[section.id];
 
         section.done = true;
         if( section.type == 'multiple-choice-question') {
@@ -147,12 +129,12 @@ async function addUserStateToTopic( p, presentableTopic, userId) {
         }
     }
 
-    compositeIds = getPlaygroundIds( presentableTopic);
-    const playgroundData = await models.getPlaygroundData( userId, compositeIds);
+    const playgroundIds = getPlaygroundIds( presentableTopic);
+    const playgroundData = await models.getPlaygroundData( userId, playgroundIds);
 
     presentableTopic.sections.map((section, index) => {
-        if( playgroundData[ section.compositeId]) {
-            section.userCode = playgroundData[ section.compositeId].code;
+        if( playgroundData[ section.id]) {
+            section.userCode = playgroundData[ section.id].code;
         }
     });
 }
@@ -172,81 +154,31 @@ async function addUserStateToPackage( p, userId) {
 }
 
 
-async function populateUserQueue( userId, packageSummaryDict) {
-    const packageIds = await models.getQueuedPackages(userId);
-    const packageSummaryList = [];
-    for( const packageId of packageIds) {
-        if( packageSummaryDict[packageId]) {
-            packageSummaryDict[packageId].meta.queued = true;
-            packageSummaryList.push( packageSummaryDict[ packageId]);
-        }
-    }
-
-    return packageSummaryList;
-}
-
-
-async function getQueuedPackages( userId) {
-    const packageSummaryDict = await cms.getAllLivePackageSummary();
-    const packageSummaryList = await populateUserQueue( userId, packageSummaryDict);
-    const packageIds = packageSummaryList.map( (p, index) => { return p.meta.code; });
-
-    const phObjs = await models.getPackageHistory( userId, packageIds);
-    packageSummaryList.map( (p, index) => {
-        if( phObjs[ p.meta.code]) p.meta.done = true;
-    })
-    
-    return _.sortBy( packageSummaryList, [function(p) { return p.meta.done ? 1 : 0; }]);
-}
-
-
-packagesApp.use( router.get( '/packages/:packageCode/assets/:level1', 
-        async function( ctx, packageCode, level1) {
-    await send( ctx, `${packageCode}/assets/${level1}`, {root: config.get('pi_home')});
-}));
-
-packagesApp.use( router.get( '/packages/:packageCode/assets/:level1/:level2', 
-        async function( ctx, packageCode, level1, level2) {
-    await send( ctx, `${packageCode}/assets/${level1}/${level2}`, {root: config.get('pi_home')});
-}));
-
-packagesApp.use( router.get( '/packages/:packageCode/assets/:level1/:level2/:level3', 
-        async function( ctx, packageCode, level1, level2, level3) {
-    await send( ctx, `${packageCode}/assets/${level1}/${level2}/${level3}`, {root: config.get('pi_home')});
-}));
-
-
 packagesApp.use( router.get( '/packages', async function(ctx) {
     const packageSummaryDict = await cms.getAllLivePackageSummary();
     const userId = ctx.state.user ? ctx.state.user.id : null;
-    const username = ctx.state.user ? ctx.state.user.username : null;
+    const username = ctx.state.user ? ctx.state.user.username.toLowerCase() : null;
 
     _.keys( packageSummaryDict).map( (key, i) => {
         const p = packageSummaryDict[ key];
-        if( p.meta.status == 'draft' && p.meta.author != username) {
+        if( p.meta.status == 'draft' && username != "manasgarg" && username != "vaishaligarg") {
             delete( packageSummaryDict[ key]);
         }
     });
 
-    if( userId) {
-        await populateUserQueue(userId, packageSummaryDict);
-    }
-
     const packageSummaryList = _.values(packageSummaryDict);
     
-    const packageListHtml = ReactDOMServer.renderToString(
-        <PackageSummaryList packageList={packageSummaryList} userId={userId} />
-    );
+    const packageListHtml = '';
 
     await ctx.render('packages', {packageSummaryList, packageListHtml}, {packageSummaryList, userId});
 }));
 
 
-packagesApp.use( router.post( '/@:author/:packageCode/add-to-queue', 
-        async function(ctx, author, packageCode) {
+packagesApp.use( router.post( '/@:packageCode/add-to-queue', 
+        async function(ctx, packageCode) {
     if( !ensureUser( ctx)) { return; }
 
-    const pirep = cms.getLivePackageInfo( author, packageCode);
+    const pirep = cms.getLivePackageInfo( packageCode);
 
     if( !pirep) {
         ctx.status = 404;
@@ -260,11 +192,11 @@ packagesApp.use( router.post( '/@:author/:packageCode/add-to-queue',
 }));
 
 
-packagesApp.use( router.post( '/@:author/:packageCode/remove-from-queue', 
-        async function(ctx, author, packageCode) {
+packagesApp.use( router.post( '/@:packageCode/remove-from-queue', 
+        async function(ctx, packageCode) {
     if( !ensureUser( ctx)) { return; }
 
-    const pirep = cms.getLivePackageInfo( author, packageCode);
+    const pirep = cms.getLivePackageInfo( packageCode);
 
     if( !pirep) {
         ctx.status = 404;
@@ -278,26 +210,26 @@ packagesApp.use( router.post( '/@:author/:packageCode/remove-from-queue',
 }));
 
 
-packagesApp.use( router.get( '/@:author/:packageCode', async function( ctx, author, packageCode) {
-    const p = cms.getLivePackage( author, packageCode);
+packagesApp.use( router.get( '/@:packageCode', async function( ctx, packageCode) {
+    const p = cms.getLivePackage( packageCode);
     if( !p) {
         ctx.status = 404;
         return;
     }
 
-    ctx.redirect(`/@${author}/${packageCode}/${p.topics[0].meta.code}`);
+    ctx.redirect(`/@${packageCode}/${p.topics[0].meta.code}`);
 }));
 
 
-packagesApp.use( router.get( '/@:author/:packageCode/:topicCode', 
-        async function( ctx, author, packageCode, topicCode) {
+packagesApp.use( router.get( '/@:packageCode/:topicCode', 
+        async function( ctx, packageCode, topicCode) {
     
     const userId = ctx.state.user ? ctx.state.user.id : null;
-    const p = cms.getLivePackage( author, packageCode);
+    const p = cms.getLivePackage( packageCode);
     if( !p) { ctx.status = 404; return; }
 
     let topicIndex = _.findIndex(p.topics, { meta: {code: topicCode}});
-    if( topicIndex < 0) { ctx.redirect(`/@${author}/${packageCode}`); return; }
+    if( topicIndex < 0) { ctx.redirect(`/@${packageCode}`); return; }
     
     const presentableTopic = makePresentableTopic(p, p.topics[topicIndex], userId);
 
@@ -321,18 +253,6 @@ packagesApp.use( router.get( '/@:author/:packageCode/:topicCode',
 }));
 
 
-packagesApp.use( router.get('/study-queue', async function( ctx) { 
-    if( !ensureUser( ctx)) { return; }
-
-    const packageSummaryList = await getQueuedPackages( ctx.state.user.id);
-    const packageListHtml = ReactDOMServer.renderToString(
-        <PackageSummaryList packageList={packageSummaryList} />
-    );
-
-    await ctx.render( 'study-queue', {packageSummaryList, packageListHtml}, {packageSummaryList});
-}));
-
-
 async function markDoneTopicAsDone( userId, topic, p) {
     const th = await models.getTopicHistory( userId, [topic.meta.compositeId]);
     if( th[topic.meta.compositeId]) {
@@ -340,12 +260,12 @@ async function markDoneTopicAsDone( userId, topic, p) {
         return;
     }
 
-    const compositeIds = getExerciseIds( topic);
+    const exerciseIds = getExerciseIds( topic);
 
-    if( compositeIds.length) {
-        const eh = await models.getExerciseHistory( userId, compositeIds);
-        for( const compositeId of compositeIds) {
-            if( !eh[compositeId]) {
+    if( exerciseIds.length) {
+        const eh = await models.getExerciseHistory( userId, exerciseIds);
+        for( const id of exerciseIds) {
+            if( !eh[id]) {
                 return;
             }
         }
@@ -368,19 +288,11 @@ async function markDonePackageAsDone( userId, p) {
 }
 
 
-packagesApp.use( router.post( '/exercise/:compositeId/solution', async function( ctx, compositeId) {
+packagesApp.use( router.post( '/exercise/:exerciseId/solution', async function( ctx, exerciseId) {
     if( !ensureUser( ctx)) { return; }
 
-    const [author, packageCode, topicCode, ...rest] = compositeId.split('::');
-    const exerciseId = rest.join('::');
+    const [p, topic, exercise] = cms.getSectionLineageById( exerciseId);
 
-    const p = await cms.getLivePackage( author, packageCode);
-    if( !p) { ctx.status = 404; ctx.body = 'package not found.'; return; }
-
-    const topic = _.find(p.topics, { meta: {code: topicCode}});
-    if( !topic) { ctx.status = 404; ctx.body = 'topic not found.'; return; }
-
-    const exercise = _.find(topic.sections, {id: exerciseId});
     if( !exercise) { ctx.status = 404; ctx.body = 'exercise not found.'; return; }
 
     if( exercise.type == 'multiple-choice-question') {
@@ -388,14 +300,13 @@ packagesApp.use( router.post( '/exercise/:compositeId/solution', async function(
         const correctIds = exercise.correctIds;
         const solutionIsCorrect = _.isEqual( selectedIds.sort(), correctIds.sort());
         if( solutionIsCorrect) {
-            await models.saveExerciseHistory(ctx.state.user.id, compositeId, {selectedIds});
+            await models.saveExerciseHistory(ctx.state.user.id, exerciseId, {selectedIds});
         }
 
         ctx.body = JSON.stringify({solutionIsCorrect, correctIds});
     } else if( exercise.type == 'coding-question') {
         const inSessionId = ctx.request.body.sessionId;
         const code = ctx.request.body.code;
-        const executionId = ctx.request.body.executionId;
         const playgroundId = ctx.request.body.playgroundId;
 
         await models.savePlaygroundCode( ctx.state.user.id, playgroundId, code);
@@ -405,13 +316,11 @@ packagesApp.use( router.post( '/exercise/:compositeId/solution', async function(
             codeExecutor = CodeExecutor.getById(inSessionId); 
         } else { 
             codeExecutor = CodeExecutor.get(); 
-            const dir = `/home/jupyter/content/live/${author}/${packageCode}`;
+            const dir = `/home/jupyter/content/live/packages/${p.meta.code}`;
             await codeExecutor.execute(`import os\nos.chdir('${dir}')\n`);
         }
 
         const {output, hasError, testResults} = await codeExecutor.execute(code, exercise.tests);
-
-        //const {sessionId, output, hasError, testResults} = await plutoid.executeCodeRequest( playgroundId, inSessionId, executionId, code, exercise.tests);
 
         let hasFailedTest = false;
         for( const test of testResults) {
@@ -421,7 +330,7 @@ packagesApp.use( router.post( '/exercise/:compositeId/solution', async function(
 
         const solutionIsCorrect = !hasFailedTest && !hasError;
         if( solutionIsCorrect) {
-            await models.saveExerciseHistory( ctx.state.user.id, compositeId, {code});
+            await models.saveExerciseHistory( ctx.state.user.id, exerciseId, {code});
         }
 
         ctx.body = JSON.stringify({output, sessionId: codeExecutor.id, testResults, hasError, 
@@ -438,19 +347,19 @@ packagesApp.use( router.post( '/exercise/:compositeId/solution', async function(
         });
 
         if( solutionIsCorrect) {
-            await models.saveExerciseHistory( ctx.state.user.id, compositeId, {selectedCategories});
+            await models.saveExerciseHistory( ctx.state.user.id, exerciseId, {selectedCategories});
         }
         ctx.body = JSON.stringify({solutionIsCorrect, correctCategories});
     } else if( exercise.type == 'qualitative-question') {
         const answer = ctx.request.body.answer;
 
-        await models.saveExerciseHistory( ctx.state.user.id, compositeId, {answer});
+        await models.saveExerciseHistory( ctx.state.user.id, exerciseId, {answer});
 
         ctx.body = JSON.stringify({});
     } else if( exercise.type == 'testless-coding-question') {
         const code = ctx.request.body.code;
 
-        await models.saveExerciseHistory( ctx.state.user.id, compositeId, {code});
+        await models.saveExerciseHistory( ctx.state.user.id, exerciseId, {code});
 
         ctx.body = JSON.stringify({});
     } else if( exercise.type == 'fill-in-the-blank-question') {
@@ -469,7 +378,7 @@ packagesApp.use( router.post( '/exercise/:compositeId/solution', async function(
         }
 
         if( solutionIsCorrect) {
-            await models.saveExerciseHistory( ctx.state.user.id, compositeId, {answers});
+            await models.saveExerciseHistory( ctx.state.user.id, exerciseId, {answers});
         }
 
         ctx.body = JSON.stringify({solutionIsCorrect, corrections});

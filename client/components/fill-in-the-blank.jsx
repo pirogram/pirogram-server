@@ -16,7 +16,7 @@ export default class FillInTheBlankQuestion extends React.Component {
     }
 
     onExecute( code) {
-        dispatch( 'CODE_EXECUTION_REQUEST', {code, playgroundId: this.props.compositeId});
+        dispatch( 'CODE_EXECUTION_REQUEST', {code, playgroundId: this.props.id});
     }
 
     render() {
@@ -36,7 +36,7 @@ export default class FillInTheBlankQuestion extends React.Component {
 
                 {this.state.starterCode ? 
                     <div className='practise-area'>
-                        <CodePlayground id={this.state.compositeId} userCode={this.state.userCode} 
+                        <CodePlayground id={this.state.id} userCode={this.state.userCode} 
                         starterCode={this.state.starterCode} 
                         chained={false} executeCmd={this.onExecute}/>
                     </div> : null}
@@ -77,7 +77,6 @@ export default class FillInTheBlankQuestion extends React.Component {
 
 FillInTheBlankQuestion.propTypes = {
     id: PropTypes.string.isRequired,
-    compositeId: PropTypes.string.isRequired,
     question: PropTypes.string.isRequired,
     starterCode: PropTypes.string,
     userCode: PropTypes.string,
@@ -111,7 +110,7 @@ class FillInTheBlankQuestionState extends ComponentNuxState {
 
         const self = this;
 
-        axios.post('/exercise/' + self.state.compositeId + '/solution', 
+        axios.post('/exercise/' + self.state.id + '/solution', 
             {answers: this.state.answers})
         .then(function(response) {
             const solutionIsCorrect = response.data.solutionIsCorrect;

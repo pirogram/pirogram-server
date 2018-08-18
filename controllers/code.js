@@ -3,8 +3,8 @@
 const Koa = require('koa');
 const router = require( 'koa-route');
 const models = require('../models');
-const plutoid = require('../lib/plutoid');
 const {CodeExecutor} = require('../lib/code-executor');
+const cms = require('../lib/cms');
 
 const codeApp = new Koa();
 
@@ -18,14 +18,13 @@ codeApp.use( router.post( '/code-requests', async function( ctx) {
 
     await models.savePlaygroundCode( ctx.state.user.id, playgroundId, code);
 
-    //const {sessionId, output, inputRequired, testResults} = await plutoid.executeCodeRequest( playgroundId, inSessionId, executionId, code);
     var codeExecutor = null;
     if( inSessionId) { 
         codeExecutor = CodeExecutor.getById(inSessionId); 
     } else { 
         codeExecutor = CodeExecutor.get(); 
-        const [author, moduleCode, ...rest] = playgroundId.split('::');
-        const dir = `/home/jupyter/content/live/${author}/${moduleCode}`;
+        const [p, topic, exercise] = cms.getSectionLineageById( playgroundId);
+        const dir = `/home/jupyter/content/live/packages/${p.meta.code}`;
         await codeExecutor.execute(`import os\nos.chdir('${dir}')\n`);
     }
     

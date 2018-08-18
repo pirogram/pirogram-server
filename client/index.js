@@ -3,7 +3,6 @@ import {render} from 'react-dom';
 import Header from './components/header.jsx';
 import Topic from './components/topic.jsx';
 import {initCodeExecutor} from './code-exec';
-import ModuleSummaryList from './components/package-summary-list.jsx';
 
 initCodeExecutor();
 
@@ -15,11 +14,4 @@ if( window.initialStore.topic) {
             m={window.initialStore.m} topic={window.initialStore.topic}/>,
         document.getElementById('topic-content')
     );
-}
-
-if( window.initialStore.packageList) {
-    render(
-        <ModuleSummaryList packageList={window.initialStore.packageList} userId={window.initialStore.userId}/>,
-        document.getElementById('react-app-package-list')
-    )
 }

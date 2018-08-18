@@ -74,7 +74,7 @@ function execute( data) {
         reqdata.sessionId = sessionId;
     }
     
-    const url = data.route == 'exercise' ? `/exercise/${data.compositeId}/solution` : '/code-requests';
+    const url = data.route == 'exercise' ? `/exercise/${data.playgroundId}/solution` : '/code-requests';
 
     axios.post(url, reqdata)
     .then((response) => {

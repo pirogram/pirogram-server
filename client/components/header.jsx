@@ -34,9 +34,6 @@ export default class Header extends React.Component {
                 <Menu text size="small">
                     <Menu.Item href="/" className="logo"><Image className="logo" src="/static/img/pirogram-logo.png"></Image></Menu.Item>
                     <Menu text size="small" className="right">
-                        <Menu.Item href="/packages">Packages</Menu.Item>
-                        {this.props.user && this.props.user.superuser ?
-                            <Menu.Item href="/modules">Modules</Menu.Item> : null}
                         {auth}
                     </Menu>
                 </Menu>

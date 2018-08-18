@@ -21,7 +21,7 @@ export default class TestlessCodingProblem extends React.Component {
     }
 
     onExecute( code) {
-        dispatch( 'CODE_EXECUTION_REQUEST', {code, playgroundId: this.props.compositeId, 
+        dispatch( 'CODE_EXECUTION_REQUEST', {code, playgroundId: this.props.id, 
             chained: this.props.chained});
         
         this.state.answer = code;
@@ -43,7 +43,7 @@ export default class TestlessCodingProblem extends React.Component {
                 {Parser(this.state.question)}
 
                 <div className='practise-area'>
-                    <CodePlayground id={this.props.compositeId} userCode={this.props.userCode} 
+                    <CodePlayground id={this.props.id} userCode={this.props.userCode} 
                         starterCode={this.props.starterCode} userId={this.props.userId}
                         chained={this.props.chained} executeCmd={this.onExecute}/>
                 </div>
@@ -69,7 +69,6 @@ export default class TestlessCodingProblem extends React.Component {
 
 TestlessCodingProblem.propTypes = {
     id: PropTypes.string.isRequired,
-    compositeId: PropTypes.string.isRequired,
     question: PropTypes.string.isRequired,
     done: PropTypes.bool,
     chained: PropTypes.bool,
@@ -91,7 +90,7 @@ class TestlessCodingProblemState extends ComponentNuxState {
 
         const self = this;
 
-        axios.post('/exercise/' + self.state.compositeId + '/solution', 
+        axios.post('/exercise/' + self.state.id + '/solution', 
             {code: this.state.answer})
         .then(function(response) {
             self.state = Object.assign({}, self.state, {checkingAnswer: false, done: true});
@@ -110,7 +109,7 @@ class TestlessCodingProblemState extends ComponentNuxState {
     }
 
     onEditorContentChange(data) {
-        if( data.editorId != this.state.compositeId) { return; }
+        if( data.editorId != this.state.id) { return; }
         
         this.setState(Object.assign({}, this.state, {userCode: data.content}));
     }

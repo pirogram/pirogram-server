@@ -17,7 +17,7 @@ export default class MultipleChoice extends React.Component {
     }
 
     onExecute( code) {
-        dispatch( 'CODE_EXECUTION_REQUEST', {code, playgroundId: this.props.compositeId});
+        dispatch( 'CODE_EXECUTION_REQUEST', {code, playgroundId: this.props.id});
     }
 
     render() {
@@ -37,7 +37,7 @@ export default class MultipleChoice extends React.Component {
 
                 {this.state.starterCode ? 
                     <div className='practise-area'>
-                        <CodePlayground id={this.state.compositeId} userCode={this.state.userCode} 
+                        <CodePlayground id={this.state.id} userCode={this.state.userCode} 
                         starterCode={this.state.starterCode} 
                         chained={false} executeCmd={this.onExecute}/>
                     </div> : null}
@@ -76,7 +76,6 @@ export default class MultipleChoice extends React.Component {
 
 MultipleChoice.propTypes = {
     id: PropTypes.string.isRequired,
-    compositeId: PropTypes.string.isRequired,
     question: PropTypes.string.isRequired,
     done: PropTypes.bool,
     options: PropTypes.arrayOf( PropTypes.shape({
@@ -111,7 +110,7 @@ class MultipleChoiceState extends ComponentNuxState {
 
         const self = this;
 
-        axios.post('/exercise/' + self.state.compositeId + '/solution', {selectedIds: this.state.selectedIds})
+        axios.post('/exercise/' + self.state.id + '/solution', {selectedIds: this.state.selectedIds})
         .then(function(response) {
             const solutionIsCorrect = response.data.solutionIsCorrect;
             self.state = Object.assign({}, self.state, {checkingAnswer: false, done: solutionIsCorrect});
@@ -150,7 +149,7 @@ class MultipleChoiceState extends ComponentNuxState {
     }
 
     onEditorContentChange(data) {
-        if( data.editorId != this.state.compositeId) { return; }
+        if( data.editorId != this.state.id) { return; }
         
         this.setState(Object.assign({}, this.state, {userCode: data.content}));
     }

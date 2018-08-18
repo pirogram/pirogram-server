@@ -2,8 +2,6 @@
 
 const Koa = require( 'koa');
 const router = require( 'koa-route');
-const models = require( '../models');
-const subprocess = require( '../lib/subprocess');
 const cms = require('../lib/cms');
 const config = require( 'config');
 const _ = require( 'lodash');
@@ -11,12 +9,8 @@ const _ = require( 'lodash');
 const miscApp = new Koa();
 
 const index = async function( ctx) {
-    if( ctx.state.user) {
-        ctx.redirect('/packages');
-        return;
-    } else {
-        await ctx.render( 'index')
-    }
+    const packageDisplayList = cms.getPackageDisplayList();
+    await ctx.render( 'index', {packageDisplayList});
 };
 
 const privacy = async function( ctx) {
@@ -31,15 +25,8 @@ const terms_of_service = async function( ctx) {
     await ctx.render( 'terms-of-service')
 };
 
-const regexMatch = async function( ctx) {
-    const {stdout, stderr} = await subprocess.exec( 'python3',
-        ['py-scripts/regexutils.py'], {}, JSON.stringify( ctx.request.body));
-
-    ctx.body = stdout;
-};
 
 miscApp.use( router.get( '/', index));
-miscApp.use( router.post( '/regex-match', regexMatch));
 miscApp.use( router.get( '/privacy', privacy));
 miscApp.use( router.get( '/about', about));
 miscApp.use( router.get( '/terms-of-service', terms_of_service));
@@ -56,7 +43,7 @@ miscApp.use( router.get( '/sitemap.xml', async function(ctx) {
 
     _.values( packageSummaryDict).map( (p, i) => {
         p.topics.map( (topic, j) => {
-            body.push( `<url><loc>${urlBase}/@${p.meta.author}/${p.meta.code}/${topic.meta.code}</loc></url>`);
+            body.push( `<url><loc>${urlBase}/@${p.meta.code}/${topic.meta.code}</loc></url>`);
         })
     });
 
