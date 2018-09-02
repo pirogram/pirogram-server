@@ -369,9 +369,10 @@ packagesApp.use( router.post( '/exercise/:exerciseId/solution', async function( 
         let solutionIsCorrect = true;
         for( const blank of exercise.blanks) {
             const label = blank.label;
-            const userAnswer = answers[label];
+            const userAnswer = answers[label] ? answers[label].trim() : '';
+            const blankRegex = new RegExp(blank.answer);
 
-            if( !userAnswer || userAnswer.trim().toLowerCase() != blank.answer.toLowerCase()) {
+            if( !userAnswer || !userAnswer.match(blankRegex)) {
                 corrections[label] = blank.answer;
                 solutionIsCorrect = false;
             }

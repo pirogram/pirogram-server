@@ -58,7 +58,7 @@ export default class FillInTheBlankQuestion extends React.Component {
                                             onChange={(e, data) => {
                                                 dispatch('FILL_IN_THE_BLANK_VALUE_CHANGE', {exerciseId: this.state.id, label, answer: data.value});
                                             }}/>
-                                        {this.state.showHint ? 
+                                        {this.state.showHint && this.state.corrections[label] ? 
                                             <Label pointing='above' basic color='red'>
                                                 {this.state.corrections[label]}</Label> : null}
                                     </Form.Field>

@@ -1,1 +1,1 @@
-module.exports = {client_bundle_hash: "cf52e0ea0490e811b2bc4514daea7bc7ee9327e6"};
+module.exports = {client_bundle_hash: "cc21c0ac95ad10ae56e547eeff5330a725b417bb"};

@@ -213,6 +213,7 @@ h1 span.toolbar a.action, h2 span.toolbar a.action, h3 span.toolbar a.action, h4
 
 .toc .ui.menu .item {
     font-size: 0.9em;
+    line-height: 1.2;
 }
 
 .toc .ui.vertical.menu {
