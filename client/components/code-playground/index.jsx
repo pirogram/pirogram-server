@@ -5,7 +5,7 @@ import CodeOutput from './code-output.jsx';
 import CodeInput from './code-input.jsx';
 import CodeTests from './code-tests.jsx';
 import CodeStatus from './code-status.jsx';
-import {ComponentNuxState, dispatch} from '../../nux.js';
+import {ComponentNuxState} from '../../nux.js';
 
 export default class CodePlayground extends React.Component {
     constructor( props) {
@@ -42,8 +42,15 @@ class CodePlaygroundState extends ComponentNuxState {
     constructor(component) {
         super( component);
         this.state = Object.assign({}, this.state, {output: [], loading: false,
-            code: this.state.userCode ? this.state.userCode : this.state.starterCode,
             status: null, needInput: false});
+
+        try {
+            if( window && window.localStorage) {
+                this.state.storedCode = window.localStorage.getItem(`editor-${this.state.id}`);
+            }
+        } catch(e) {}
+
+        this.state.code = this.state.storedCode || this.state.userCode || this.state.starterCode;
     }
 
     onCodeExecutionSuccess( data) {
@@ -54,6 +61,13 @@ class CodePlaygroundState extends ComponentNuxState {
         if(!data.hasError) {
             newState.tests = data.testResults;
         }
+
+        try {
+            if( window && window.localStorage) {
+                window.localStorage.removeItem(`editor-${data.playgroundId}`);
+                newState.storedCode = null;
+            }
+        } catch(e) {}
 
         this.setState(newState);
     }
@@ -113,5 +127,21 @@ class CodePlaygroundState extends ComponentNuxState {
         if( data.playgroundId != this.state.id) { return; }
 
         this.setState(Object.assign({}, this.state, {status: 'require-login', loading: false}));
+    }
+
+    onEditorContentChange(data) {
+        if( data.editorId != this.state.id
+            || data.content == this.state.storedCode
+            || data.content == this.state.userCode
+            || data.content == this.state.starterCode) return;
+
+        try {
+            if( window && window.localStorage) {
+                window.localStorage.setItem(`editor-${data.editorId}`, data.content);
+                this.state.storedCode = data.content;
+                this.state.code = data.content;
+                this.updateState();
+            }
+        } catch(e) {}
     }
 }

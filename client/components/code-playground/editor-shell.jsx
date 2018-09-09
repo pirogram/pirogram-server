@@ -2,7 +2,6 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import MonacoEditor from 'react-monaco-editor';
 import uuid from 'uuid/v4';
-import {Icon} from 'semantic-ui-react';
 import {dispatch} from '../../nux.js';
 
 export default class Editor extends React.Component {

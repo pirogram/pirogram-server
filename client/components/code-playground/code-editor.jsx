@@ -43,5 +43,6 @@ CodeEditor.PropTypes = {
     id: PropTypes.string.isRequired,
     code: PropTypes.string.isRequired,
     executeCmd: PropTypes.func.isRequired,
+    userCode: PropTypes.string,
     starterCode: PropTypes.string
 }
