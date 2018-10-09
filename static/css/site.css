@@ -76,6 +76,10 @@
     background-color: #f1f5fb;
 }
 
+.monaco-editor .margin-view-overlays .line-numbers {
+    color: #d88947;
+}
+
 .code-playground {
     margin: 1em 0;
     position: relative;

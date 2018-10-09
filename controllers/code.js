@@ -25,7 +25,7 @@ codeApp.use( router.post( '/code-requests', async function( ctx) {
         codeExecutor = CodeExecutor.get(); 
         const [p, topic, exercise] = cms.getSectionLineageById( playgroundId);
         const dir = `/home/jupyter/content/live/packages/${p.meta.code}`;
-        await codeExecutor.execute(`import os\nos.chdir('${dir}')\n`);
+        await codeExecutor.execute(`import os\nos.chdir('${dir}')\nimport matplotlib.pyplot\n`);
     }
     
     const {output, hasError, needInput} = await codeExecutor.execute(code);

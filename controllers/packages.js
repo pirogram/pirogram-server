@@ -317,7 +317,7 @@ packagesApp.use( router.post( '/exercise/:exerciseId/solution', async function( 
         } else { 
             codeExecutor = CodeExecutor.get(); 
             const dir = `/home/jupyter/content/live/packages/${p.meta.code}`;
-            await codeExecutor.execute(`import os\nos.chdir('${dir}')\n`);
+            await codeExecutor.execute(`import os\nos.chdir('${dir}')\nimport matplotlib.pyplot\n`);
         }
 
         const {output, hasError, testResults} = await codeExecutor.execute(code, exercise.tests);
