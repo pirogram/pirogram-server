@@ -9,8 +9,10 @@ const _ = require( 'lodash');
 const miscApp = new Koa();
 
 const index = async function( ctx) {
-    const packageDisplayList = cms.getPackageDisplayList();
-    await ctx.render( 'index', {packageDisplayList});
+    //const packageDisplayList = cms.getPackageDisplayList();
+    //await ctx.render( 'index', {packageDisplayList});
+    const books = cms.getBooksList();
+    await ctx.render('home', {books});
 };
 
 const privacy = async function( ctx) {

@@ -217,9 +217,10 @@ h1 span.toolbar a.action, h2 span.toolbar a.action, h3 span.toolbar a.action, h4
     font-size: 90%;
 }
 
-.toc .ui.menu .item {
+.toc .ui.secondary.vertical.pointing.menu .item {
     font-size: 0.9em;
-    line-height: 1.2;
+    line-height: 1.5;
+    padding: 0.6em 1.125em;
 }
 
 .toc .ui.vertical.menu {

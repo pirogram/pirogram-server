@@ -389,4 +389,13 @@ packagesApp.use( router.post( '/exercise/:exerciseId/solution', async function( 
 }));
 
 
+packagesApp.use( router.get( '/book/:bookCode', async function( ctx, bookCode) {
+    const books = cms.getBooksList();
+    const book = _.find(books, {code: bookCode});
+    if( !book) { ctx.status = 404; return; }
+
+    await ctx.render('book', {book});
+}));
+
+
 module.exports = {packagesApp};

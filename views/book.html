@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}{{book.title}}{% endblock %}
+
+{% block bodyclass %}single column{% endblock %}
+
+{% block content %}
+<h1>{{book.title}}</h1>
+{{book.description|markdown}}
+<div class='package tree'>
+    <h2>Table of Contents</h2>
+    <div class="ui list">
+        {% for package in book.packages %}
+            <div class="item">
+                <div class="content">
+                    <div><a class="header" href="/@{{package.meta.code}}">{{package.meta.index}}. &nbsp;{{package.meta.title}}</a></div>
+                    <div class="description">{{package.meta.description|markdown}}</div>
+                    <div class="ui tiny bulleted horizontal list">
+                        <div class="item">{{package.meta.topicCount}} topics</div>
+                        <div class="item">{{package.meta.exampleCount}} code samples</div>
+                        <div class="item">{{package.meta.exerciseCount}} exercises</div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

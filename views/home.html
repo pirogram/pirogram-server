@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Pirogram{% endblock %}
+
+{% block content %}
+
+<div class='ui grid'>
+    <div class='eight wide column'>
+        <div class="hero" style="text-align: center; padding-top: 2em">
+            <h1>Educational CodeBooks</h1>
+            <p style='font-style: italic'>Explore Examples, Solve Problems, Get Feedback.</p>
+            <p>
+                <a class='ui primary button' href='/book/programming-with-python'>Programming with Python &rarr;</a>
+            </p>
+            <p>
+                <a class='ui secondary button' href='/book/data-analysis-with-python'>Data Analysis with Python &rarr;</a>
+            </p>
+        </div>
+    </div>
+
+    <div class='eight wide column'>
+        <div class="ui bordered fluid image">
+            <img src='/static/img/pirogram-screencast.gif'/>
+        </div>
+    </div>
+</div>
+<!-- <p style='text-align:center'><a href='/@learn-about-codebooks'>Learn more about CodeBooks &rarr;</a></p> -->
+
+{% endblock %}
