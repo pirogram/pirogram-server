@@ -63,7 +63,7 @@ class CodePlaygroundState extends ComponentNuxState {
         }
 
         try {
-            if( window && window.localStorage) {
+            if( window && window.localStorage && this.state.id) {
                 window.localStorage.removeItem(`editor-${data.playgroundId}`);
                 newState.storedCode = null;
             }
@@ -130,7 +130,8 @@ class CodePlaygroundState extends ComponentNuxState {
     }
 
     onEditorContentChange(data) {
-        if( data.editorId != this.state.id
+        if( !this.state.id
+            || data.editorId != this.state.id
             || data.content == this.state.storedCode
             || data.content == this.state.userCode
             || data.content == this.state.starterCode) return;

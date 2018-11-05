@@ -16,16 +16,20 @@ codeApp.use( router.post( '/code-requests', async function( ctx) {
     const code = ctx.request.body.code;
     const playgroundId = ctx.request.body.playgroundId;
 
-    await models.savePlaygroundCode( ctx.state.user.id, playgroundId, code);
+    if( playgroundId) {
+        await models.savePlaygroundCode( ctx.state.user.id, playgroundId, code);
+    }
 
     var codeExecutor = null;
     if( inSessionId) { 
         codeExecutor = CodeExecutor.getById(inSessionId); 
     } else { 
-        codeExecutor = CodeExecutor.get(); 
-        const [p, topic, exercise] = cms.getSectionLineageById( playgroundId);
-        const dir = `/home/jupyter/content/live/packages/${p.meta.code}`;
-        await codeExecutor.execute(`import os\nos.chdir('${dir}')\nimport matplotlib.pyplot\n`);
+        codeExecutor = CodeExecutor.get();
+        if( playgroundId) {
+            const [p, topic, exercise] = cms.getSectionLineageById( playgroundId);
+            const dir = `/home/jupyter/content/live/packages/${p.meta.code}`;
+            await codeExecutor.execute(`import os\nos.chdir('${dir}')\nimport matplotlib.pyplot\n`);
+        }
     }
     
     const {output, hasError, needInput} = await codeExecutor.execute(code);

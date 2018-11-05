@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Python Code Playground{% endblock %}
+
+{% block content %}
+<div class='ui grid'>
+    <div class='twelve wide column'>
+        <h1>Python Code Playground</h1>
+        <p>This is a use-and-throw code playground. Type your code and execute it. Nothing will be saved.</p>
+        <div id='general-code-playground'>
+            {{liveCodeHtml|safe}}
+        </div>
+    </div>
+</div>
+{% endblock %}

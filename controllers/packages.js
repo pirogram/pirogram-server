@@ -12,9 +12,11 @@ const models = require( '../models');
 const {logger} = require('../lib/logger');
 const {CodeExecutor} = require('../lib/code-executor');
 const cms = require('../lib/cms');
+const flash = require('../lib/flash');
 import {ensureUser} from '../lib/util';
 
 import Topic from '../client/components/topic.jsx';
+import CodeExplorer from '../client/components/code-explorer';
 const React = require('react');
 const ReactDOMServer = require('react-dom/server');
 
@@ -243,13 +245,27 @@ packagesApp.use( router.get( '/@:packageCode/:topicCode',
     if( topicIndex < p.topics.length - 1) nextTopic = p.topics[topicIndex + 1];
 
     const topicHtml = ReactDOMServer.renderToString(
-        <Topic p={p} topic={presentableTopic} userId={userId}/>
+        <Topic topic={presentableTopic} userId={userId}/>
     );
 
     if( userId) markDoneTopicAsDone( userId, presentableTopic, p);
 
     await ctx.render( 'topic', {p, topic: presentableTopic, topicHtml, nextTopic, prevTopic}, 
         {p, topic: presentableTopic});
+}));
+
+packagesApp.use( router.get( '/playground', async function( ctx){
+    if( !ctx.state.user) {
+        flash.addFlashMessage(ctx.session, 'info', 'Please login to access shell.');
+        ctx.redirect('/login');
+        return;
+    }
+
+    const liveCodeHtml = ReactDOMServer.renderToString(<CodeExplorer id=''
+        userId={ctx.state.user.id} starterCode='# code goes here ...' userCode=''/>
+    );
+
+    await ctx.render('playground', {liveCodeHtml}, {hasGeneralCodePlayground: true});
 }));
 
 
