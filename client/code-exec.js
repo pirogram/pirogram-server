@@ -68,7 +68,8 @@ function workOnQueue() {
 
 function execute( data) {
     const executionId = uuid();
-    const reqdata = {code: data.code, executionId, playgroundId: data.playgroundId};
+    const reqdata = {code: data.code, executionId, playgroundId: data.playgroundId, 
+        viewOnly: data.viewOnly || false};
 
     if( sessionId) {
         reqdata.sessionId = sessionId;

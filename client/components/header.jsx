@@ -36,6 +36,8 @@ export default class Header extends React.Component {
                     <Menu text size="small" className="right">
                         <Menu.Item href='/playground'>playground</Menu.Item>
                         <Menu.Item>|</Menu.Item>
+                        <Menu.Item href='/activities'>activities</Menu.Item>
+                        <Menu.Item>|</Menu.Item>
                         {auth}
                     </Menu>
                 </Menu>

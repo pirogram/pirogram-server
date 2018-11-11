@@ -4,6 +4,7 @@ import Header from './components/header.jsx';
 import Topic from './components/topic.jsx';
 import CodeExplorer from './components/code-explorer.jsx';
 import {initCodeExecutor} from './code-exec';
+import Activities from './components/activities.jsx';
 
 initCodeExecutor();
 
@@ -21,5 +22,10 @@ if( window.initialStore.topic) {
         <CodeExplorer id=''
             userId={window.initialStore.user.id} starterCode={starterCode} userCode=''/>,
         document.getElementById('general-code-playground')
+    );
+} else if( window.initialStore.activities) {
+    render(
+        <Activities activities={window.initialStore.activities}/>,
+        document.getElementById('activities')
     );
 }

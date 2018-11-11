@@ -300,3 +300,19 @@ div.ipython-html {
 .package.tree .ui.horizontal.bulleted.list>.item::before, .package.tree ul.ui.horizontal.bulleted.list li::before {
     color:rgba(0,0,0,.4);
 }
+
+.exercise .ui.label > a {
+    color: #000;
+}
+
+div.ui.segment:target {
+    border: 1px solid #fbad1e;
+}
+
+div.ui.segment:target div.ui.label {
+    background-color: #fbad1e;
+}
+
+.activities .ui.feed>.event>.content .extra.text {
+    max-width: 100%;
+}

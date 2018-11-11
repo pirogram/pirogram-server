@@ -11,6 +11,7 @@ const hljs = require('highlight.js');
 const models = require( '../models');
 const {logger} = require('../lib/logger');
 const {CodeExecutor} = require('../lib/code-executor');
+const contentView = require('../lib/content-view');
 const cms = require('../lib/cms');
 const flash = require('../lib/flash');
 import {ensureUser} from '../lib/util';
@@ -21,125 +22,6 @@ const React = require('react');
 const ReactDOMServer = require('react-dom/server');
 
 const packagesApp = new Koa();
-
-function makePresentableTopic(p, topic, userId) {
-    const presentableTopic = {meta: _.cloneDeep( topic.meta)};
-
-    presentableTopic.sections = topic.sections.map( (section, i) => {
-        if( section.type == 'markdown') {
-            return {type: 'html', html: section.html};
-        } else if( section.type == 'multiple-choice-question') {
-            return {
-                type: section.type, id: section.id, starterCode: section.code,
-                question: section.questionHtml, options: section.options,
-                done: false, selectedIds: []
-            };
-        } else if( section.type == 'live-code') {
-            return { type: section.type, id: section.id,
-                starterCode: section.code};
-        } else if( section.type == 'testless-coding-question') {
-            return { type: section.type, id: section.id,
-                starterCode: section.code || '',
-                done: false, question: section.questionHtml};
-        } else if( section.type == 'coding-question') {
-            return {
-                type: section.type, id: section.id,
-                done: false,
-                starterCode: section.code || '',
-                question: section.questionHtml,
-                referenceSolution: section.solutionHtml,
-                tests: section.testsHtml.map((html, index) => { 
-                    return {content: html}; 
-                })
-            }
-        } else if( section.type == 'categorization-question') {
-            return {
-                type: section.type, id: section.id,
-                done: false,
-                question: section.questionHtml, starterCode: section.code,
-                categories: section.categories, challenges: _.keys(section.mappings)
-            }
-        } else if( section.type == 'qualitative-question') {
-            return {
-                type: section.type, id: section.id,
-                done: false, question: section.questionHtml
-            }
-        } else if( section.type == 'fill-in-the-blank-question') {
-            return {
-                type: section.type, id: section.id,
-                done: false, question: section.questionHtml, starterCode: section.code,
-                labels: section.blanks.map( (blank, index) => blank.label)
-            }
-        } else {
-            return {type: 'html', html: markdownToHtml(`Unsupported section type: ${section.type}`)};
-        }
-    });
-
-    return presentableTopic;
-}
-
-
-function getExerciseIds( topic) {
-    const exerciseIds = [];
-    for( const section of topic.sections) {
-        if( cms.isExercise(section)) { 
-                exerciseIds.push( section.id);
-        }
-    }
-
-    return exerciseIds;
-}
-
-
-function getPlaygroundIds( topic) {
-    const plagroundIds = [];
-    for( const section of topic.sections) {
-        if( cms.canHaveCodePlayground(section)) { 
-            plagroundIds.push( section.id);
-        }
-    }
-
-    return plagroundIds;
-}
-
-
-async function addUserStateToTopic( p, presentableTopic, userId) {
-    let exerciseIds = getExerciseIds( presentableTopic);
-
-    const ehobjs = await models.getExerciseHistory( userId, exerciseIds);
-
-    for( const section of presentableTopic.sections) {
-        if( !ehobjs[section.id]) {
-            continue; 
-        }
-
-        const eh = ehobjs[section.id];
-
-        section.done = true;
-        if( section.type == 'multiple-choice-question') {
-            section.selectedIds = eh.solution.selectedIds;
-        } else if( section.type == 'coding-question') {
-            section.userCode = eh.solution.code || '';
-        } else if( section.type == 'testless-coding-question') {
-            section.userCode = eh.solution.code || '';
-        } else if( section.type == 'categorization-question') {
-            section.selectedCategories = eh.solution.selectedCategories;
-        } else if( section.type == 'qualitative-question') {
-            section.answer = eh.solution.answer;
-        } else if( section.type == 'fill-in-the-blank-question') {
-            section.answers = eh.solution.answers;
-        }
-    }
-
-    const playgroundIds = getPlaygroundIds( presentableTopic);
-    const playgroundData = await models.getPlaygroundData( userId, playgroundIds);
-
-    presentableTopic.sections.map((section, index) => {
-        if( playgroundData[ section.id]) {
-            section.userCode = playgroundData[ section.id].code;
-        }
-    });
-}
 
 
 async function addUserStateToPackage( p, userId) {
@@ -233,10 +115,10 @@ packagesApp.use( router.get( '/@:packageCode/:topicCode',
     let topicIndex = _.findIndex(p.topics, { meta: {code: topicCode}});
     if( topicIndex < 0) { ctx.redirect(`/@${packageCode}`); return; }
     
-    const presentableTopic = makePresentableTopic(p, p.topics[topicIndex], userId);
+    const presentableTopic = contentView.makePresentableTopic(p.topics[topicIndex]);
 
     if( userId) {
-        await addUserStateToTopic( p, presentableTopic, userId);
+        await contentView.addUserStateToTopic( presentableTopic, userId);
         await addUserStateToPackage(p, userId);
     }
 
@@ -276,7 +158,7 @@ async function markDoneTopicAsDone( userId, topic, p) {
         return;
     }
 
-    const exerciseIds = getExerciseIds( topic);
+    const exerciseIds = contentView.getExerciseIds( topic);
 
     if( exerciseIds.length) {
         const eh = await models.getExerciseHistory( userId, exerciseIds);
@@ -324,8 +206,11 @@ packagesApp.use( router.post( '/exercise/:exerciseId/solution', async function( 
         const inSessionId = ctx.request.body.sessionId;
         const code = ctx.request.body.code;
         const playgroundId = ctx.request.body.playgroundId;
+        const viewOnly = ctx.request.body.viewOnly;
 
-        await models.savePlaygroundCode( ctx.state.user.id, playgroundId, code);
+        if( !viewOnly) {
+            await models.savePlaygroundCode( ctx.state.user.id, playgroundId, code);
+        }
 
         var codeExecutor = null;
         if(inSessionId) { 
@@ -345,7 +230,7 @@ packagesApp.use( router.post( '/exercise/:exerciseId/solution', async function( 
         }
 
         const solutionIsCorrect = !hasFailedTest && !hasError;
-        if( solutionIsCorrect) {
+        if( solutionIsCorrect && !viewOnly) {
             await models.saveExerciseHistory( ctx.state.user.id, exerciseId, {code});
         }
 
@@ -374,8 +259,11 @@ packagesApp.use( router.post( '/exercise/:exerciseId/solution', async function( 
         ctx.body = JSON.stringify({});
     } else if( exercise.type == 'testless-coding-question') {
         const code = ctx.request.body.code;
+        const viewOnly = ctx.request.body.viewOnly;
 
-        await models.saveExerciseHistory( ctx.state.user.id, exerciseId, {code});
+        if(!viewOnly) {
+            await models.saveExerciseHistory( ctx.state.user.id, exerciseId, {code});
+        }
 
         ctx.body = JSON.stringify({});
     } else if( exercise.type == 'fill-in-the-blank-question') {

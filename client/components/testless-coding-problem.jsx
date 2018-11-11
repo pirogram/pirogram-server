@@ -22,7 +22,7 @@ export default class TestlessCodingProblem extends React.Component {
 
     onExecute( code) {
         dispatch( 'CODE_EXECUTION_REQUEST', {code, playgroundId: this.props.id, 
-            chained: this.props.chained});
+            chained: this.props.chained, viewOnly: this.props.viewOnly});
         
         this.state.answer = code;
     }
@@ -37,8 +37,10 @@ export default class TestlessCodingProblem extends React.Component {
                 <a className="ui small button" href='/login'>Login to try</a>
         
         return (
-            <Segment>
-                <Label attached='top'><Icon name={this.state.done ? 'checkmark':'wait'} className="exercise status"/>Exercise</Label>
+            <Segment id={this.state.id} className='exercise'>
+                <Label attached='top'>
+                    <a href={'#' + this.state.id}><Icon name={this.state.done ? 'checkmark':'wait'} className="exercise status"/>Exercise {this.state.index}</a>
+                </Label>
 
                 {Parser(this.state.question)}
 
@@ -55,7 +57,10 @@ export default class TestlessCodingProblem extends React.Component {
                     }}>
                     <Form.Group className="grouped fields">
                         <Form.Field className="field">
-                            {submitButton}
+                            {this.state.viewOnly ? '' :
+                                <div className='submit'>
+                                    {submitButton}
+                                </div>}
                         </Form.Field>
                     </Form.Group>
                     {this.state.serverError ? 
@@ -91,7 +96,7 @@ class TestlessCodingProblemState extends ComponentNuxState {
         const self = this;
 
         axios.post('/exercise/' + self.state.id + '/solution', 
-            {code: this.state.answer})
+            {code: this.state.code})
         .then(function(response) {
             self.state = Object.assign({}, self.state, {checkingAnswer: false, done: true});
             self.updateState();

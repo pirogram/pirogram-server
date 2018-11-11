@@ -16,7 +16,7 @@ export default class CodingProblem extends React.Component {
 
     onExecute( code) {
         dispatch( 'CODE_EXECUTION_REQUEST', {code, playgroundId: this.state.id, 
-            route: 'exercise'});
+            route: 'exercise', viewOnly: this.props.viewOnly});
     }
 
     render() {
@@ -37,10 +37,9 @@ export default class CodingProblem extends React.Component {
             <a className="ui small button" href='/login'>Login to try</a>
 
         return(
-            <Segment className='coding-problem'>
+            <Segment id={this.state.id} className='coding-problem exercise'>
                 <Label attached='top'>
-                    <Icon name={this.state.done ? 'checkmark':'wait'} className="exercise status"/>
-                     Coding Problem (Shift+Enter to Execute)
+                    <a href={'#' + this.state.id}><Icon name={this.state.done ? 'checkmark':'wait'} className="exercise status"/>Exercise {this.state.index}</a>
                 </Label>
 
                 {this.state.question ? 
@@ -51,9 +50,10 @@ export default class CodingProblem extends React.Component {
                 <CodePlayground id={this.state.id} starterCode={this.state.starterCode} userCode={this.state.userCode}
                     tests={this.state.tests} executeCmd={this.onExecute}/>
 
-                <div className='submit'>
-                    {submitButton}
-                </div>
+                {this.state.viewOnly ? '' :
+                    <div className='submit'>
+                        {submitButton}
+                    </div>}
             </Segment>
         );
     }
@@ -65,7 +65,8 @@ CodingProblem.PropTypes = {
     starterCode: PropTypes.string.isRequired,
     tests: PropTypes.string.isRequired,
     userCode: PropTypes.string,
-    done: PropTypes.bool
+    done: PropTypes.bool,
+    viewOnly: PropTypes.bool
 };
 
 class CodingProblemState extends ComponentNuxState {

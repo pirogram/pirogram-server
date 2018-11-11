@@ -15,8 +15,9 @@ codeApp.use( router.post( '/code-requests', async function( ctx) {
     const inSessionId = ctx.request.body.sessionId;
     const code = ctx.request.body.code;
     const playgroundId = ctx.request.body.playgroundId;
+    const viewOnly = ctx.request.body.viewOnly;
 
-    if( playgroundId) {
+    if( playgroundId && !viewOnly) {
         await models.savePlaygroundCode( ctx.state.user.id, playgroundId, code);
     }
 

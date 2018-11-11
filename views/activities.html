@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Activities | Pirogram{% endblock %}
+
+{% block content %}
+<h1>Activities</h1>
+<div class='ui grid'>
+    <div class='twelve wide column'>
+        <div id='activities'>{{activitiesHtml|safe}} </div>
+
+        <div class="ui hidden divider"></div>
+        <div class='prev-next'>
+            {% if nextPage %}
+                <a href="/activities?{% if username %}username={{username}}&{% endif %}page={{nextPage}}" class="ui primary tiny right floated button">Next Page &rarr;</a>
+            {% endif %}
+            {% if prevPage %}
+                <a href="/activities?{% if username %}username={{username}}&{% endif %}page={{prevPage}}" class="ui tiny left floated button">&larr; Prev Page</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

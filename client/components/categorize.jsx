@@ -16,7 +16,7 @@ export default class CategorizationQuestion extends React.Component {
     }
 
     onExecute( code) {
-        dispatch( 'CODE_EXECUTION_REQUEST', {code, playgroundId: this.props.id});
+        dispatch( 'CODE_EXECUTION_REQUEST', {code, playgroundId: this.props.id, viewOnly: this.props.viewOnly});
     }
 
     render() {
@@ -33,8 +33,10 @@ export default class CategorizationQuestion extends React.Component {
         });
 
         return (
-            <Segment>
-                <Label attached='top'><Icon name={this.state.done ? 'checkmark':'wait'} className="exercise status"/>Exercise</Label>
+            <Segment id={this.state.id} className='exercise'>
+                <Label attached='top'>
+                    <a href={'#' + this.state.id}><Icon name={this.state.done ? 'checkmark':'wait'} className="exercise status"/>Exercise {this.state.index}</a>
+                </Label>
 
                 {Parser(this.state.question)}
 
@@ -71,7 +73,10 @@ export default class CategorizationQuestion extends React.Component {
                                     </Form.Field>
                         })}
                         <Form.Field className="field">
-                            {submitButton}
+                            {this.state.viewOnly ? '' :
+                                <div className='submit'>
+                                    {submitButton}
+                                </div>}
                         </Form.Field>
                     </Form.Group>
                     {this.state.serverError ? 

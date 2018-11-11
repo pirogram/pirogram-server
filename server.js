@@ -12,12 +12,13 @@ const misc = require( './controllers/misc');
 const packages = require( './controllers/packages');
 const user = require( './controllers/user');
 const code = require( './controllers/code');
+const activity = require( './controllers/activity');
 const bodyParser = require( 'koa-body');
 const reqLogger = require('koa-logger');
 const config = require('config');
 
 const {CodeExecutor} = require('./lib/code-executor');
-CodeExecutor.buildPool();
+//CodeExecutor.buildPool();
 
 const app = new Koa();
 
@@ -36,6 +37,7 @@ app.use( mount( user.userApp));
 app.use( mount( packages.packagesApp));
 app.use( mount( misc.miscApp));
 app.use( mount( code.codeApp));
+app.use( mount( activity.activityApp));
 app.use( mount( '/static', serve( __dirname + '/static')));
 
 app.listen( config.get('server.port'));

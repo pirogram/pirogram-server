@@ -12,19 +12,19 @@
                     <i class='icon {% if p.meta.done %}green checkmark{% else %}wait{% endif %}'></i>{{p.meta.index}}. &nbsp;{{p.meta.title}}
                 </div>
                 {% for t in p.topics %}
-                    <a class='{% if t.meta.code == topic.meta.code %}active {% endif %}item' href='/@{{p.meta.code}}/{{t.meta.code}}'><i class='icon {% if topic.meta.code == t.meta.code %}left arrow{% elif t.meta.done == true %}green checkmark{% else %}wait{% endif %}'></i>{{p.meta.index}}.{{t.meta.index}} &nbsp;{{t.meta.title}}</a>
+                    <a class='{% if t.meta.code == topic.meta.code %}active {% endif %}item' href='/@{{p.meta.code}}/{{t.meta.code}}'><i class='icon {% if topic.meta.code == t.meta.code %}left arrow{% elif t.meta.done == true %}green checkmark{% else %}wait{% endif %}'></i>{{t.meta.index}} &nbsp;{{t.meta.title}}</a>
                 {% endfor %}
             </div>
         </div>
     </div>
     <div class='twelve wide column topic-content'>
-        <h1>{{p.meta.index}}.{{topic.meta.index}} &nbsp;{{topic.meta.title}}</h1>
+        <h1>{{topic.meta.index}} &nbsp;{{topic.meta.title}}</h1>
         <div class="ui mini breadcrumb">
             <a class="section" href='/book/{{p.book.code}}'>{{p.book.title}}</a>
             <i class='right angle icon divider'></i>
             <a class="section" href='/'>{{p.meta.index}}. &nbsp;{{p.meta.title}}</a>
             <i class='right angle icon divider'></i>
-            <div class='section'>{{p.meta.index}}.{{topic.meta.index}} &nbsp;{{topic.meta.title}}</div>
+            <div class='section'>{{topic.meta.index}} &nbsp;{{topic.meta.title}}</div>
         </div>
 
 
