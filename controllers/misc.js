@@ -5,12 +5,11 @@ const router = require( 'koa-route');
 const cms = require('../lib/cms');
 const config = require( 'config');
 const _ = require( 'lodash');
+const { exec } = require('../lib/subprocess');
 
 const miscApp = new Koa();
 
 const index = async function( ctx) {
-    //const packageDisplayList = cms.getPackageDisplayList();
-    //await ctx.render( 'index', {packageDisplayList});
     const books = cms.getBooksList();
     await ctx.render('home', {books});
 };
@@ -27,11 +26,18 @@ const terms_of_service = async function( ctx) {
     await ctx.render( 'terms-of-service')
 };
 
+const refresh_books = async function( ctx) {
+    await exec('/usr/local/bin/refresh-books.sh');
+    ctx.status = 200;
+}
+
 
 miscApp.use( router.get( '/', index));
 miscApp.use( router.get( '/privacy', privacy));
 miscApp.use( router.get( '/about', about));
 miscApp.use( router.get( '/terms-of-service', terms_of_service));
+miscApp.use( router.post('/refresh-books', refresh_books));
+miscApp.use( router.get('/refresh-books', refresh_books));
 
 miscApp.use( router.get( '/sitemap.xml', async function(ctx) {
     ctx.type = 'application/xml';

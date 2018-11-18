@@ -26,11 +26,6 @@ codeApp.use( router.post( '/code-requests', async function( ctx) {
         codeExecutor = CodeExecutor.getById(inSessionId); 
     } else { 
         codeExecutor = CodeExecutor.get();
-        if( playgroundId) {
-            const [p, topic, exercise] = cms.getSectionLineageById( playgroundId);
-            const dir = `/home/jupyter/content/live/packages/${p.meta.code}`;
-            await codeExecutor.execute(`import os\nos.chdir('${dir}')\nimport matplotlib.pyplot\n`);
-        }
     }
     
     const {output, hasError, needInput} = await codeExecutor.execute(code);

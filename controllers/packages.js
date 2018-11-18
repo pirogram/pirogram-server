@@ -38,25 +38,6 @@ async function addUserStateToPackage( p, userId) {
 }
 
 
-packagesApp.use( router.get( '/packages', async function(ctx) {
-    const packageSummaryDict = await cms.getAllLivePackageSummary();
-    const userId = ctx.state.user ? ctx.state.user.id : null;
-    const username = ctx.state.user ? ctx.state.user.username.toLowerCase() : null;
-
-    _.keys( packageSummaryDict).map( (key, i) => {
-        const p = packageSummaryDict[ key];
-        if( p.meta.status == 'draft' && username != "manasgarg" && username != "vaishaligarg") {
-            delete( packageSummaryDict[ key]);
-        }
-    });
-
-    const packageSummaryList = _.values(packageSummaryDict);
-    
-    const packageListHtml = '';
-
-    await ctx.render('packages', {packageSummaryList, packageListHtml}, {packageSummaryList, userId});
-}));
-
 
 packagesApp.use( router.post( '/@:packageCode/add-to-queue', 
         async function(ctx, packageCode) {
@@ -102,6 +83,28 @@ packagesApp.use( router.get( '/@:packageCode', async function( ctx, packageCode)
     }
 
     ctx.redirect(`/@${packageCode}/${p.topics[0].meta.code}`);
+}));
+
+
+packagesApp.use( router.get( '/@:packageCode/assets/:path1', async function(ctx, packageCode, path1) {
+    const p = cms.getLivePackage( packageCode);
+    if( !p) {
+        ctx.status = 404;
+        return;
+    }
+
+    ctx.redirect(`/books/${p.book.code}/assets/${path1}`);
+}));
+
+
+packagesApp.use( router.get( '/@:packageCode/assets/:path1/:path2', async function(ctx, packageCode, path1, path2) {
+    const p = cms.getLivePackage( packageCode);
+    if( !p) {
+        ctx.status = 404;
+        return;
+    }
+
+    ctx.redirect(`/books/${p.book.code}/assets/${path1}/${path2}`);
 }));
 
 
@@ -217,8 +220,6 @@ packagesApp.use( router.post( '/exercise/:exerciseId/solution', async function( 
             codeExecutor = CodeExecutor.getById(inSessionId); 
         } else { 
             codeExecutor = CodeExecutor.get(); 
-            const dir = `/home/jupyter/content/live/packages/${p.meta.code}`;
-            await codeExecutor.execute(`import os\nos.chdir('${dir}')\nimport matplotlib.pyplot\n`);
         }
 
         const {output, hasError, testResults} = await codeExecutor.execute(code, exercise.tests);
