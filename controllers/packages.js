@@ -219,7 +219,7 @@ packagesApp.use( router.post( '/exercise/:exerciseId/solution', async function( 
         if(inSessionId) { 
             codeExecutor = CodeExecutor.getById(inSessionId); 
         } else { 
-            codeExecutor = CodeExecutor.get(); 
+            codeExecutor = await CodeExecutor.get(); 
         }
 
         const {output, hasError, testResults} = await codeExecutor.execute(code, exercise.tests);

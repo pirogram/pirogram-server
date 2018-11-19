@@ -25,7 +25,7 @@ codeApp.use( router.post( '/code-requests', async function( ctx) {
     if( inSessionId) { 
         codeExecutor = CodeExecutor.getById(inSessionId); 
     } else { 
-        codeExecutor = CodeExecutor.get();
+        codeExecutor = await CodeExecutor.get();
     }
     
     const {output, hasError, needInput} = await codeExecutor.execute(code);
