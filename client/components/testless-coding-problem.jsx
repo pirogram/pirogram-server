@@ -96,7 +96,7 @@ class TestlessCodingProblemState extends ComponentNuxState {
         const self = this;
 
         axios.post('/exercise/' + self.state.id + '/solution', 
-            {code: this.state.answer})
+            {code: this.state.userCode})
         .then(function(response) {
             self.state = Object.assign({}, self.state, {checkingAnswer: false, done: true});
             self.updateState();
