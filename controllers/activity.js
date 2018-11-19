@@ -33,7 +33,6 @@ activityApp.use( router.get( '/activities', async function(ctx) {
     }
 
     const {rows} = await models.query(query, params);
-    console.log(rows);
     
     const activities = [];
     for(const row of rows) {
