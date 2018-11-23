@@ -50,7 +50,7 @@ export async function isUsernameAvaialble( username) {
 
 
 export async function createUser( username, email, avatar) {
-    const {rows} = await query('INSERT INTO users (name, username, email, avatar, active) values ($1, $2, $3, $4, "t") RETURNING *', [username, username.toLowerCase(), email, avatar]);
+    const {rows} = await query('INSERT INTO users (name, username, email, avatar, active) values ($1, $2, $3, $4, $5) RETURNING *', [username, username.toLowerCase(), email, avatar, 't']);
     
     return rows[0];
 }

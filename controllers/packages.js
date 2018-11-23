@@ -275,9 +275,8 @@ packagesApp.use( router.post( '/exercise/:exerciseId/solution', async function( 
         for( const blank of exercise.blanks) {
             const label = blank.label;
             const userAnswer = answers[label] ? answers[label].trim() : '';
-            const blankRegex = new RegExp(blank.answer);
 
-            if( !userAnswer || !userAnswer.match(blankRegex)) {
+            if( userAnswer != blank.answer) {
                 corrections[label] = blank.answer;
                 solutionIsCorrect = false;
             }
