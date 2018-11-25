@@ -36,15 +36,23 @@
             {{topicHtml|safe}}
         </div>
         <div class="ui hidden divider"></div>
-        <div>
-            {% if nextTopic %}
-                <a href="/@{{p.meta.code}}/{{nextTopic.meta.code}}" class="ui primary tiny right floated button">{{nextTopic.meta.index}} &nbsp;{{nextTopic.meta.title}} &rarr;</a>
-            {% elif nextP %}
-                <a href="/@{{nextP.meta.code}}" class="ui primary tiny right floated button">{{nextP.meta.index}}. &nbsp;{{nextP.meta.title}} &rarr;</a>
-            {% endif %}
-            {% if prevTopic %}
-                <a href="/@{{p.meta.code}}/{{prevTopic.meta.code}}" class="ui tiny left floated button">&larr; {{prevTopic.meta.index}} &nbsp;{{prevTopic.meta.title}}</a>
-            {% endif %}
+        <div class='ui grid'>
+            <div class='two column row'>
+                <div class='left floated column'>
+                    {% if prevTopic %}
+                        <a href="/@{{p.meta.code}}/{{prevTopic.meta.code}}" class="ui tiny left floated button">&larr; {{prevTopic.meta.index}} &nbsp;{{prevTopic.meta.title}}</a>
+                    {% elif prevP %}
+                        <a href="/@{{prevP.meta.code}}" class="ui tiny left floated button">&larr; {{prevP.meta.index}}. &nbsp;{{prevP.meta.title}}</a>
+                    {% endif %}
+                </div>
+                <div class='right floated column'>
+                    {% if nextTopic %}
+                        <a href="/@{{p.meta.code}}/{{nextTopic.meta.code}}" class="ui primary tiny right floated button">{{nextTopic.meta.index}} &nbsp;{{nextTopic.meta.title}} &rarr;</a>
+                    {% elif nextP %}
+                        <a href="/@{{nextP.meta.code}}" class="ui primary tiny right floated button">{{nextP.meta.index}}. &nbsp;{{nextP.meta.title}} &rarr;</a>
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
 </div>
