@@ -115,6 +115,10 @@ packagesApp.use( router.get( '/@:packageCode/:topicCode',
     const p = cms.getLivePackage( packageCode);
     if( !p) { ctx.status = 404; return; }
 
+    const book = cms.getBookWithoutSections( p.book.code);
+    const prevP = p.meta.index == 1 ? null : book.packages[p.meta.index - 2];
+    const nextP = p.meta.index == book.packages.length ? null : book.packages[p.meta.index];
+
     let topicIndex = _.findIndex(p.topics, { meta: {code: topicCode}});
     if( topicIndex < 0) { ctx.redirect(`/@${packageCode}`); return; }
     
@@ -135,7 +139,8 @@ packagesApp.use( router.get( '/@:packageCode/:topicCode',
 
     if( userId) markDoneTopicAsDone( userId, presentableTopic, p);
 
-    await ctx.render( 'topic', {p, topic: presentableTopic, topicHtml, nextTopic, prevTopic}, 
+    await ctx.render( 'topic', 
+        {p, topic: presentableTopic, topicHtml, nextTopic, prevTopic, book, prevP, nextP}, 
         {p, topic: presentableTopic});
 }));
 
@@ -294,8 +299,7 @@ packagesApp.use( router.post( '/exercise/:exerciseId/solution', async function( 
 
 
 packagesApp.use( router.get( '/book/:bookCode', async function( ctx, bookCode) {
-    const books = cms.getBooksList();
-    const book = _.find(books, {code: bookCode});
+    const book = cms.getBookWithoutSections( bookCode);
     if( !book) { ctx.status = 404; return; }
 
     await ctx.render('book', {book});

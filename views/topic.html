@@ -8,24 +8,28 @@
     <div class='four wide column topic-meta'>
         <div class='toc'>
             <div class='ui secondary vertical pointing menu'>
-                <div class='header item'>
+                <a class='book item' href='/book/{{p.book.code}}'><i class='icon up arrow'></i>{{p.book.title}}</a>
+                <div class='header item currp'>
                     <i class='icon {% if p.meta.done %}green checkmark{% else %}wait{% endif %}'></i>{{p.meta.index}}. &nbsp;{{p.meta.title}}
                 </div>
                 {% for t in p.topics %}
-                    <a class='{% if t.meta.code == topic.meta.code %}active {% endif %}item' href='/@{{p.meta.code}}/{{t.meta.code}}'><i class='icon {% if topic.meta.code == t.meta.code %}left arrow{% elif t.meta.done == true %}green checkmark{% else %}wait{% endif %}'></i>{{t.meta.index}} &nbsp;{{t.meta.title}}</a>
+                    <a class='{% if t.meta.code == topic.meta.code %}active {% endif %}item' href='/@{{p.meta.code}}/{{t.meta.code}}'><i class='icon {% if topic.meta.code == t.meta.code %}hand point left outline{% elif t.meta.done == true %}green checkmark{% else %}wait{% endif %}'></i>{{t.meta.index}} &nbsp;{{t.meta.title}}</a>
                 {% endfor %}
+                {% if nextP %}
+                    <!-- <a class='item' href='/@{{nextP.meta.code}}'><i class='icon right arrow'></i>{{nextP.meta.index}}. &nbsp;{{nextP.meta.title}}</a> -->
+                {% endif %}
             </div>
         </div>
     </div>
     <div class='twelve wide column topic-content'>
         <h1>{{topic.meta.index}} &nbsp;{{topic.meta.title}}</h1>
-        <div class="ui mini breadcrumb">
+        {# <div class="ui mini breadcrumb">
             <a class="section" href='/book/{{p.book.code}}'>{{p.book.title}}</a>
             <i class='right angle icon divider'></i>
             <a class="section" href='/'>{{p.meta.index}}. &nbsp;{{p.meta.title}}</a>
             <i class='right angle icon divider'></i>
             <div class='section'>{{topic.meta.index}} &nbsp;{{topic.meta.title}}</div>
-        </div>
+        </div> #}
 
 
         <div id='topic-content' style='margin-top: 1em;'>
@@ -34,10 +38,12 @@
         <div class="ui hidden divider"></div>
         <div>
             {% if nextTopic %}
-                <a href="/@{{p.meta.code}}/{{nextTopic.meta.code}}" class="ui primary tiny right floated button">{{nextTopic.meta.title}} &rarr;</a>
+                <a href="/@{{p.meta.code}}/{{nextTopic.meta.code}}" class="ui primary tiny right floated button">{{nextTopic.meta.index}} &nbsp;{{nextTopic.meta.title}} &rarr;</a>
+            {% elif nextP %}
+                <a href="/@{{nextP.meta.code}}" class="ui primary tiny right floated button">{{nextP.meta.index}}. &nbsp;{{nextP.meta.title}} &rarr;</a>
             {% endif %}
             {% if prevTopic %}
-                <a href="/@{{p.meta.code}}/{{prevTopic.meta.code}}" class="ui tiny left floated button">&larr; {{prevTopic.meta.title}}</a>
+                <a href="/@{{p.meta.code}}/{{prevTopic.meta.code}}" class="ui tiny left floated button">&larr; {{prevTopic.meta.index}} &nbsp;{{prevTopic.meta.title}}</a>
             {% endif %}
         </div>
     </div>

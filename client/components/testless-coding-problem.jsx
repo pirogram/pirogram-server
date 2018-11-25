@@ -77,7 +77,7 @@ TestlessCodingProblem.propTypes = {
     question: PropTypes.string.isRequired,
     done: PropTypes.bool,
     chained: PropTypes.bool,
-    userCode: PropTypes.string.isRequired,
+    userCode: PropTypes.string,
     starterCode: PropTypes.string
 };
 
