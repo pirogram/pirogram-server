@@ -38,7 +38,8 @@ activityApp.use( router.get( '/activities', async function(ctx) {
     for(const row of rows) {
         const [p, topic, section] = cms.getSectionLineageById( row.exercise_id);
         if(!section) {
-            logger.emit('activity', {type: 'invalid-exercise-error', exerciseId: row.exercise_id})
+            logger.emit('activity', {type: 'invalid-exercise-error', exerciseId: row.exercise_id});
+            await models.query('DELETE FROM exercise_history WHERE user_id = $1 AND exercise_id=$2', [row.user_id, row.exercise_id]);
             continue;
         }
         const user = await models.getUserById( row.user_id);
