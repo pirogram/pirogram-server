@@ -37,6 +37,10 @@ activityApp.use( router.get( '/activities', async function(ctx) {
     const activities = [];
     for(const row of rows) {
         const [p, topic, section] = cms.getSectionLineageById( row.exercise_id);
+        if(!section) {
+            logger.emit('activity', {type: 'invalid-exercise-error', exerciseId: row.exercise_id})
+            continue;
+        }
         const user = await models.getUserById( row.user_id);
         const presentableSection = contentView.makePresentableSection( section);
         contentView.addUserStateToSection( presentableSection, row);
