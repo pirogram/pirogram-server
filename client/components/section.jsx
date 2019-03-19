@@ -15,7 +15,7 @@ export default class Section extends React.Component {
         if( section.type == 'html') {
             return <HtmlContent html={section.html}/>;
         } else if( section.type == 'multiple-choice-question') {
-            return <MultipleChoice userId={userId} id={section.id}
+            return <MultipleChoice userId={userId} id={section.id} index={section.meta.index}
                 question={section.question} options={section.options} starterCode={section.starterCode} 
                 userCode={section.userCode} viewOnly={viewOnly}
                 correctIds={section.correctIds} selectedIds={section.selectedIds} done={section.done} />;
