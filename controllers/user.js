@@ -20,9 +20,9 @@ userApp.use( router.get( '/account/update', async function( ctx) {
     if( !ensureUser( ctx)) { return; }
 
     const user = await models.getUserById( ctx.state.user.id);
-    const username = user.attributes.name;
-    const blurb = user.attributes.blurb || '';
-    const password = user.attributes.password;
+    const username = user.name;
+    const blurb = user.blurb || '';
+    const password = user.password;
     await ctx.render( 'edit-profile', {username, blurb, password});    
 }));
 
@@ -40,7 +40,7 @@ userApp.use( router.post( '/account/update', async function( ctx) {
         errors['username'] = 'Username must be 5 to 24 characters. Alphanumeric and - allowed.';
     }
 
-    if( username.toLowerCase() != user.attributes.username && !await models.isUsernameAvaialble( username)) {
+    if( username.toLowerCase() != user.username && !await models.isUsernameAvaialble( username)) {
         errors['username'] = 'Sorry, this username is already taken.';
     }
 
@@ -48,13 +48,15 @@ userApp.use( router.post( '/account/update', async function( ctx) {
         errors['blurb'] = 'Blurb must not be more than 256 characters.';
     }
     
-    const updates = {username: username.toLowerCase(), name: username, blurb: blurb};
     if( _.keys(errors).length > 0) {
         await ctx.render('edit-profile', {errors, username, blurb});
         return;
     }
 
-    await models.User.where({id: ctx.state.user.id}).save(updates, {patch: true, method: 'update'});
+    //const updates = {username: username.toLowerCase(), name: username, blurb: blurb};
+    //await models.User.where({id: ctx.state.user.id}).save(updates, {patch: true, method: 'update'});
+    await models.query('UPDATE users SET username = $1, name = $2, blurb = $3 WHERE id = $4',
+        [username.toLowerCase(), username, blurb, ctx.state.user.id]);
 
     flash.addFlashMessage( ctx.session, 'info', 'Successfully saved your details.');
     ctx.redirect('/account/update');
@@ -74,7 +76,7 @@ userApp.use( router.post( '/account/delete', async function( ctx) {
     const errors = {};
     const username = ctx.request.body.username;
 
-    if( username.toLowerCase() != user.attributes.username) {
+    if( username.toLowerCase() != user.username) {
         errors['username'] = 'Sorry, you entered incorrect username.';
     }
 
@@ -83,14 +85,16 @@ userApp.use( router.post( '/account/delete', async function( ctx) {
         return;
     }
 
-    const updates = {
+    /*const updates = {
         is_deleted: true, 
-        username: `user.${user.attributes.id}`, 
-        name: `user.${user.attributes.id}`, 
-        email: `user.${user.attributes.id}@does-not-exist.com`, 
+        username: `user.${user.id}`, 
+        name: `user.${user.id}`, 
+        email: `user.${user.id}@does-not-exist.com`, 
         avatar: ''
-    };
-    await models.User.where({id: ctx.state.user.id}).save(updates, {patch: true, method: 'update'});
+    };*/
+    //await models.User.where({id: ctx.state.user.id}).save(updates, {patch: true, method: 'update'});
+    await models.query('UPDATE users SET is_deleted = $1, username = $2, name = $3, email = $4, avatar = $5 WHERE id = $6',
+        [true, `user.${user.id}`, `user.${user.id}`, `user.${user.id}@does-not-exist.com`, '', ctx.state.user.id]);
 
     flash.addFlashMessage( ctx.session, 'info', 'Successfully deleted your account.');
     ctx.redirect('/');
@@ -111,7 +115,6 @@ userApp.use( router.post( '/account/reset-password-link-request', async function
             ctx.redirect('/account/reset-password-link-request');
             return;
         }
-        user = user.attributes;
     }
 
     const uuid = uuidv4();
@@ -144,7 +147,7 @@ userApp.use( router.get('/account/reset-password/:id', async function( ctx, id) 
         return;
     }
 
-    console.log( passwordResetRequest.attributes.created_at );
+    console.log( passwordResetRequest.created_at );
     console.log( new Date());
 
     await ctx.render( 'reset-password');
@@ -176,9 +179,11 @@ userApp.use( router.post( '/account/reset-password/:id', async function( ctx, id
         return;
     }
 
-    const userId = passwordResetRequest.attributes.user_id;
+    const userId = passwordResetRequest.user_id;
     const hashedPassword = await bcrypt.hash( password1, SALT_ROUNDS);
-    await models.User.forge({id: userId}).save({password: hashedPassword}, {method: 'update', patch: true});
+    //await models.User.forge({id: userId}).save({password: hashedPassword}, {method: 'update', patch: true});
+    await models.query('UPDATE users SET password = $1 WHERE id = $2',
+        [hashedPassword, userId]);
 
     flash.addFlashMessage(ctx.session, 'info', 'Successfully updated the password.');
 
@@ -212,7 +217,9 @@ userApp.use( router.post('/account/password', async function(ctx){
     }
 
     const hashedPassword = await bcrypt.hash( password1, SALT_ROUNDS);
-    await models.User.forge({id: ctx.state.user.id}).save({password: hashedPassword}, {method: 'update', patch: true});
+    //await models.User.forge({id: ctx.state.user.id}).save({password: hashedPassword}, {method: 'update', patch: true});
+    await models.query('UPDATE users SET password = $1 WHERE id = $2',
+        [hashedPassword, ctx.state.user.id]);
 
     flash.addFlashMessage(ctx.session, 'info', 'Successfully updated the password.');
 
@@ -245,8 +252,8 @@ userApp.use( router.post('/login', async function( ctx) {
         return;
     }
 
-    if( await bcrypt.compare( password, user.attributes.password)) {
-        ctx.session.userId = user.attributes.id;
+    if( await bcrypt.compare( password, user.password)) {
+        ctx.session.userId = user.id;
         ctx.redirect('/');
     } else {
         flash.addFlashMessage( ctx.session, 'error', 'Incorrect username/email and password. Please try again.');
