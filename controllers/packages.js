@@ -110,6 +110,11 @@ packagesApp.use( router.get( '/@:packageCode/assets/:path1/:path2', async functi
 
 packagesApp.use( router.get( '/@:packageCode/:topicCode', 
         async function( ctx, packageCode, topicCode) {
+
+    if( packageCode == 'python-regex') {
+        flash.addFlashMessage( ctx.session, 'info', 'Regular expressions have been moved to a separate codebook.');
+        ctx.redirect('/book/regex-with-python');
+    }
     
     const userId = ctx.state.user ? ctx.state.user.id : null;
     const p = cms.getLivePackage( packageCode);
