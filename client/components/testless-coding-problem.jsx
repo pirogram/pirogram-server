@@ -39,6 +39,11 @@ export default class TestlessCodingProblem extends React.Component {
         return (
             <Segment id={this.state.id} className='exercise'>
                 <Label attached='top'>
+                    {this.state.viewOnly ? '' : 
+                        this.state.solutionCount ? 
+                            <a href={'/activities?exercise_id=' + this.state.id} style={{float: 'right', fontWeight: 'normal'}}>view {this.state.solutionCount} {this.state.solutionCount == 1 ? 'solution' : 'solutions'}</a>
+                            : <span style={{float: 'right', fontWeight: 'normal'}}>0 solutions available</span>}
+
                     <a href={'#' + this.state.id}><Icon name={this.state.done ? 'checkmark':'wait'} className="exercise status"/>Exercise {this.state.index}</a>
                 </Label>
 
@@ -78,7 +83,8 @@ TestlessCodingProblem.propTypes = {
     done: PropTypes.bool,
     chained: PropTypes.bool,
     userCode: PropTypes.string,
-    starterCode: PropTypes.string
+    starterCode: PropTypes.string,
+    solutionCount: PropTypes.number
 };
 
 

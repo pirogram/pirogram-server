@@ -112,8 +112,8 @@ packagesApp.use( router.get( '/@:packageCode/:topicCode',
         async function( ctx, packageCode, topicCode) {
 
     if( packageCode == 'python-regex') {
-        flash.addFlashMessage( ctx.session, 'info', 'Regular expressions have been moved to a separate codebook.');
         ctx.redirect('/book/regex-with-python');
+        return;
     }
     
     const userId = ctx.state.user ? ctx.state.user.id : null;

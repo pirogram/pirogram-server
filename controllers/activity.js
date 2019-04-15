@@ -22,6 +22,7 @@ const activityApp = new Koa();
 activityApp.use( router.get( '/activities', async function(ctx) {
     const page = parseInt(ctx.request.query.page) || 1;
     const username = ctx.request.query.username;
+    const exerciseId = ctx.request.query.exercise_id;
     const params = [20*(page-1)];
     let query = 'SELECT * FROM exercise_history ORDER BY created_at DESC OFFSET $1 LIMIT 20';
     if(username) {
@@ -30,6 +31,9 @@ activityApp.use( router.get( '/activities', async function(ctx) {
             query = 'SELECT * FROM exercise_history WHERE user_id = $2 ORDER BY created_at DESC OFFSET $1 LIMIT 20';
             params.push(forUser.id);
         }
+    } else if( exerciseId) {
+        query = 'SELECT * FROM exercise_history WHERE exercise_id = $2 ORDER BY created_at DESC OFFSET $1 LIMIT 20';
+        params.push(exerciseId);
     }
 
     const {rows} = await models.query(query, params);

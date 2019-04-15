@@ -42,3 +42,11 @@ CREATE TABLE topic_history (
     updated_at timestamp without time zone,
     PRIMARY KEY (user_id, topic_id)
 );
+
+CREATE TABLE exercise_solution_counter (
+    exercise_id character varying(1024) NOT NULL,
+    counter integer NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    PRIMARY KEY (exercise_id)
+);

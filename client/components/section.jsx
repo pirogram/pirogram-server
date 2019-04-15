@@ -25,12 +25,13 @@ export default class Section extends React.Component {
                 starterCode={section.starterCode} userCode={section.userCode}/>;
         } else if( section.type == 'coding-question') {
             return <CodingProblem id={section.id} index={section.meta.index}
-                starterCode={section.starterCode} viewOnly={viewOnly}
+                starterCode={section.starterCode} viewOnly={viewOnly} solutionCount={section.solutionCount}
                 userCode={section.userCode} question={section.question} done={section.done}
                 referenceSolution={section.referenceSolution} tests={section.tests} userId={userId}/>;
         } else if( section.type == 'testless-coding-question') {
             return <TestlessCodingProblem id={section.id} index={section.meta.index} viewOnly={viewOnly}
                 chained={section.chained} userId={userId} starterCode={section.starterCode} 
+                solutionCount={section.solutionCount}
                 userCode={section.userCode} question={section.question} done={section.done}/>;
         } else if( section.type == 'categorization-question') {
             return <CategorizationQuestion id={section.id} index={section.meta.index}

@@ -50,7 +50,7 @@ export async function isUsernameAvaialble( username) {
 
 
 export async function createUser( username, email, avatar) {
-    const {rows} = await query('INSERT INTO users (name, username, email, avatar, active) values ($1, $2, $3, $4, $5) RETURNING *', [username, username.toLowerCase(), email, avatar, 't']);
+    const {rows} = await query('INSERT INTO users (name, username, email, avatar, active, updated_at, created_at) values ($1, $2, $3, $4, $5, $6, $6) RETURNING *', [username, username.toLowerCase(), email, avatar, 't', new Date()]);
     
     return rows[0];
 }
@@ -78,8 +78,25 @@ export async function getExerciseHistory( userId, exerciseIds) {
     return eh;
 }
 
+export async function getSolutionCounts( exerciseIds) {
+    const {rows} = await query('SELECT * FROM exercise_solution_counter WHERE exercise_id = ANY($1)', 
+        [exerciseIds]);
+
+    const counts = {};
+
+    rows.map( (obj, i) => {
+        counts[obj.exercise_id] = obj.counter;
+    });
+
+    return counts;
+}
+
 export async function saveExerciseHistory( userId, exerciseId, solution) {
-    await query( 'INSERT INTO exercise_history (user_id, exercise_id, solution) VALUES ($1, $2, $3) ON CONFLICT (user_id, exercise_id) DO UPDATE SET solution = $3', [userId, exerciseId, solution]);
+    const {rows} = await query( 'INSERT INTO exercise_history (user_id, exercise_id, solution, updated_at, created_at) VALUES ($1, $2, $3, $4, $4) ON CONFLICT (user_id, exercise_id) DO UPDATE SET solution = $3, updated_at = $4 RETURNING *', [userId, exerciseId, solution, new Date()]);
+
+    if( rows[0].updated_at.getTime() == rows[0].created_at.getTime()) {
+        await query( 'INSERT INTO exercise_solution_counter (exercise_id, counter, updated_at, created_at) VALUES ($1, $2, $3, $3) ON CONFLICT (exercise_id) DO UPDATE SET counter = exercise_solution_counter.counter + 1, updated_at = $3', [exerciseId, 1, new Date()]);
+    }
 }
 
 export async function getTopicHistory( userId, topicIds) {
@@ -117,7 +134,7 @@ export async function getCodeForPlayground( userId, playgroundId) {
 }
 
 export async function savePlaygroundCode( userId, playgroundId, code) {
-    await query( 'INSERT INTO code_playground_data (user_id, playground_id, code) VALUES ($1, $2, $3) ON CONFLICT (user_id, playground_id) DO UPDATE SET code = $3', [userId, playgroundId, code]);
+    await query( 'INSERT INTO code_playground_data (user_id, playground_id, code, updated_at, created_at) VALUES ($1, $2, $3, $4, $4) ON CONFLICT (user_id, playground_id) DO UPDATE SET code = $3, updated_at = $4', [userId, playgroundId, code, new Date()]);
 }
 
 export async function saveTopicHistory( userId, topicId) {
