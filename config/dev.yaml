@@ -5,8 +5,8 @@ db:
 
 google_oauth:
   redirect_uri: "http://localhost:5000/google-oauth-callback"
-  client_id: "1059786732343-tdls7htliab7nce8lb2vhkvroa5vbj2v.apps.googleusercontent.com"
-  client_secret: "mwxTzOqh5LVlmV11dcpxLTqC"
+  client_id: ""
+  client_secret: ""
   scopes: 
     - 'https://www.googleapis.com/auth/plus.me'
     - 'https://www.googleapis.com/auth/userinfo.email'
@@ -14,8 +14,8 @@ google_oauth:
 
 github_oauth:
   redirect_uri: "http://localhost:5000/github-oauth-callback"
-  client_id: "209e4f8f53ed2925c65d"
-  client_secret: "34dd126cb3df24d2fa7b3d6f2fe9dabcc44dd691"
+  client_id: ""
+  client_secret: ""
   scopes:
     - read:user
     - user:email

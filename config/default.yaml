@@ -14,6 +14,10 @@ email:
   engine: stdout
   system_from: 'Pirogram <contact@pirogram.com>'
 
+aws:
+  key_id: nokey
+  key_secret: nosecret
+  
 site:
   domain_base: localhost
   url_base: http://localhost:5000

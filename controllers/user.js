@@ -17,8 +17,8 @@ const {exec} = require('../lib/subprocess');
 const aws = require("aws-sdk");
 aws.config.update( {
     region: 'us-west-1',
-    accessKeyId: 'AKIAJPYJMCSZHMRHGEAQ',
-    secretAccessKey: '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'
+    accessKeyId: config.get('aws.key_id'),
+    secretAccessKey: config.get('aws.key_secret')
 });
 
 const SALT_ROUNDS = 5;
