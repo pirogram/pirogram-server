@@ -11,6 +11,15 @@ const flash = require( '../lib/flash');
 const email = require( '../lib/email');
 const bcrypt = require( 'bcrypt');
 import {ensureUser} from '../lib/util';
+const fs = require('fs');
+const {promisify} = require('util');
+const {exec} = require('../lib/subprocess');
+const aws = require("aws-sdk");
+aws.config.update( {
+    region: 'us-west-1',
+    accessKeyId: 'AKIAJPYJMCSZHMRHGEAQ',
+    secretAccessKey: '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'
+});
 
 const SALT_ROUNDS = 5;
 
@@ -26,14 +35,64 @@ userApp.use( router.get( '/account/update', async function( ctx) {
     await ctx.render( 'edit-profile', {username, blurb, password});    
 }));
 
+async function uploadToAWS( filePath) {
+    const s3 = new aws.S3({
+        apiVersion: '2006-03-01'
+    });
+
+    const stream = fs.createReadStream( filePath);
+
+    return new Promise( (resolve, reject) => {
+        stream.on( 'error', (err) => { reject(err); });
+
+        s3.upload( {
+            ACL: 'public-read',
+            Bucket: 'pirogram-profiles',
+            Body: stream,
+            Key: filePath.split('/').pop(),
+            ContentType: 'image/jpeg'
+        }, function( err, data) {
+            if( err) { reject( err); }
+            else { resolve(); }
+        });
+    });
+}
+
+async function uploadImage( image) {
+    const suffix = image.name.split('.').pop().toLowerCase();
+    const newPath = `${image.path}.${suffix}`;
+    const jpgPath = (suffix == 'jpg' || suffix == 'jpeg') ? newPath : `${image.path}.jpg`;
+    const squarePath = `/tmp/${uuidv4()}.jpg`;
+
+    const rename = promisify( fs.rename);
+    await rename( image.path, newPath);
+    if( newPath != jpgPath) {
+        await exec(`magick convert ${newPath} ${jpgPath}`);
+    }
+
+    await exec( `convert`, ['-define', 'jpeg:size=400x400', jpgPath, '-thumbnail', '400x400^', 
+        '-gravity', 'center', '-extent', '400x400', squarePath]);
+
+    await uploadToAWS( squarePath);
+
+    const unlink = promisify( fs.unlink);
+    if( newPath != jpgPath) {
+        await unlink( newPath);
+    }
+    await unlink( jpgPath);
+    await unlink( squarePath);
+
+    return `https://pirogram-profiles.s3.amazonaws.com/${squarePath.split('/').pop()}`;
+}
+
 userApp.use( router.post( '/account/update', async function( ctx) {
     if( !ensureUser( ctx)) { return; }
 
     const user = await models.getUserById( ctx.state.user.id);
 
     const errors = {};
-    const username = ctx.request.body.username;
-    const blurb = ctx.request.body.blurb;
+    const username = ctx.request.body.fields.username || '';
+    const blurb = ctx.request.body.fields.blurb || '';
 
     if( !validator.isLength( username, {min: 5, max: 24}) ||
         !validator.matches( username, /^([a-zA-Z0-9-]+)$/)) {
@@ -51,6 +110,11 @@ userApp.use( router.post( '/account/update', async function( ctx) {
     if( _.keys(errors).length > 0) {
         await ctx.render('edit-profile', {errors, username, blurb});
         return;
+    }
+
+    if( ctx.request.body.files.image) {
+        const imageUrl = await uploadImage( ctx.request.body.files.image);
+        await models.query('UPDATE users SET avatar=$1 WHERE id = $2', [imageUrl, ctx.state.user.id]);
     }
 
     //const updates = {username: username.toLowerCase(), name: username, blurb: blurb};

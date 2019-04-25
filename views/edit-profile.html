@@ -6,7 +6,7 @@
 
 {% block content %}
 <h1>Update Account</h1>
-<form method='POST' class="ui form {% if errors %}error{% endif %}">
+<form method='POST' class="ui form {% if errors %}error{% endif %}" enctype='multipart/form-data'>
     <div class="field">
         <label>Username</label>
         <input type=text name=username placeholder=Username value="{{username}}"/>
@@ -21,6 +21,11 @@
         {% if errors.blurb %}
             <div class="ui error message tiny">{{errors.blurb}}</div>
         {% endif %}
+    </div>
+
+    <div class="field">
+        <label>Image</label>
+        <input type=file name=image />
     </div>
 
     <div class="field">
