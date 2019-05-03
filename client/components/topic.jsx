@@ -9,5 +9,4 @@ const Topic = ({userId, m, topic}) => (
     </div>
 );
 
-
 export default Topic;

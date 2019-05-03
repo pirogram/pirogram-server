@@ -7,6 +7,10 @@
 <div class='ui grid'>
     <div class='four wide column topic-meta'>
         <div class='toc'>
+            <div id='toc-content'>
+                {{tocHtml|safe}}
+            </div>
+            <!--
             <div class='ui secondary vertical pointing menu'>
                 <a class='book item' href='/book/{{p.book.code}}'><i class='icon up arrow'></i>{{p.book.title}}</a>
                 <div class='header item currp'>
@@ -15,10 +19,9 @@
                 {% for t in p.topics %}
                     <a class='{% if t.meta.code == topic.meta.code %}active {% endif %}item' href='/@{{p.meta.code}}/{{t.meta.code}}'><i class='icon {% if topic.meta.code == t.meta.code %}hand point left outline{% elif t.meta.done == true %}green checkmark{% else %}wait{% endif %}'></i>{{t.meta.index}} &nbsp;{{t.meta.title}}</a>
                 {% endfor %}
-                {% if nextP %}
-                    <!-- <a class='item' href='/@{{nextP.meta.code}}'><i class='icon right arrow'></i>{{nextP.meta.index}}. &nbsp;{{nextP.meta.title}}</a> -->
-                {% endif %}
+                
             </div>
+        -->
         </div>
     </div>
     <div class='twelve wide column topic-content'>

@@ -17,6 +17,7 @@ const flash = require('../lib/flash');
 import {ensureUser} from '../lib/util';
 
 import Topic from '../client/components/topic.jsx';
+import TOC from '../client/components/toc.jsx';
 import CodeExplorer from '../client/components/code-explorer';
 const React = require('react');
 const ReactDOMServer = require('react-dom/server');
@@ -37,6 +38,30 @@ async function addUserStateToPackage( p, userId) {
     if( await models.getSinglePackageHistory( userId, p.meta.code)) { p.meta.done = true; }
 }
 
+
+async function addUserStateToBook( book, userId) {
+    const topicIds = [];
+    const packageCodes = [];
+    book.packages.map( (p, i) => {
+        packageCodes.push( p.meta.code);
+
+        p.topics.map( (topic, j) => {
+            topicIds.push( topic.meta.compositeId);
+        });
+    });
+
+    const thObjs = await models.getTopicHistory( userId, topicIds);
+    const phObjs = await models.getPackageHistory(userId, packageCodes);
+
+    book.packages.map( (p, i) => {
+        p.meta.done = phObjs[p.meta.code] ? true : false;
+
+        p.topics.map( (topic, j) => {
+            topic.meta.done = thObjs[topic.meta.compositeId] ? true : false;
+        });
+    });
+
+}
 
 
 packagesApp.use( router.post( '/@:packageCode/add-to-queue', 
@@ -131,7 +156,8 @@ packagesApp.use( router.get( '/@:packageCode/:topicCode',
 
     if( userId) {
         await contentView.addUserStateToTopic( presentableTopic, userId);
-        await addUserStateToPackage(p, userId);
+        //await addUserStateToPackage(p, userId);
+        await addUserStateToBook( book, userId);
     }
 
     let nextTopic, prevTopic;
@@ -141,12 +167,15 @@ packagesApp.use( router.get( '/@:packageCode/:topicCode',
     const topicHtml = ReactDOMServer.renderToString(
         <Topic topic={presentableTopic} userId={userId}/>
     );
+    const tocHtml = ReactDOMServer.renderToString(
+        <TOC book={book} currTopicIndex={presentableTopic.meta.index} currPackageIndex={p.meta.index} />
+    );
 
     if( userId) markDoneTopicAsDone( userId, presentableTopic, p);
 
     await ctx.render( 'topic', 
-        {p, topic: presentableTopic, topicHtml, nextTopic, prevTopic, book, prevP, nextP}, 
-        {p, topic: presentableTopic});
+        {p, topic: presentableTopic, topicHtml, tocHtml, nextTopic, prevTopic, book, prevP, nextP}, 
+        {p, topic: presentableTopic, book});
 }));
 
 packagesApp.use( router.get( '/playground', async function( ctx){
@@ -307,7 +336,8 @@ packagesApp.use( router.get( '/book/:bookCode', async function( ctx, bookCode) {
     const book = cms.getBookWithoutSections( bookCode);
     if( !book) { ctx.status = 404; return; }
 
-    await ctx.render('book', {book});
+    //await ctx.render('book', {book});
+    ctx.redirect(`/@${book.packages[0].meta.code}/${book.packages[0].topics[0].meta.code}`);
 }));
 
 
