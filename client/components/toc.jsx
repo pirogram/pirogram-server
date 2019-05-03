@@ -13,6 +13,8 @@ export default class TOC extends React.Component {
         const that = this;
         return (
             <Menu secondary vertical pointing>
+                <Menu.Item className={'book'}>{that.props.book.title}</Menu.Item>
+
                 {this.props.book.packages.map( (p, index) => {
                     return (
                         <div>
