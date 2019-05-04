@@ -156,7 +156,6 @@ packagesApp.use( router.get( '/@:packageCode/:topicCode',
 
     if( userId) {
         await contentView.addUserStateToTopic( presentableTopic, userId);
-        //await addUserStateToPackage(p, userId);
         await addUserStateToBook( book, userId);
     }
 
@@ -171,7 +170,10 @@ packagesApp.use( router.get( '/@:packageCode/:topicCode',
         <TOC book={book} currTopicIndex={presentableTopic.meta.index} currPackageIndex={p.meta.index} />
     );
 
-    if( userId) markDoneTopicAsDone( userId, presentableTopic, p);
+    if( userId) {
+        await markDoneTopicAsDone( userId, presentableTopic, p);
+        await updateLastVisitedTopic( userId, book.code, p.meta.code, presentableTopic.meta.code);
+    }
 
     await ctx.render( 'topic', 
         {p, topic: presentableTopic, topicHtml, tocHtml, nextTopic, prevTopic, book, prevP, nextP}, 
@@ -192,6 +194,19 @@ packagesApp.use( router.get( '/playground', async function( ctx){
     await ctx.render('playground', {liveCodeHtml}, {hasGeneralCodePlayground: true});
 }));
 
+
+async function updateLastVisitedTopic( userId, bookCode, packageCode, topicCode) {
+    const currTime = new Date();
+
+    await models.query(`INSERT INTO last_topic_marker (user_id, book_code, package_code, topic_code, created_at, updated_at) values ($1, $2, $3, $4, $5, $5) ON CONFLICT (user_id, book_code) DO UPDATE SET package_code=$3, topic_code=$4, updated_at=$5`, [userId, bookCode, packageCode, topicCode, currTime]);
+}
+
+async function getLastVisitedTopic( userId, bookCode) {
+    const {rows} = await models.query(`SELECT * FROM last_topic_marker WHERE user_id=$1 and book_code=$2`, 
+            [userId, bookCode]);
+
+    return rows.length ? {packageCode: rows[0].package_code, topicCode: rows[0].topic_code} : null;
+}
 
 async function markDoneTopicAsDone( userId, topic, p) {
     const th = await models.getTopicHistory( userId, [topic.meta.compositeId]);
@@ -336,8 +351,14 @@ packagesApp.use( router.get( '/book/:bookCode', async function( ctx, bookCode) {
     const book = cms.getBookWithoutSections( bookCode);
     if( !book) { ctx.status = 404; return; }
 
-    //await ctx.render('book', {book});
-    ctx.redirect(`/@${book.packages[0].meta.code}/${book.packages[0].topics[0].meta.code}`);
+    let url = `/@${book.packages[0].meta.code}/${book.packages[0].topics[0].meta.code}`;
+    if( ctx.state.user) {
+        const marker = await getLastVisitedTopic( ctx.state.user.id, bookCode);
+        if( marker) {
+            url = `/@${marker.packageCode}/${marker.topicCode}`;
+        }
+    }
+    ctx.redirect(url);
 }));
 
 

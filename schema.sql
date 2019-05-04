@@ -50,3 +50,13 @@ CREATE TABLE exercise_solution_counter (
     updated_at timestamp without time zone,
     PRIMARY KEY (exercise_id)
 );
+
+CREATE TABLE last_topic_marker (
+    user_id integer NOT NULL,
+    book_code CHARACTER VARYING(1024) NOT NULL,
+    package_code CHARACTER VARYING(1024) NOT NULL,
+    topic_code CHARACTER VARYING(1024) NOT NULL,
+    created_at timestamp without time zone,
+    updated_at timestamp without time zone,
+    PRIMARY KEY (user_id, book_code)
+);
