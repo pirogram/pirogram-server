@@ -4,7 +4,6 @@ const Koa = require('koa');
 const router = require( 'koa-route');
 const models = require('../models');
 const {CodeExecutor} = require('../lib/code-executor');
-const cms = require('../lib/cms');
 
 const codeApp = new Koa();
 

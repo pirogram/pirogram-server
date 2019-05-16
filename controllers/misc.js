@@ -10,8 +10,7 @@ const { exec } = require('../lib/subprocess');
 const miscApp = new Koa();
 
 const index = async function( ctx) {
-    const books = cms.getBooksList();
-    await ctx.render('home', {books});
+    await ctx.render('home');
 };
 
 const privacy = async function( ctx) {
@@ -43,17 +42,19 @@ miscApp.use( router.get( '/sitemap.xml', async function(ctx) {
     ctx.type = 'application/xml';
     
     const urlBase = config.get('site.url_base');
-    const packageSummaryDict = cms.getAllLivePackageSummary();
+    const books = cms.allBooks();
     
     const body = [];
     body.push( `<?xml version="1.0" encoding="UTF-8"?>`);
     body.push( `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`);
 
-    _.values( packageSummaryDict).map( (p, i) => {
-        p.topics.map( (topic, j) => {
-            body.push( `<url><loc>${urlBase}/@${p.meta.code}/${topic.meta.code}</loc></url>`);
-        })
-    });
+    for( const book of books) {
+        for( const group of book.topicGroups) {
+            for( const topic of group.topics) {
+                body.push( `<url><loc>${urlBase}/@${book.code}/${topic.code}</loc></url>`);
+            }
+        }
+    }
 
     body.push( `<url><loc>${urlBase}</loc></url>`);
     body.push( `<url><loc>${urlBase}/login</loc></url>`);

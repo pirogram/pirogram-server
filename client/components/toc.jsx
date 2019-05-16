@@ -5,7 +5,7 @@ export default class TOC extends React.Component {
     constructor( props) {
         super( props);
         this.openPackages = {};
-        this.openPackages[props.currPackageIndex] = 1;
+        this.openPackages[props.currEntryIndex.groupIndex.toString()] = 1;
         this.state = { openPackages: {}};
     }
 
@@ -13,35 +13,35 @@ export default class TOC extends React.Component {
         const that = this;
         return (
             <Menu secondary vertical pointing>
-                <Menu.Item className={'book'}>{that.props.book.title}</Menu.Item>
+                <Menu.Item className={'book'}>{that.props.toc.title}</Menu.Item>
 
-                {this.props.book.packages.map( (p, index) => {
+                {this.props.toc.topicGroups.map( (group, index) => {
                     return (
-                        <div>
+                        <div key={index}>
                             <Menu.Item
                                     key={index} 
-                                    name={p.meta.index}
+                                    name={group.index}
                                     className='header' as='a' onClick={(e, data) => {
                                         that.openPackages[data.name] = 1;
                                         that.setState( {openPackages: {...that.openPackages}});
                                     }}>
-                                <Icon name={p.meta.done ? 'green checkmark' : 'wait'} />
-                                {p.meta.index + '.  ' + p.meta.title}
+                                <Icon name={group.done ? 'green checkmark' : 'wait'} />
+                                {group.index + '.  ' + group.title}
                             </Menu.Item>
 
-                            {that.openPackages[p.meta.index] ? 
-                                p.topics.map( (topic, i) => {
+                            {that.openPackages[group.index] ? 
+                                group.topics.map( (topic, i) => {
                                     let icon = 'wait';
-                                    if( topic.meta.index == that.props.currTopicIndex) { 
-                                        icon = 'hand point left outline';
-                                    } else if( topic.meta.done) {
+                                    if( topic.index == that.props.currEntryIndex.jointIndex) { 
+                                        icon = 'hand left outline';
+                                    } else if( topic.done) {
                                         icon = 'green checkmark';
                                     }
                                     return <Menu.Item 
-                                        key={i} active={topic.meta.index === that.props.currTopicIndex}
-                                        href={'/@' + p.meta.code + '/' + topic.meta.code}>
+                                        key={i} active={topic.index === that.props.currEntryIndex.jointIndex}
+                                        href={'/@' + that.props.toc.code + '/' + topic.code}>
                                             <Icon name={icon} />
-                                            {topic.meta.index + '  ' + topic.meta.title}
+                                            {topic.index + '  ' + topic.title}
                                         </Menu.Item>;
                                 }) : null
                             }

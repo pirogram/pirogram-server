@@ -25,20 +25,6 @@ const ReactDOMServer = require('react-dom/server');
 const packagesApp = new Koa();
 
 
-async function addUserStateToPackage( p, userId) {
-    const topicIds = p.topics.map((topic, index) => {
-        return topic.meta.compositeId;
-    });
-
-    const thObjs = await models.getTopicHistory( userId, topicIds);
-    p.topics.map( (topic, index) => {
-        if( thObjs[topic.meta.compositeId]) topic.meta.done = true;
-    });
-
-    if( await models.getSinglePackageHistory( userId, p.meta.code)) { p.meta.done = true; }
-}
-
-
 async function addUserStateToBook( book, userId) {
     const topicIds = [];
     const packageCodes = [];
@@ -62,53 +48,6 @@ async function addUserStateToBook( book, userId) {
     });
 
 }
-
-
-packagesApp.use( router.post( '/@:packageCode/add-to-queue', 
-        async function(ctx, packageCode) {
-    if( !ensureUser( ctx)) { return; }
-
-    const pirep = cms.getLivePackageInfo( packageCode);
-
-    if( !pirep) {
-        ctx.status = 404;
-        ctx.body = 'Package Not Found';
-        return;
-    }
-
-    await models.addPackageToQueue( ctx.state.user.id, pirep.id);
-
-    ctx.status = 200;
-}));
-
-
-packagesApp.use( router.post( '/@:packageCode/remove-from-queue', 
-        async function(ctx, packageCode) {
-    if( !ensureUser( ctx)) { return; }
-
-    const pirep = cms.getLivePackageInfo( packageCode);
-
-    if( !pirep) {
-        ctx.status = 404;
-        ctx.body = 'Package Not Found';
-        return;
-    }
-
-    await models.removePackageFromQueue( ctx.state.user.id, pirep.id);
-
-    ctx.status = 200;
-}));
-
-
-packagesApp.use( router.get( '/@:packageCode', async function( ctx, packageCode) {
-    const p = cms.getLivePackage( packageCode);
-    if( !p) {
-        ctx.status = 404;
-        return;
-    }
-
-    ctx.redirect(`/@${packageCode}/${p.topics[0].meta.code}`);
-}));
 
 
 packagesApp.use( router.get( '/@:packageCode/assets/:path1', async function(ctx, packageCode, path1) {
@@ -135,11 +74,6 @@ packagesApp.use( router.get( '/@:packageCode/assets/:path1/:path2', async functi
 
 packagesApp.use( router.get( '/@:packageCode/:topicCode', 
         async function( ctx, packageCode, topicCode) {
-
-    if( packageCode == 'python-regex') {
-        ctx.redirect('/book/regex-with-python');
-        return;
-    }
     
     const userId = ctx.state.user ? ctx.state.user.id : null;
     const p = cms.getLivePackage( packageCode);

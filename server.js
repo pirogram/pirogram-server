@@ -9,7 +9,7 @@ const auth = require( './controllers/auth');
 const flash = require( './lib/flash');
 const authlib = require( './lib/auth');
 const misc = require( './controllers/misc');
-const packages = require( './controllers/packages');
+const bookpage = require( './controllers/bookpage');
 const user = require( './controllers/user');
 const code = require( './controllers/code');
 const activity = require( './controllers/activity');
@@ -17,7 +17,7 @@ const bodyParser = require( 'koa-body');
 const reqLogger = require('koa-logger');
 const config = require('config');
 
-const {CodeExecutor} = require('./lib/code-executor');
+//const {CodeExecutor} = require('./lib/code-executor');
 //CodeExecutor.buildPool();
 
 const app = new Koa();
@@ -34,7 +34,7 @@ app.use( view( __dirname + '/views', {
 
 app.use( mount( auth.authApp));
 app.use( mount( user.userApp));
-app.use( mount( packages.packagesApp));
+app.use( mount( bookpage.bookPageApp));
 app.use( mount( misc.miscApp));
 app.use( mount( code.codeApp));
 app.use( mount( activity.activityApp));

@@ -11,8 +11,6 @@ const models = require( '../models');
 const {logger} = require('../lib/logger');
 const cms = require('../lib/cms');
 const contentView = require('../lib/content-view');
-const flash = require('../lib/flash');
-const {ensureUser} = require('../lib/util');
 import Activities from '../client/components/activities';
 const React = require('react');
 const ReactDOMServer = require('react-dom/server');

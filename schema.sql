@@ -60,3 +60,5 @@ CREATE TABLE last_topic_marker (
     updated_at timestamp without time zone,
     PRIMARY KEY (user_id, book_code)
 );
+
+ALTER TABLE last_topic_marker DROP COLUMN package_code;

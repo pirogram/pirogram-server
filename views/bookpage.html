@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}{{topic.title}} - {{book.title}}{% endblock %}
+
+{% block content %}
+
+<div class='ui grid'>
+    <div class='four wide column topic-meta'>
+        <div class='toc'>
+            <div id='toc-content'>
+                {{tocHtml|safe}}
+            </div>
+        </div>
+    </div>
+    <div class='twelve wide column topic-content'>
+        <h1>{{topic.index}} &nbsp;{{topic.title}}</h1>
+
+        <div id='topic-content' style='margin-top: 1em;'>
+            {{topicHtml|safe}}
+        </div>
+        <div class="ui hidden divider"></div>
+        <div class='ui grid'>
+            <div class='two column row'>
+                <div class='left floated column'>
+                    {% if prevTopic %}
+                        <a href="/@{{book.code}}/{{prevTopic.code}}" class="ui tiny left floated button">&larr; {{prevTopic.index}} &nbsp;{{prevTopic.title}}</a>
+                    {% endif %}
+                </div>
+                <div class='right floated column'>
+                    {% if nextTopic %}
+                        <a href="/@{{book.code}}/{{nextTopic.code}}" class="ui primary tiny right floated button">{{nextTopic.index}} &nbsp;{{nextTopic.title}} &rarr;</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="ui hidden clearing divider"></div>
+
+{% endblock %}
