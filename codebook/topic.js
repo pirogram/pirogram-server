@@ -55,4 +55,16 @@ export class Topic {
     
         return exerciseIds;
     }
+
+    getPlaygroundIds() {
+        const plagroundIds = [];
+        for( const section of this.sections) {
+            if( section.canHaveCodePlayground(section)) { 
+                plagroundIds.push( section.id);
+            }
+        }
+    
+        return plagroundIds;
+    }
+    
 }

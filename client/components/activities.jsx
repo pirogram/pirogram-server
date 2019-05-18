@@ -11,7 +11,9 @@ export default class Activities extends React.Component {
         return(
             <Feed size='small'>
                 {this.props.activities.map((activity, i) => {
-                    return <Activity key={i} user={activity.user} p={activity.p} topic={activity.topic} section={activity.section} solution={activity.solution}/>
+                    return <Activity key={i} user={activity.user} bookCode={activity.bookCode} 
+                    topicCode={activity.topicCode} bookTitle={activity.bookTitle} topicTitle={activity.topicTitle} 
+                    section={activity.section} solution={activity.solution}/>
                 })}
             </Feed>
         );

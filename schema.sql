@@ -37,7 +37,8 @@ CREATE TABLE exercise_history (
 
 CREATE TABLE topic_history (
     user_id integer NOT NULL,
-    topic_id CHARACTER VARYING(1024) NOT NULL,
+    book_code CHARACTER VARYING(1024) NOT NULL,
+    topic_code CHARACTER VARYING(1024) NOT NULL,
     created_at timestamp without time zone,
     updated_at timestamp without time zone,
     PRIMARY KEY (user_id, topic_id)
@@ -62,3 +63,8 @@ CREATE TABLE last_topic_marker (
 );
 
 ALTER TABLE last_topic_marker DROP COLUMN package_code;
+ALTER TABLE topic_history ADD COLUMN book_code CHARACTER VARYING(1024);
+UPDATE topic_history SET book_code='';
+ALTER TABLE topic_history RENAME COLUMN topic_id TO topic_code;
+ALTER TABLE topic_history DROP CONSTRAINT topic_history_pkey;
+ALTER TABLE topic_history ADD CONSTRAINT topic_history_pkey PRIMARY KEY(user_id, book_code, topic_code);

@@ -15,11 +15,11 @@ export default class Activity extends React.Component {
                 </Feed.Label>
                 <Feed.Content>
                     <Feed.Summary>
-                        <Feed.User href={'/activities?username=' + this.props.user.username}>{this.props.user.username}</Feed.User> completed <a href={'/@' + this.props.p.meta.code + '/' + this.props.topic.meta.code + '#' + this.props.section.id}>exercise {this.props.section.meta.index}</a> 
+                        <Feed.User href={'/activities?username=' + this.props.user.username}>{this.props.user.username}</Feed.User> completed <a href={'/@' + this.props.bookCode + '/' + this.props.topicCode + '#' + this.props.section.id}>exercise {this.props.section.index}</a> 
                         <Icon name='angle left'/>
-                        <a href={'/@' + this.props.p.meta.code + '/' + this.props.topic.meta.code}>{this.props.topic.meta.title}</a> 
+                        <a href={'/@' + this.props.bookCode + '/' + this.props.topicCode}>{this.props.topicTitle}</a> 
                         <Icon name='angle left'/>
-                        <a href={'/@' + this.props.p.meta.code}>{this.props.p.meta.title}</a>
+                        <a href={'/@' + this.props.bookCode}>{this.props.bookTitle}</a>
                     </Feed.Summary>
                     <Feed.Extra>
                         <Section section={this.props.section} userId={this.props.user.id} viewOnly={true}/>

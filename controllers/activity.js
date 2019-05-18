@@ -10,7 +10,7 @@ const _ = require('lodash');
 const models = require( '../models');
 const {logger} = require('../lib/logger');
 const cms = require('../lib/cms');
-const contentView = require('../lib/content-view');
+const userstate = require('../lib/userstate');
 import Activities from '../client/components/activities';
 const React = require('react');
 const ReactDOMServer = require('react-dom/server');
@@ -38,16 +38,21 @@ activityApp.use( router.get( '/activities', async function(ctx) {
     
     const activities = [];
     for(const row of rows) {
-        const [p, topic, section] = cms.getSectionLineageById( row.exercise_id);
+        const [book, topic, section] = cms.getSectionLineageById( row.exercise_id);
         if(!section) {
             logger.emit('activity', {type: 'invalid-exercise-error', exerciseId: row.exercise_id});
-            await models.query('DELETE FROM exercise_history WHERE user_id = $1 AND exercise_id=$2', [row.user_id, row.exercise_id]);
+            await models.query('DELETE FROM exercise_history WHERE user_id = $1 AND exercise_id=$2', 
+                [row.user_id, row.exercise_id]);
             continue;
         }
         const user = await models.getUserById( row.user_id);
-        const presentableSection = contentView.makePresentableSection( section);
-        contentView.addUserStateToSection( presentableSection, row);
-        activities.push( { user: user, p, topic, section: presentableSection, createdAt: row.created_at});
+        //const presentableSection = contentView.makePresentableSection( section);
+        //contentView.addUserStateToSection( presentableSection, row);
+        //activities.push( { user: user, p, topic, section: presentableSection, createdAt: row.created_at});
+        userstate.addUserStateToSection( section, row);
+        activities.push( { user: user, bookCode: book.code, topicCode: topic.code, 
+            bookTitle: book.title, topicTitle: topic.title, 
+            section, createdAt: row.created_at});
     }
 
     const activitiesHtml = ReactDOMServer.renderToString(

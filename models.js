@@ -99,14 +99,14 @@ export async function saveExerciseHistory( userId, exerciseId, solution) {
     }
 }
 
-export async function getTopicHistory( userId, topicIds) {
-    const {rows} = await query('SELECT * FROM topic_history WHERE user_id = $1 AND topic_id = ANY($2)', 
-    [userId, topicIds]);
+export async function getTopicHistory( userId, bookCode, topicCodes) {
+    const {rows} = await query('SELECT * FROM topic_history WHERE user_id = $1 AND book_code = $2 AND topic_code = ANY($3)', 
+    [userId, bookCode, topicCodes]);
 
     const th = {};
 
     rows.map( (obj, i) => {
-        th[obj.topic_id] = obj;
+        th[obj.topic_code] = obj;
     });
 
     return th;
@@ -137,8 +137,8 @@ export async function savePlaygroundCode( userId, playgroundId, code) {
     await query( 'INSERT INTO code_playground_data (user_id, playground_id, code, updated_at, created_at) VALUES ($1, $2, $3, $4, $4) ON CONFLICT (user_id, playground_id) DO UPDATE SET code = $3, updated_at = $4', [userId, playgroundId, code, new Date()]);
 }
 
-export async function saveTopicHistory( userId, topicId) {
-    await query( 'INSERT INTO topic_history (user_id, topic_id) values ($1, $2) ON CONFLICT (user_id, topic_id) DO NOTHING', [userId, topicId]);
+export async function saveTopicHistory( userId, bookCode, topicCode) {
+    await query( 'INSERT INTO topic_history (user_id, book_code, topic_code) values ($1, $2, $3) ON CONFLICT (user_id, book_code, topic_code) DO NOTHING', [userId, bookCode, topicCode]);
 }
 
 export async function getPackageHistory( userId, packageIds) {
