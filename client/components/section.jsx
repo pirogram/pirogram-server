@@ -1,12 +1,12 @@
 import React from 'react';
 import HtmlContent from './html-content.jsx';
-import MultipleChoice from './multi-choice.jsx';
-import CodeExplorer from './code-explorer.jsx';
-import CodingProblem from './coding-problem.jsx';
-import CategorizationQuestion from './categorize.jsx';
-import QualitativeQuestion from './qualitative.jsx';
-import FillInTheBlankQuestion from './fill-in-the-blank.jsx';
-import TestlessCodingProblem from './testless-coding-problem.jsx';
+import MultipleChoice from './sections/multi-choice.jsx';
+import CodeExplorer from './sections/code-explorer.jsx';
+import CodingProblem from './sections/coding-problem.jsx';
+import CategorizationQuestion from './sections/categorize.jsx';
+import QualitativeQuestion from './sections/qualitative.jsx';
+import FillInTheBlankQuestion from './sections/fill-in-the-blank.jsx';
+import TestlessCodingProblem from './sections/testless-coding-problem.jsx';
 
 export default class Section extends React.Component {
     render() {
@@ -24,15 +24,15 @@ export default class Section extends React.Component {
                 chained={section.chained} userId={userId} viewOnly={viewOnly}
                 starterCode={section.code} userCode={section.userCode}/>;
         } else if( section.type == 'coding-question') {
-            return <CodingProblem id={section.id} index={section.index}
+            return <CodingProblem id={section.id} index={section.index} testLines={section.testLines}
                 starterCode={section.code} viewOnly={viewOnly} solutionCount={section.solutionCount}
-                userCode={section.userCode} question={section.questionHtml} done={section.done}
-                referenceSolution={section.referenceSolution} tests={section.testsHtml} userId={userId}/>;
+                userCode={section.userCode} questionHtml={section.questionHtml} done={section.done}
+                referenceSolution={section.referenceSolution} testsHtml={section.testsHtml} userId={userId}/>;
         } else if( section.type == 'testless-coding-question') {
             return <TestlessCodingProblem id={section.id} index={section.index} viewOnly={viewOnly}
                 chained={section.chained} userId={userId} starterCode={section.code} 
                 solutionCount={section.solutionCount}
-                userCode={section.userCode} question={section.questionHtml} done={section.done}/>;
+                userCode={section.userCode} questionHtml={section.questionHtml} done={section.done}/>;
         } else if( section.type == 'categorization-question') {
             return <CategorizationQuestion id={section.id} index={section.index}
                 question={section.questionHtml} done={section.done} starterCode={section.code} 
@@ -47,9 +47,7 @@ export default class Section extends React.Component {
             return <FillInTheBlankQuestion id={section.id} index={section.index} viewOnly={viewOnly}
                 question={section.questionHtml} starterCode={section.code} userCode={section.userCode}
                 labels={section.labels} answers={section.answers} userId={userId} done={section.done}/>;
-
         } else {
-            console.log(section);
             return null;
         }
     }

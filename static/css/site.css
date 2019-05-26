@@ -122,11 +122,11 @@
     color: #9f3a38;
 }
 
-.practise-area {
+.practice-area {
     margin-bottom: 2em;
 }
 
-.practise-area .code-playground {
+.practice-area .code-playground {
     border: 1px solid rgba(34,36,38,.15);
     border-radius: 4px;
 }
@@ -329,4 +329,60 @@ div.ui.segment:target div.ui.label {
 
 .activities .ui.feed>.event>.content .extra.text {
     max-width: 100%;
+}
+
+.section-container {
+    position: relative;
+}
+
+.section-container.edit-mode {
+    border-left: 2px solid #DAE3F1;
+    padding: 0 0 0 8px;
+    margin-bottom: 4px;
+}
+
+.section-toolbar {
+    float: right;
+    margin-right: -123px;
+    background-color: #f1f5fb;
+    border-radius: 2px;
+}
+
+.section-toolbar .ui.button {
+    color: rgba(0,0,0,.4);
+    background-color: #f1f5fb;
+}
+
+.section-toolbar .ui.button:hover {
+    color: rgba(0,0,0,.8);
+    background-color: #DAE3F1;
+}
+
+.resizable-textarea {
+	resize: none;
+	line-height: 24px;
+	overflow: auto;
+    height: auto;
+    border: 1px solid rgba(34,36,38,.15);
+    border-radius: 4px;
+    padding: 0.5em;
+    width: 100%;
+}
+
+.resizable-textarea:focus {
+    outline: none;
+}
+
+.ui.hidden.clearing.divider {
+    margin: 0;
+}
+
+.CodeMirror {
+    height: auto !important;
+    font-family: Incosolata, monospace !important;
+}
+
+.CodeMirror-gutters {
+    background-color: #f1f5fb;
+    border-right: 1px solid #DAE3F1;
 }

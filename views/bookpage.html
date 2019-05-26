@@ -13,7 +13,7 @@
         </div>
     </div>
     <div class='twelve wide column topic-content'>
-        <h1>{{topic.index}} &nbsp;{{topic.title}}</h1>
+        <h1> <a href="/editor/{{book.code}}/{{topic.code}}" style="float:right"><i class='icon edit'></i></a> {{topic.index}} &nbsp;{{topic.title}}</h1>
 
         <div id='topic-content' style='margin-top: 1em;'>
             {{topicHtml|safe}}

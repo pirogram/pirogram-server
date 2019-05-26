@@ -1,7 +1,5 @@
 const path = require('path');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
 const webpack = require('webpack');
-const glob = require("glob");
 
 module.exports = {
     entry: './client/index.js',
@@ -21,10 +19,6 @@ module.exports = {
         new webpack.DefinePlugin({
             'process.env.NODE_ENV': '"production"'
         }),
-        new webpack.ContextReplacementPlugin(
-            /monaco-editor(\\|\/)esm(\\|\/)vs(\\|\/)editor(\\|\/)common(\\|\/)services/,
-            __dirname
-        ),
         new webpack.optimize.UglifyJsPlugin({
             mangle: true,
             compress: {
@@ -41,11 +35,5 @@ module.exports = {
         }),
         new webpack.IgnorePlugin(/^\.\/locale$/, [/moment$/]),
         new webpack.NoEmitOnErrorsPlugin(),
-        new CopyWebpackPlugin([
-          {
-            from: 'node_modules/monaco-editor/min/vs',
-            to: 'vs',
-          }
-        ])
     ]
 }

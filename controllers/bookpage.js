@@ -12,9 +12,11 @@ const {logger} = require('../lib/logger');
 const cms = require('../lib/cms');
 const userstate = require('../lib/userstate');
 import {ensureUser} from '../lib/util';
+const {CodeExecutor} = require('../lib/code-executor');
+const hljs = require('highlight.js');
 import TOC from '../client/components/toc.jsx';
 import Topic from '../client/components/topic.jsx';
-import CodeExplorer from '../client/components/code-explorer';
+//import CodeExplorer from '../client/components/sections/code-explorer';
 const React = require('react');
 const ReactDOMServer = require('react-dom/server');
 
@@ -96,8 +98,10 @@ bookPageApp.use( router.post( '/exercise/:exerciseId/solution', async function( 
 
         ctx.body = JSON.stringify({solutionIsCorrect, correctIds});
     } else if( exercise.type == 'coding-question') {
+        console.log(ctx.request.body)
         const inSessionId = ctx.request.body.sessionId;
         const code = ctx.request.body.code;
+        const testLines = ctx.request.body.testLines;
         const playgroundId = ctx.request.body.playgroundId;
         const viewOnly = ctx.request.body.viewOnly;
 
@@ -112,7 +116,7 @@ bookPageApp.use( router.post( '/exercise/:exerciseId/solution', async function( 
             codeExecutor = await CodeExecutor.get(); 
         }
 
-        const {output, hasError, testResults} = await codeExecutor.execute(code, exercise.tests);
+        const {output, hasError, testResults} = await codeExecutor.execute(code, testLines);
 
         let hasFailedTest = false;
         for( const test of testResults) {

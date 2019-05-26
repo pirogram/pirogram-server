@@ -1,26 +1,44 @@
 import React from 'react';
 import {render} from 'react-dom';
 import Header from './components/header.jsx';
-import Topic from './components/topic.jsx';
-import CodeExplorer from './components/code-explorer.jsx';
-import {initCodeExecutor} from './code-exec';
+import TopicView from './components/topic.jsx';
+import TopicEditor from './components/topic-editor.jsx';
+import CodeExplorer from './components/sections/code-explorer.jsx';
+import {initCodeExecutor} from './code-exec.js';
 import Activities from './components/activities.jsx';
 import TOC from './components/toc.jsx';
+import {Topic} from '../codebook/topic.js'
+import TOCEditor from './components/toc-editor.jsx';
 
 initCodeExecutor();
 
 render(<Header user={window.initialStore.user}/>, document.getElementById('turtle-header'));
 
 if( window.initialStore.topic) {
-    render(
-        <Topic userId={window.initialStore.user ? window.initialStore.user.id : 0} 
-            topic={window.initialStore.topic}/>,
-        document.getElementById('topic-content')
-    );
+    const topic = Topic.create( window.initialStore.topic)
 
-    render(
-        <TOC toc={window.initialStore.toc} currEntryIndex={window.initialStore.currEntryIndex} />, document.getElementById('toc-content')
-    );
+    if( document.getElementById('topic-content')) {
+        render(
+            <TopicView userId={window.initialStore.user ? window.initialStore.user.id : 0} 
+                topic={topic}/>,
+            document.getElementById('topic-content')
+        );
+
+        render(
+            <TOC toc={window.initialStore.toc} currEntryIndex={window.initialStore.currEntryIndex} />, document.getElementById('toc-content')
+        );
+    } else if( document.getElementById('topic-content-editor')) {
+        render(
+            <TopicEditor userId={window.initialStore.user ? window.initialStore.user.id : 0} 
+                topic={topic}/>,
+            document.getElementById('topic-content-editor')
+        );
+
+        render(
+            <TOCEditor toc={window.initialStore.toc} currEntryIndex={window.initialStore.currEntryIndex} />, document.getElementById('toc-content')
+        );
+    }
+
 } else if( window.initialStore.hasGeneralCodePlayground) {
     const starterCode = '# code goes here ...\n\n\n';
     render(

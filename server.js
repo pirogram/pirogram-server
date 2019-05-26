@@ -13,6 +13,7 @@ const bookpage = require( './controllers/bookpage');
 const user = require( './controllers/user');
 const code = require( './controllers/code');
 const activity = require( './controllers/activity');
+const editor = require( './controllers/editor');
 const bodyParser = require( 'koa-body');
 const reqLogger = require('koa-logger');
 const config = require('config');
@@ -35,6 +36,7 @@ app.use( view( __dirname + '/views', {
 app.use( mount( auth.authApp));
 app.use( mount( user.userApp));
 app.use( mount( bookpage.bookPageApp));
+app.use( mount( editor.editorApp));
 app.use( mount( misc.miscApp));
 app.use( mount( code.codeApp));
 app.use( mount( activity.activityApp));

@@ -5,7 +5,7 @@ import CodeOutput from './code-output.jsx';
 import CodeInput from './code-input.jsx';
 import CodeTests from './code-tests.jsx';
 import CodeStatus from './code-status.jsx';
-import {ComponentNuxState} from '../../nux.js';
+import {ComponentNuxState, dispatch} from '../../nux.js';
 
 export default class CodePlayground extends React.Component {
     constructor( props) {
@@ -13,18 +13,31 @@ export default class CodePlayground extends React.Component {
 
         this.nuxState = new CodePlaygroundState( this);
         this.state = this.nuxState.state;
+
+        this.onExecute = this.onExecute.bind(this)
     }
+
+    onExecute( code) {
+        if( this.props.executeCmd) {
+            this.props.executeCmd( code)
+        } else {
+            dispatch( 'CODE_EXECUTION_REQUEST', {code, playgroundId: this.state.id});
+        }
+    }
+
 
     render() {
         return (
-            <div className='code-playground'>
-                <CodeEditor id={this.state.id} code={this.state.code} executeCmd={this.props.executeCmd} 
-                    starterCode={this.state.starterCode} loading={this.state.loading}/>
+            <div className='practice-area'>
+                <div className='code-playground'>
+                    <CodeEditor id={this.state.id} code={this.state.code} executeCmd={this.onExecute} 
+                        starterCode={this.state.starterCode} loading={this.state.loading}/>
 
-                <CodeTests tests={this.state.tests} />
-                <CodeOutput output={this.state.output} />
-                {this.state.needInput ? <CodeInput id={this.state.id}/> : null}
-                <CodeStatus status={this.state.status} />
+                    <CodeTests testsHtml={this.state.testsHtml} />
+                    <CodeOutput output={this.state.output} />
+                    {this.state.needInput ? <CodeInput id={this.state.id}/> : null}
+                    <CodeStatus status={this.state.status} />
+                </div>
             </div>
         );
     }
@@ -34,8 +47,8 @@ CodePlayground.PropTypes = {
     id: PropTypes.string.isRequired,
     starterCode: PropTypes.string.isRequired,
     userCode: PropTypes.string,
-    tests: PropTypes.arrayOf( PropTypes.string),
-    executeCmd: PropTypes.func.isRequired
+    testsHtml: PropTypes.arrayOf( PropTypes.string),
+    executeCmd: PropTypes.func
 };
 
 class CodePlaygroundState extends ComponentNuxState {
@@ -59,7 +72,7 @@ class CodePlaygroundState extends ComponentNuxState {
         const newState = Object.assign({}, this.state, {status: 'success', loading: false, 
             output: this.state.output.concat(data.output), needInput: false});
         if(!data.hasError) {
-            newState.tests = data.testResults;
+            newState.testsHtml = data.testResults;
         }
 
         try {

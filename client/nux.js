@@ -42,7 +42,12 @@ export function dispatch( eventName, data) {
 
     if( listeners[ eventName]) {
         for( const listener of listeners[eventName]) {
-            listener( data);
+            try {
+                listener( data);
+            } catch( e) {
+                console.log('Error in dispatching event: ', eventName, listener)
+                console.log(e)
+            }
         }
     }
 }

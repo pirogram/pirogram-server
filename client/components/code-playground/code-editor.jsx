@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Icon} from 'semantic-ui-react';
-import Editor from './editor-shell.jsx';
+import CodeMirrorEditor from '../code-mirror.jsx';
 
 export default class CodeEditor extends React.Component {
     constructor( props) {
@@ -13,12 +13,12 @@ export default class CodeEditor extends React.Component {
 
     runCode( e) {
         e.preventDefault();
-        this.props.executeCmd( this.editor.getCode());
+        this.props.executeCmd( this.editor.getValue());
     }
 
     revertCode( e) {
         e.preventDefault();
-        this.editor.setCode( this.props.starterCode);
+        this.editor.setValue( this.props.starterCode);
     }
 
     render() {
@@ -33,7 +33,7 @@ export default class CodeEditor extends React.Component {
                     <a href='#' onClick={this.runCode}>{playIcon}</a> 
                     {this.props.starterCode ? <a href='#' onClick={this.revertCode}><Icon name='reply' title='Revert to Starter Code'/></a> : null}
                 </div>
-                <Editor id={this.props.id} code={this.props.code} ref={(editor) => {this.editor = editor;}} executeCmd={this.props.executeCmd}/>
+                <CodeMirrorEditor id={this.props.id} value={this.props.code} ref={(editor) => {this.editor = editor;}} executeCmd={this.props.executeCmd}/>
             </div>
         );
     }

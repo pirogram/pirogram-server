@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}{{topic.title}} - {{book.title}}{% endblock %}
+
+{% block content %}
+
+<div class='ui grid'>
+    <div class='four wide column topic-meta'>
+        <div class='toc'>
+            <div id='toc-content'>
+                {{tocHtml|safe}}
+            </div>
+        </div>
+    </div>
+    <div class='twelve wide column topic-content'>
+        <h1>{{topic.index}} &nbsp;{{topic.title}}</h1>
+
+        <div id='topic-content-editor' style='margin-top: 1em;'>
+            {{topicHtml|safe}}
+        </div>
+    </div>
+</div>
+
+<div class="ui hidden clearing divider"></div>
+
+{% endblock %}

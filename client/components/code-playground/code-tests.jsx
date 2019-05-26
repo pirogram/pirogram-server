@@ -4,12 +4,12 @@ import {Icon} from 'semantic-ui-react';
 
 export default class CodeTests extends React.Component {
     render() {
-        if( !this.props.tests || !this.props.tests.length) { return null; }
+        if( !this.props.testsHtml || !this.props.testsHtml.length) { return null; }
 
         return (
             <div className='tests'>
                 <div className='block-name'>tests</div>
-                {this.props.tests.map( (test, i) => {
+                {this.props.testsHtml.map( (test, i) => {
                     let icon = null;
                     if( test.result == 'ok') {
                         icon = <Icon name='checkmark' color='green'/>
