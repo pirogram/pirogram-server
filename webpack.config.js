@@ -3,7 +3,7 @@ const webpack = require('webpack');
 
 module.exports = {
     entry: './client/index.js',
-    devtool: 'cheap-module-eval-source-map',
+    devtool: 'inline-source-map', /*'cheap-module-eval-source-map',*/
     output: {
         path: path.resolve('static/js'),
         filename: 'client_bundle.js'
@@ -17,9 +17,9 @@ module.exports = {
     },
     plugins: [
         new webpack.DefinePlugin({
-            'process.env.NODE_ENV': '"production"'
+            'process.env.NODE_ENV': '"development"'
         }),
-        new webpack.optimize.UglifyJsPlugin({
+        /*new webpack.optimize.UglifyJsPlugin({
             mangle: true,
             compress: {
                 warnings: false, // Suppress uglification warnings
@@ -32,7 +32,7 @@ module.exports = {
                 comments: false,
             },
             exclude: [/\.min\.js$/gi] // skip pre-minified libs
-        }),
+        }),*/
         new webpack.IgnorePlugin(/^\.\/locale$/, [/moment$/]),
         new webpack.NoEmitOnErrorsPlugin(),
     ]

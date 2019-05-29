@@ -17,10 +17,10 @@ export default class SectionSelector extends React.Component {
                             dispatch('SECTION_TYPE_SELECTED', {sectionId, type: 'live-code'})
                         }}>Code Explorer</Button></Grid.Column>
                         <Grid.Column><Button size='mini' basic fluid onClick={(e) => { 
-                            dispatch('SECTION_TYPE_SELECTED', {sectionId, type: 'testless-coding-problem'})
+                            dispatch('SECTION_TYPE_SELECTED', {sectionId, type: 'coding-question'})
                         }}>Code (w/ Tests)</Button></Grid.Column>
                         <Grid.Column><Button size='mini' basic fluid onClick={(e) => { 
-                            dispatch('SECTION_TYPE_SELECTED', {sectionId, type: 'coding-problem'})
+                            dispatch('SECTION_TYPE_SELECTED', {sectionId, type: 'testless-coding-question'})
                         }}>Code (w/o Tests)</Button></Grid.Column>
                     </Grid.Row>
                     <Grid.Row>

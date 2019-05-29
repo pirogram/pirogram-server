@@ -5,7 +5,7 @@ export default class TOC extends React.Component {
     constructor( props) {
         super( props);
         this.openPackages = {};
-        this.openPackages[props.currEntryIndex.groupIndex.toString()] = 1;
+        this.openPackages[props.currEntry.groupIndex.toString()] = 1;
         this.state = { openPackages: {}};
     }
 
@@ -32,13 +32,13 @@ export default class TOC extends React.Component {
                             {that.openPackages[group.index] ? 
                                 group.topics.map( (topic, i) => {
                                     let icon = 'wait';
-                                    if( topic.index == that.props.currEntryIndex.jointIndex) { 
+                                    if( topic.index == that.props.currEntry.jointIndex) { 
                                         icon = 'hand left outline';
                                     } else if( topic.done) {
                                         icon = 'green checkmark';
                                     }
                                     return <Menu.Item 
-                                        key={i} active={topic.index === that.props.currEntryIndex.jointIndex}
+                                        key={i} active={topic.index === that.props.currEntry.jointIndex}
                                         href={'/@' + that.props.toc.code + '/' + topic.code}>
                                             <Icon name={icon} />
                                             {topic.index + '  ' + topic.title}

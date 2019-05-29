@@ -6,7 +6,7 @@ const listeners = {};
 export class ComponentNuxState {
     constructor( component) {
         this.component = component;
-        this.state = Object.assign({}, component.props);
+        this.state = this.component.state = Object.assign({}, component.props);
         stateObjs.push( this);
     }
 

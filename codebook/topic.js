@@ -3,6 +3,7 @@ const {Section} = require('./section');
 
 export class Topic {
     constructor( data, sections) {
+        this.id = data.id
         this.code = data.code;
         this.title = data.title;
         this.index = data.index;

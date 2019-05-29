@@ -32,22 +32,23 @@ editorApp.use( router.get( '/editor/:bookCode/:topicCode', async function( ctx, 
     if( !topic) { ctx.status = 404; return; }
     topic = topic.clone()
 
-    const currEntryIndex = {
+    const currEntry = {
+        id: topic.id,
         jointIndex: topic.index,
         groupIndex: parseInt( topic.index.split('.')[0]), 
         topicIndex: parseInt( topic.index.split('.')[1])
     }
 
     const tocHtml = ReactDOMServer.renderToString(
-        <TOC toc={toc} currEntryIndex={currEntryIndex} />
+        <TOC toc={toc} currEntry={currEntry} />
     );
     const topicHtml = ReactDOMServer.renderToString(
         <TopicEditor topic={topic} userId={ctx.state.user.id}/>
     );
 
     await ctx.render( 'topic-editor', 
-        {book, toc, topic, topicHtml, tocHtml, currEntryIndex}, 
-        {toc, topic, currEntryIndex});
+        {book, toc, topic, topicHtml, tocHtml, currEntry}, 
+        {toc, topic, currEntry});
 }))
 
 module.exports = {editorApp}

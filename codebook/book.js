@@ -1,5 +1,6 @@
 'use strict';
 
+
 export class Book {
     constructor(data) {
         this.code = data.code;

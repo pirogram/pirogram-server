@@ -51,33 +51,34 @@ bookPageApp.use( router.get( '/@:bookCode/:topicCode', async function( ctx, book
     if( !topic) { ctx.status = 404; return; }
     topic = topic.clone()
 
-    const currEntryIndex = {
+    const currEntry = {
+        id: topic.id,
         jointIndex: topic.index,
         groupIndex: parseInt( topic.index.split('.')[0]), 
         topicIndex: parseInt( topic.index.split('.')[1])
     }
 
-    const {prevTopic, nextTopic} = book.getPrevNext( currEntryIndex.groupIndex, currEntryIndex.topicIndex)
+    const {prevTopic, nextTopic} = book.getPrevNext( currEntry.groupIndex, currEntry.topicIndex)
 
     if( userId) { 
         const thObjs = await userstate.addUserStateToToC( toc, userId);
         await userstate.addUserStateToTopic( topic, userId);
 
         await userstate.markDoneTopicAsDone( userId, book, topic, thObjs);
-        await userstate.markDoneGroupAsDone( userId, book, book.topicGroups[currEntryIndex.groupIndex-1], thObjs)
+        await userstate.markDoneGroupAsDone( userId, book, book.topicGroups[currEntry.groupIndex-1], thObjs)
         await userstate.updateLastVisitedTopic( userId, book.code, topic.code);
     }
     
     const tocHtml = ReactDOMServer.renderToString(
-        <TOC toc={toc} currEntryIndex={currEntryIndex} />
+        <TOC toc={toc} currEntry={currEntry} />
     );
     const topicHtml = ReactDOMServer.renderToString(
         <Topic topic={topic}  userId={userId}/>
     );
 
     await ctx.render( 'bookpage', 
-        {book, toc, topic, topicHtml, tocHtml, currEntryIndex, prevTopic, nextTopic}, 
-        {toc, topic, currEntryIndex});
+        {book, toc, topic, topicHtml, tocHtml, currEntry, prevTopic, nextTopic}, 
+        {toc, topic, currEntry});
 }));
 
 

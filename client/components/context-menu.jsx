@@ -10,8 +10,10 @@ export default class ContextMenuContainer extends React.Component {
     }
 
     handleContextMenu(evt) {
+        if( this.props.disabled) return
+        
         evt.preventDefault()
-        dispatch( 'CONTEXT_MENU_DISPLAY', {contextId: this.props.id, pageX: evt.pageX, 
+        dispatch( 'CONTEXT_MENU_DISPLAY', {contextId: this.props.contextId, pageX: evt.pageX, 
             pageY: evt.pageY, contextItems: this.props.contextItems})
     }
 
@@ -87,18 +89,15 @@ class ContextMenu extends React.Component {
                     vertical
                     data-id="menu"
                     size='small'
-                    style={{
-                        ...contextMenuStyles.menu,
-                        top,
-                        left
-                    }}>
+                    style={{...contextMenuStyles.menu, top, left}}>
                 {this.props.contextItems.map(contextItem => (
                     <Menu.Item
                         content={contextItem.content}
                         style={{ whiteSpace: "nowrap" }}
                         onClick={evt => {
+                            evt.stopPropagation()
                             dispatch('CONTEXT_MENU_ITEM_CLICKED', {contextId, contextItem})
-                    }}/>
+                            dispatch('CONTEXT_MENU_CLEAR', {})}}/>
                 ))}
                 </Menu>
             </div>
@@ -112,7 +111,7 @@ let listenersRegistered = false
 function registerListeners() {
     if( listenersRegistered) return
 
-    document.body.addEventListener('click', clearContextMenu)
+    //document.body.addEventListener('click', clearContextMenu)
     document.body.addEventListener('keypress', (e) => {
         if( e.defaultPrevented) return
         if( e.keyCode == 27) clearContextMenu()

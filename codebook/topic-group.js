@@ -3,7 +3,8 @@
 export class TopicGroup {
     index
 
-    constructor( code, title, topics) {
+    constructor( id, code, title, topics) {
+        this.id = id
         this.code = code;
         this.title = title;
         this.topics = topics || [];

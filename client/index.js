@@ -25,7 +25,7 @@ if( window.initialStore.topic) {
         );
 
         render(
-            <TOC toc={window.initialStore.toc} currEntryIndex={window.initialStore.currEntryIndex} />, document.getElementById('toc-content')
+            <TOC toc={window.initialStore.toc} currEntry={window.initialStore.currEntry} />, document.getElementById('toc-content')
         );
     } else if( document.getElementById('topic-content-editor')) {
         render(
@@ -35,7 +35,7 @@ if( window.initialStore.topic) {
         );
 
         render(
-            <TOCEditor toc={window.initialStore.toc} currEntryIndex={window.initialStore.currEntryIndex} />, document.getElementById('toc-content')
+            <TOCEditor toc={window.initialStore.toc} currEntry={window.initialStore.currEntry} />, document.getElementById('toc-content')
         );
     }
 
