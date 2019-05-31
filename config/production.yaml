@@ -11,6 +11,7 @@ github_oauth:
   redirect_uri: "https://www.pirogram.com/github-oauth-callback"
   client_id: ""
   client_secret: ""
+  content_oauth_token: ""
   scopes:
     - read:user
     - user:email

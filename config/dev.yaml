@@ -16,6 +16,7 @@ github_oauth:
   redirect_uri: "http://localhost:5000/github-oauth-callback"
   client_id: ""
   client_secret: ""
+  content_oauth_token: ""
   scopes:
     - read:user
     - user:email

@@ -10,6 +10,7 @@ const flash = require( './lib/flash');
 const authlib = require( './lib/auth');
 const misc = require( './controllers/misc');
 const bookpage = require( './controllers/bookpage');
+const books = require( './controllers/books');
 const user = require( './controllers/user');
 const code = require( './controllers/code');
 const activity = require( './controllers/activity');
@@ -36,6 +37,7 @@ app.use( view( __dirname + '/views', {
 app.use( mount( auth.authApp));
 app.use( mount( user.userApp));
 app.use( mount( bookpage.bookPageApp));
+app.use( mount( books.booksApp))
 app.use( mount( editor.editorApp));
 app.use( mount( misc.miscApp));
 app.use( mount( code.codeApp));

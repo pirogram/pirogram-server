@@ -21,3 +21,4 @@ google_oauth:
 github_oauth:
   client_id: GITHUB_CLIENT_ID
   client_secret: GITHUB_CLIENT_SECRET
+  content_oauth_token: GITHUB_CONTENT_OAUTH_TOKEN
