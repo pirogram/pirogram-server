@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}All Books{% endblock %}
+{% block bodyclass %}single column{% endblock %}
+
+{% block content %}
+
+<H1>Books</H1>
+
+<div class='ui divided relaxed list'>
+    {% for book in booksList %}
+        <div class='item'>
+            <div class='content'>
+                <a class='header' href="/editor/{{book.code}}">{{book.title}}</a>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+
+<a class='ui primary button' href='/books/create'>Create Book &rarr;</a>
+
+{% endblock %}

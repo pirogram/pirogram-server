@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Create Book{% endblock %}
+{% block bodyclass %}single column{% endblock %}
+
+{% block content %}
+
+<H1>Create Book</H1>
+<form method='POST' class="ui form {% if errors %}error{% endif %}" enctype='application/x-www-form-urlencoded'>
+    <div class="field">
+        <label>Title</label>
+        <input type=text name=title placeholder='Title (e.g. Programming With Python)' value="{{title}}"/>
+        {% if errors.title %}
+            <div class="ui error message tiny">{{errors.title}}</div>
+        {% endif %}
+    </div>
+
+    <div class="field">
+        <label>Code (no whitespace or special characters)</label>
+        <input type=text name=code placeholder='Code (e.g. programming-with-python)' value="{{code}}"/>
+        {% if errors.code %}
+            <div class="ui error message tiny">{{errors.code}}</div>
+        {% endif %}
+    </div>
+
+    <div class="field">
+        <button class="ui primary button" type="submit">Create</button>
+    </div>
+</form>
+
+
+{% endblock %}
